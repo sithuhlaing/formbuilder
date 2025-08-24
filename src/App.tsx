@@ -15,8 +15,7 @@ import { templateService } from './services/templateService';
 import type { 
   FormTemplateType, 
   FormTemplate, 
-  ComponentType,
-  FormComponentData
+  ComponentType
 } from "./components/types";
 
 // A helper function to find and update components recursively
