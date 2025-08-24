@@ -5,7 +5,7 @@ import type { ComponentType } from '../types';
 
 interface SurveyDropZoneProps {
   children: React.ReactNode;
-  onInsertBetween: (type: ComponentType, insertIndex: number) => void;
+  onInsertBetween: (type: ComponentType, index: number) => void;
   onInsertHorizontal: (type: ComponentType, targetId: string, position: 'left' | 'right') => void;
   componentCount: number;
 }
@@ -34,46 +34,46 @@ const SurveyDropZone: React.FC<SurveyDropZoneProps> = ({
     const relativeY = clientY - rect.top;
     const relativeX = clientX - rect.left;
 
-    // Get all form components in the container
-    const components = container.querySelectorAll('.form-component');
+    // Get all form components and groups in the container
+    const elements = container.querySelectorAll('.form-component, .component-group');
     
-    for (let i = 0; i < components.length; i++) {
-      const component = components[i] as HTMLElement;
-      const compRect = component.getBoundingClientRect();
-      const compRelativeTop = compRect.top - rect.top;
-      const compRelativeBottom = compRect.bottom - rect.top;
-      const compRelativeLeft = compRect.left - rect.left;
-      const compRelativeRight = compRect.right - rect.left;
+    for (let i = 0; i < elements.length; i++) {
+      const element = elements[i] as HTMLElement;
+      const elementRect = element.getBoundingClientRect();
+      const elementRelativeTop = elementRect.top - rect.top;
+      const elementRelativeBottom = elementRect.bottom - rect.top;
+      const elementRelativeLeft = elementRect.left - rect.left;
+      const elementRelativeRight = elementRect.right - rect.left;
 
-      // Check if hovering over this component
-      if (relativeY >= compRelativeTop && relativeY <= compRelativeBottom) {
-        const componentId = component.getAttribute('data-component-id');
+      // Check if hovering over this element
+      if (relativeY >= elementRelativeTop && relativeY <= elementRelativeBottom) {
+        const elementId = element.getAttribute('data-component-id') || element.getAttribute('data-group-id');
         
-        // Check horizontal segments (left/right of component)
-        const horizontalThreshold = compRect.width * 0.3;
+        // Check horizontal segments (left/right of element)
+        const horizontalThreshold = elementRect.width * 0.25; // 25% from edges
         
-        if (relativeX >= compRelativeLeft && relativeX <= compRelativeLeft + horizontalThreshold) {
-          // Left side of component
+        if (relativeX >= elementRelativeLeft && relativeX <= elementRelativeLeft + horizontalThreshold) {
+          // Left side of element
           return {
             type: 'left',
             index: i,
-            targetId: componentId || undefined
+            targetId: elementId || undefined
           };
-        } else if (relativeX >= compRelativeRight - horizontalThreshold && relativeX <= compRelativeRight) {
-          // Right side of component  
+        } else if (relativeX >= elementRelativeRight - horizontalThreshold && relativeX <= elementRelativeRight) {
+          // Right side of element  
           return {
             type: 'right',
             index: i,
-            targetId: componentId || undefined
+            targetId: elementId || undefined
           };
         }
       }
 
-      // Check between segments (vertical gaps between components)
-      if (i < components.length - 1) {
-        const nextComponent = components[i + 1] as HTMLElement;
-        const nextRect = nextComponent.getBoundingClientRect();
-        const gapTop = compRect.bottom - rect.top;
+      // Check between segments (vertical gaps between elements)
+      if (i < elements.length - 1) {
+        const nextElement = elements[i + 1] as HTMLElement;
+        const nextRect = nextElement.getBoundingClientRect();
+        const gapTop = elementRect.bottom - rect.top;
         const gapBottom = nextRect.top - rect.top;
         
         if (relativeY >= gapTop - 10 && relativeY <= gapBottom + 10) {
@@ -86,23 +86,23 @@ const SurveyDropZone: React.FC<SurveyDropZoneProps> = ({
     }
 
     // Check for drop at the end
-    if (components.length > 0) {
-      const lastComponent = components[components.length - 1] as HTMLElement;
-      const lastRect = lastComponent.getBoundingClientRect();
+    if (elements.length > 0) {
+      const lastElement = elements[elements.length - 1] as HTMLElement;
+      const lastRect = lastElement.getBoundingClientRect();
       const lastBottom = lastRect.bottom - rect.top;
       
       if (relativeY > lastBottom) {
         return {
           type: 'between',
-          index: components.length
+          index: elements.length
         };
       }
     }
 
-    // Drop at the beginning if above all components
-    if (components.length > 0) {
-      const firstComponent = components[0] as HTMLElement;
-      const firstRect = firstComponent.getBoundingClientRect();
+    // Drop at the beginning if above all elements
+    if (elements.length > 0) {
+      const firstElement = elements[0] as HTMLElement;
+      const firstRect = firstElement.getBoundingClientRect();
       const firstTop = firstRect.top - rect.top;
       
       if (relativeY < firstTop) {
@@ -113,7 +113,7 @@ const SurveyDropZone: React.FC<SurveyDropZoneProps> = ({
       }
     }
 
-    // Default to end if no components
+    // Default to end if no elements
     return {
       type: 'between',
       index: 0
@@ -166,28 +166,34 @@ const SurveyDropZone: React.FC<SurveyDropZoneProps> = ({
 
     const container = dropRef.current;
     const rect = container.getBoundingClientRect();
-    const components = container.querySelectorAll('.form-component');
+    const elements = container.querySelectorAll('.form-component, .component-group');
 
     if (activeSegment.type === 'between') {
       let indicatorTop = 0;
       
-      if (activeSegment.index === 0 && components.length > 0) {
-        // Before first component
-        const firstComp = components[0] as HTMLElement;
-        const firstRect = firstComp.getBoundingClientRect();
-        indicatorTop = firstRect.top - rect.top - 10;
-      } else if (activeSegment.index >= components.length) {
-        // After last component
-        const lastComp = components[components.length - 1] as HTMLElement;
-        const lastRect = lastComp.getBoundingClientRect();
-        indicatorTop = lastRect.bottom - rect.top + 10;
-      } else {
-        // Between components
-        const prevComp = components[activeSegment.index - 1] as HTMLElement;
-        const nextComp = components[activeSegment.index] as HTMLElement;
-        const prevRect = prevComp.getBoundingClientRect();
-        const nextRect = nextComp.getBoundingClientRect();
-        indicatorTop = (prevRect.bottom + nextRect.top) / 2 - rect.top;
+      if (activeSegment.index === 0 && elements.length > 0) {
+        // Before first element
+        const firstEl = elements[0] as HTMLElement;
+        if (firstEl) {
+          const firstRect = firstEl.getBoundingClientRect();
+          indicatorTop = firstRect.top - rect.top - 10;
+        }
+      } else if (activeSegment.index >= elements.length && elements.length > 0) {
+        // After last element
+        const lastEl = elements[elements.length - 1] as HTMLElement;
+        if (lastEl) {
+          const lastRect = lastEl.getBoundingClientRect();
+          indicatorTop = lastRect.bottom - rect.top + 10;
+        }
+      } else if (activeSegment.index > 0 && activeSegment.index < elements.length) {
+        // Between elements
+        const prevEl = elements[activeSegment.index - 1] as HTMLElement;
+        const nextEl = elements[activeSegment.index] as HTMLElement;
+        if (prevEl && nextEl) {
+          const prevRect = prevEl.getBoundingClientRect();
+          const nextRect = nextEl.getBoundingClientRect();
+          indicatorTop = (prevRect.bottom + nextRect.top) / 2 - rect.top;
+        }
       }
 
       return (
@@ -208,23 +214,23 @@ const SurveyDropZone: React.FC<SurveyDropZoneProps> = ({
         />
       );
     } else if (activeSegment.type === 'left' || activeSegment.type === 'right') {
-      const targetComponent = container.querySelector(`[data-component-id="${activeSegment.targetId}"]`) as HTMLElement;
-      if (!targetComponent) return null;
+      const targetElement = container.querySelector(`[data-component-id="${activeSegment.targetId}"], [data-group-id="${activeSegment.targetId}"]`) as HTMLElement;
+      if (!targetElement) return null;
 
-      const compRect = targetComponent.getBoundingClientRect();
+      const elRect = targetElement.getBoundingClientRect();
       const indicatorLeft = activeSegment.type === 'left' 
-        ? compRect.left - rect.left - 4
-        : compRect.right - rect.left;
+        ? elRect.left - rect.left - 4
+        : elRect.right - rect.left;
 
       return (
         <div
           className="drop-indicator-horizontal"
           style={{
             position: 'absolute',
-            top: `${compRect.top - rect.top}px`,
+            top: `${elRect.top - rect.top}px`,
             left: `${indicatorLeft}px`,
             width: '4px',
-            height: `${compRect.height}px`,
+            height: `${elRect.height}px`,
             backgroundColor: 'var(--color-primary-500)',
             borderRadius: '2px',
             zIndex: 1000,
@@ -252,6 +258,11 @@ const SurveyDropZone: React.FC<SurveyDropZoneProps> = ({
       labelText = 'Insert to the left (side by side)';
     } else if (activeSegment.type === 'right') {
       labelText = 'Insert to the right (side by side)';
+    }
+
+    // Fallback label if something went wrong
+    if (!labelText) {
+      labelText = 'Drop component here';
     }
 
     return (

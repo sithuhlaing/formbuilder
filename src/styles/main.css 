@@ -1,7 +1,9 @@
 
+@import 'tailwindcss';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import './dropzone.css';
 
 /* Custom styles for drag and drop */
 .dragging {
@@ -102,21 +104,224 @@
   @apply bg-gray-50 text-gray-500 cursor-not-allowed;
 }
 
+/* Custom CSS variables for consistent theming */
+:root {
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-300: #93c5fd;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-gray-50: #f9fafb;
+  --color-gray-300: #d1d5db;
+  --color-gray-500: #6b7280;
+  --space-1: 4px;
+  --space-2: 8px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --font-weight-semibold: 600;
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f3f4f6;
+}
+
+/* Form builder specific styles */
+.form-builder {
+  display: flex;
+  height: 100vh;
+  gap: 16px;
+  padding: 16px;
+}
+
+.sidebar {
+  width: 280px;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+}
+
+.properties-panel {
+  width: 320px;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+/* Component palette styles */
+.component-palette {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.component-palette h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background-color: #ffffff;
+  cursor: grab;
+  transition: all 0.2s ease;
+}
+
+.palette-item:hover {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.palette-item:active {
+  cursor: grabbing;
+  transform: translateY(0);
+}
+
+.palette-item-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.palette-item-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* Properties panel styles */
+.properties-panel h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.property-group {
+  margin-bottom: 20px;
+}
+
+.property-group h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.property-field {
+  margin-bottom: 12px;
+}
+
+.property-field label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.property-field input,
+.property-field textarea,
+.property-field select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.property-field input:focus,
+.property-field textarea:focus,
+.property-field select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.property-field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-field input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
 /* Responsive design */
-@media (max-width: 768px) {
-  .sidebar {
-    width: 100%;
+@media (max-width: 1200px) {
+  .properties-panel {
+    width: 280px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .form-builder {
+    flex-direction: column;
     height: auto;
-    position: relative;
+    min-height: 100vh;
   }
   
-  .canvas {
-    padding: 1rem;
-  }
-  
-  .properties {
+  .sidebar,
+  .properties-panel {
     width: 100%;
-    position: relative;
+  }
+  
+  .main-content {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-builder {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .sidebar,
+  .properties-panel {
+    padding: 12px;
   }
 }
 

@@ -1,22 +1,22 @@
-import React, { useState } from "react";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
-import Sidebar from "./components/Sidebar";
-import Canvas from "./components/Canvas";
-import Properties from "./components/Properties";
-import PreviewModal from "./components/molecules/PreviewModal";
-import PageNavigation from "./components/molecules/PageNavigation";
-import TemplateListView from "./components/TemplateListView";
-import ConfirmationModal from "./components/molecules/ConfirmationModal";
-import NotificationModal from "./components/molecules/NotificationModal";
-import { useFormBuilder } from "./hooks/useFormBuilder";
-import { useModals } from "./hooks/useModals";
-import { templateService } from "./services/templateService";
+import React, { useState } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import Sidebar from './components/Sidebar';
+import Canvas from './components/Canvas';
+import Properties from './components/Properties';
+import PreviewModal from './components/molecules/PreviewModal';
+import PageNavigation from './components/molecules/PageNavigation';
+import TemplateListView from './components/TemplateListView';
+import ConfirmationModal from './components/molecules/ConfirmationModal';
+import NotificationModal from './components/molecules/NotificationModal';
+import { useFormBuilder } from './hooks/useFormBuilder';
+import { useModals } from './hooks/useModals';
+import { templateService } from './services/templateService';
 import type { 
   FormTemplateType, 
   FormTemplate, 
   ComponentType,
-  FormComponentData,
+  FormComponentData
 } from "./components/types";
 
 // A helper function to find and update components recursively
@@ -73,7 +73,6 @@ const App: React.FC = () => {
     insertBetweenComponents,
     insertHorizontalToComponent,
     pages,
-    currentPage,
     currentPageId,
     addPage,
     deletePage,
@@ -87,7 +86,18 @@ const App: React.FC = () => {
   } = useFormBuilder({ showConfirmation, showNotification });
 
   const handleSave = () => {
+    console.log('Saving template:', {
+      templateName,
+      components: components.length,
+      pages: pages.map(p => ({ id: p.id, title: p.title, componentCount: p.components.length })),
+      currentTemplateId
+    });
     const savedTemplate = templateService.save(templateName, components, templateType, pages, currentTemplateId || undefined);
+    console.log('Saved template result:', {
+      templateId: savedTemplate.templateId,
+      fieldCount: savedTemplate.fields?.length,
+      pageCount: savedTemplate.pages?.length
+    });
     const fieldCount = Object.keys(savedTemplate.jsonSchema?.properties || {}).length;
     
     if (currentTemplateId) {
@@ -106,9 +116,19 @@ const App: React.FC = () => {
   };
 
   const handleExport = () => templateService.exportJSON(templateName, components, templateType, pages);
-  const handlePreview = () => setShowPreview(true);
+  const handlePreview = () => {
+    console.log('Preview clicked - Components:', components.length, 'Pages:', pages.length);
+    setShowPreview(true);
+  };
 
   const handleCreateNew = () => {
+    // Check if we should force clear (from debug helper)
+    const shouldClear = localStorage.getItem('__clearFormBeforeNew');
+    if (shouldClear) {
+      localStorage.removeItem('__clearFormBeforeNew');
+      console.log('🧹 Force clearing form before creating new');
+    }
+    
     clearAllSilent();
     setTemplateName("Untitled Form");
     setTemplateType("assessment");
@@ -117,28 +137,49 @@ const App: React.FC = () => {
   };
 
   const handleEditTemplate = (template: FormTemplate) => {
+    console.log('🖱️ EDIT BUTTON CLICKED for template:', template.name);
     const loadTemplate = () => {
+      console.log('✅ Loading template:', template.name, 'Fields:', template.fields.length, 'Pages:', template.pages?.length);
       loadFromJSON(template.fields, template.name, template.type, template.pages);
       setTemplateType(template.type);
       setCurrentTemplateId(template.templateId); // Set template ID for editing
       setCurrentView('builder');
     };
 
+    const forceLoadTemplate = () => {
+      console.log('🔄 Force loading template (clearing current form)');
+      clearAllSilent(); // Clear current form first
+      setTimeout(() => {
+        loadTemplate(); // Then load the template
+      }, 100); // Small delay to ensure state update
+    };
+
     const hasAnyComponents = pages.some(page => page.components.length > 0);
     
     if (hasAnyComponents) {
-      showConfirmation(
-        'Replace Current Form?',
-        'Loading this template will replace your current form. Do you want to continue?\n\nYou can undo this action with Ctrl+Z after loading.',
-        loadTemplate,
-        'warning'
-      );
+      console.log('⚠️ Showing confirmation dialog for template replacement');
+      const totalComponents = pages.reduce((total, page) => total + page.components.length, 0);
+      
+      // Add a slight delay to ensure state is clean
+      setTimeout(() => {
+        showConfirmation(
+          '🔄 Replace Current Form?',
+          `You have ${totalComponents} component(s) in your current form.\n\nClick "Continue" to replace with "${template.name}" template.\n\n(You can undo this with Ctrl+Z after loading)`,
+          forceLoadTemplate, // Use force load to ensure clean slate
+          'warning'
+        );
+      }, 100);
     } else {
+      console.log('✅ Loading template directly (no existing components)');
       loadTemplate();
     }
   };
 
   const handleBackToList = () => {
+    console.log('🔙 Going back to template list');
+    const totalComponents = pages.reduce((total, page) => total + page.components.length, 0);
+    console.log(`📊 Current form has ${totalComponents} components when going back`);
+    
     setCurrentTemplateId(null); // Clear template ID when going back to list
     setCurrentView('list');
   };
@@ -215,6 +256,7 @@ const App: React.FC = () => {
 
   // Show template list view
   if (currentView === 'list') {
+    console.log('🏠 Rendering Template List View');
     return (
       <div className="app">
         <TemplateListView
@@ -226,6 +268,7 @@ const App: React.FC = () => {
   }
 
   // Show form builder
+  console.log('🏗️ Rendering Form Builder View');
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="app">
@@ -245,6 +288,18 @@ const App: React.FC = () => {
                 title="Back to template list"
               >
                 ← Back to Templates
+              </button>
+              <button
+                onClick={() => {
+                  console.log('🧹 MANUAL CLEAR - Before clearing, components:', components.length);
+                  clearAllSilent();
+                  console.log('✅ MANUAL CLEAR - Cleared all components');
+                }}
+                className="btn btn--warning btn--sm"
+                title="Clear current form (debug helper)"
+                style={{ backgroundColor: 'var(--color-orange-500)', color: 'white', marginLeft: '8px' }}
+              >
+                🧹 Clear
               </button>
               <div style={{ width: '1px', height: '20px', background: 'var(--color-gray-300)', margin: '0 var(--space-2)' }} />
               <button
@@ -396,6 +451,10 @@ const App: React.FC = () => {
         />
         
         {/* Confirmation Modal */}
+        {console.log('🔍 RENDERING CONFIRMATION MODAL:', { 
+          isOpen: confirmation.isOpen, 
+          title: confirmation.title 
+        })}
         <ConfirmationModal
           isOpen={confirmation.isOpen}
           onClose={closeConfirmation}
@@ -406,6 +465,23 @@ const App: React.FC = () => {
           confirmText="Continue"
           cancelText="Cancel"
         />
+        
+        {/* DEBUG: Force show modal state */}
+        {confirmation.isOpen && (
+          <div style={{
+            position: 'fixed',
+            top: '10px',
+            right: '10px', 
+            background: 'red',
+            color: 'white',
+            padding: '10px',
+            zIndex: 99999,
+            borderRadius: '4px',
+            fontSize: '12px'
+          }}>
+            🚨 MODAL SHOULD BE OPEN: {confirmation.title}
+          </div>
+        )}
         
         {/* Notification Modal */}
         <NotificationModal

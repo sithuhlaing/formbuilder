@@ -1,7 +1,8 @@
 import { useEffect, useCallback } from 'react';
+import type { FormComponentData } from '../components/types';
 
 interface KeyboardNavigationProps {
-  components: any[];
+  components: FormComponentData[];
   selectedComponentId: string | null;
   onSelectComponent: (id: string) => void;
   onDeleteComponent: (id: string) => void;
@@ -16,59 +17,65 @@ export const useKeyboardNavigation = ({
   onMoveComponent,
 }: KeyboardNavigationProps) => {
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    if (!selectedComponentId || components.length === 0) return;
+    // Don't handle keyboard events when typing in inputs
+    if (event.target instanceof HTMLInputElement || 
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLSelectElement) {
+      return;
+    }
 
-    const currentIndex = components.findIndex(c => c.id === selectedComponentId);
-    if (currentIndex === -1) return;
+    const selectedIndex = selectedComponentId 
+      ? components.findIndex(c => c.id === selectedComponentId)
+      : -1;
 
     switch (event.key) {
       case 'ArrowUp':
         event.preventDefault();
-        if (currentIndex > 0) {
-          onSelectComponent(components[currentIndex - 1].id);
+        if (selectedIndex > 0) {
+          onSelectComponent(components[selectedIndex - 1].id);
+        } else if (components.length > 0) {
+          onSelectComponent(components[components.length - 1].id);
         }
         break;
 
       case 'ArrowDown':
         event.preventDefault();
-        if (currentIndex < components.length - 1) {
-          onSelectComponent(components[currentIndex + 1].id);
+        if (selectedIndex < components.length - 1 && selectedIndex >= 0) {
+          onSelectComponent(components[selectedIndex + 1].id);
+        } else if (components.length > 0) {
+          onSelectComponent(components[0].id);
         }
         break;
 
       case 'Delete':
       case 'Backspace':
-        if (event.target instanceof HTMLElement && 
-            !['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
+        if (selectedComponentId && !event.ctrlKey && !event.metaKey) {
           event.preventDefault();
           onDeleteComponent(selectedComponentId);
         }
         break;
 
-      case 'ArrowUp':
+      case 'ArrowLeft':
         if (event.ctrlKey || event.metaKey) {
           event.preventDefault();
-          if (currentIndex > 0) {
-            onMoveComponent(currentIndex, currentIndex - 1);
+          if (selectedIndex > 0) {
+            onMoveComponent(selectedIndex, selectedIndex - 1);
           }
         }
         break;
 
-      case 'ArrowDown':
+      case 'ArrowRight':
         if (event.ctrlKey || event.metaKey) {
           event.preventDefault();
-          if (currentIndex < components.length - 1) {
-            onMoveComponent(currentIndex, currentIndex + 1);
+          if (selectedIndex >= 0 && selectedIndex < components.length - 1) {
+            onMoveComponent(selectedIndex, selectedIndex + 1);
           }
         }
         break;
 
       case 'Escape':
         event.preventDefault();
-        // Deselect current component by selecting first component if exists
-        if (components.length > 0) {
-          onSelectComponent(components[0].id);
-        }
+        onSelectComponent('');
         break;
     }
   }, [components, selectedComponentId, onSelectComponent, onDeleteComponent, onMoveComponent]);
@@ -80,26 +87,10 @@ export const useKeyboardNavigation = ({
     };
   }, [handleKeyDown]);
 
-  // ARIA announcements for screen readers
-  const announceSelection = useCallback((componentLabel: string) => {
-    const announcement = `Selected ${componentLabel} component. Use arrow keys to navigate, Delete to remove, or Ctrl+Arrow to reorder.`;
-    
-    // Create a temporary element for screen reader announcement
-    const liveRegion = document.createElement('div');
-    liveRegion.setAttribute('aria-live', 'polite');
-    liveRegion.setAttribute('aria-atomic', 'true');
-    liveRegion.className = 'sr-only';
-    liveRegion.textContent = announcement;
-    
-    document.body.appendChild(liveRegion);
-    
-    // Remove after announcement
-    setTimeout(() => {
-      document.body.removeChild(liveRegion);
-    }, 1000);
-  }, []);
-
   return {
-    announceSelection,
+    // Return any additional utilities if needed
+    selectedIndex: selectedComponentId 
+      ? components.findIndex(c => c.id === selectedComponentId)
+      : -1,
   };
 };

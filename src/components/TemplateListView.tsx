@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { templateService } from '../services/templateService';
 import PreviewModal from './molecules/PreviewModal';
 import ConfirmationModal from './molecules/ConfirmationModal';
-import ActionButton from './atoms/ActionButton';
+import ActionButton from './atoms/controls/ActionButton';
 import type { FormTemplate } from './types';
 
 interface TemplateListViewProps {
@@ -40,6 +40,7 @@ const TemplateListView: React.FC<TemplateListViewProps> = ({
   };
 
   const handlePreviewTemplate = (template: FormTemplate) => {
+    console.log('Template preview clicked:', template.name, 'Fields:', template.fields.length, 'Pages:', template.pages?.length);
     setPreviewTemplate(template);
   };
 
@@ -73,12 +74,25 @@ const TemplateListView: React.FC<TemplateListViewProps> = ({
               Create and manage your form templates
             </p>
           </div>
-          <button
-            onClick={onCreateNew}
-            className="btn btn--primary btn--lg"
-          >
-            + Create New Form
-          </button>
+          <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+            <button
+              onClick={() => {
+                // Debug helper - signal to clear form before creating new
+                localStorage.setItem('__clearFormBeforeNew', 'true');
+                onCreateNew();
+              }}
+              className="btn btn--secondary btn--lg"
+              title="Clear current form and create new"
+            >
+              🧹 Clear & New
+            </button>
+            <button
+              onClick={onCreateNew}
+              className="btn btn--primary btn--lg"
+            >
+              + Create New Form
+            </button>
+          </div>
         </div>
       </header>
 
@@ -115,17 +129,26 @@ const TemplateListView: React.FC<TemplateListViewProps> = ({
                     </div>
                     <div className="template-card__actions">
                       <ActionButton
-                        onClick={() => onEditTemplate(template)}
+                        onClick={(e) => {
+                          e?.stopPropagation();
+                          onEditTemplate(template);
+                        }}
                         icon="✏️"
                         title="Edit template"
                       />
                       <ActionButton
-                        onClick={() => handlePreviewTemplate(template)}
+                        onClick={(e) => {
+                          e?.stopPropagation();
+                          handlePreviewTemplate(template);
+                        }}
                         icon="👁️"
                         title="Preview template"
                       />
                       <ActionButton
-                        onClick={() => handleDeleteTemplate(template.templateId, template.name)}
+                        onClick={(e) => {
+                          e?.stopPropagation();
+                          handleDeleteTemplate(template.templateId, template.name);
+                        }}
                         icon="🗑️"
                         title="Delete template"
                         variant="delete"

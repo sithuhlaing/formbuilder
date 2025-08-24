@@ -45,6 +45,7 @@ export const useModals = () => {
     onConfirm: () => void,
     type: 'info' | 'success' | 'warning' | 'error' = 'warning'
   ) => {
+    console.log('📢 SHOWING CONFIRMATION DIALOG:', { title, type, isOpen: true });
     setConfirmation({ isOpen: true, title, message, type, onConfirm });
   };
 
@@ -53,6 +54,7 @@ export const useModals = () => {
   };
 
   const closeConfirmation = () => {
+    console.log('❌ CLOSING CONFIRMATION DIALOG');
     setConfirmation(prev => ({ ...prev, isOpen: false }));
   };
 

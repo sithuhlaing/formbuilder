@@ -61,8 +61,23 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   };
 
   return (
-    <div className="confirmation-modal-overlay" onClick={onClose}>
-      <div className="confirmation-modal" onClick={(e) => e.stopPropagation()}>
+    <div 
+      className="confirmation-modal-overlay" 
+      onClick={onClose}
+      style={{ 
+        backgroundColor: 'rgba(0, 0, 0, 0.6)', 
+        zIndex: 9999,
+        backdropFilter: 'blur(2px)'
+      }}
+    >
+      <div 
+        className="confirmation-modal" 
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          transform: 'scale(1.05)',
+          animation: 'modalBounce 0.3s ease-out'
+        }}
+      >
         <div className="confirmation-modal__header">
           <div 
             className="confirmation-modal__icon"

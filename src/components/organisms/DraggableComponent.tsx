@@ -1,10 +1,15 @@
+import React, { useRef } from 'react';
+import { useDrag, useDrop } from 'react-dnd';
+import type { XYCoord } from 'react-dnd';
+import SmartDropZone from '../molecules/SmartDropZone';
+import ComponentPreview from '../molecules/ComponentPreview';
+import type { FormComponentData, ComponentType, DraggableComponentProps } from '../types';
 
-import React, { useRef } from "react";
-import { useDrag, useDrop } from "react-dnd";
-import ComponentPreview from "../molecules/ComponentPreview";
-import ComponentMetadata from "../molecules/ComponentMetadata";
-import SmartDropZone from "../molecules/SmartDropZone";
-import type { DraggableComponentProps } from "../types";
+interface DragItem {
+  index: number;
+  id: string;
+  type: string;
+}
 
 const DraggableComponent: React.FC<DraggableComponentProps> = ({
   component,
@@ -14,88 +19,127 @@ const DraggableComponent: React.FC<DraggableComponentProps> = ({
   onDelete,
   onMove,
   onInsertWithPosition,
-  children,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
 
-  const [{ handlerId }, drop] = useDrop<
-    { id: string; index: number },
-    unknown,
-    { handlerId: string | symbol | null }
-  >({
-    accept: "form-component",
-    collect: (monitor) => ({ handlerId: monitor.getHandlerId() }),
-    hover: (item, monitor) => {
-      if (!ref.current || item.index === index) return;
+  const [{ handlerId }, drop] = useDrop<DragItem, void, { handlerId: string | symbol | null }>({
+    accept: 'form-component',
+    collect(monitor) {
+      return {
+        handlerId: monitor.getHandlerId(),
+      };
+    },
+    hover(item: DragItem, monitor) {
+      if (!ref.current) {
+        return;
+      }
+      const dragIndex = item.index;
+      const hoverIndex = index;
 
-      const hoverBoundingRect = ref.current.getBoundingClientRect();
+      // Don't replace items with themselves
+      if (dragIndex === hoverIndex) {
+        return;
+      }
+
+      // Determine rectangle on screen
+      const hoverBoundingRect = ref.current?.getBoundingClientRect();
+
+      // Get vertical middle
       const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+
+      // Determine mouse position
       const clientOffset = monitor.getClientOffset();
-      const hoverClientY = clientOffset!.y - hoverBoundingRect.top;
 
-      if ((item.index < index && hoverClientY < hoverMiddleY) ||
-          (item.index > index && hoverClientY > hoverMiddleY)) return;
+      // Get pixels to the top
+      const hoverClientY = (clientOffset as XYCoord).y - hoverBoundingRect.top;
 
-      onMove(item.index, index);
-      item.index = index;
+      // Only perform the move when the mouse has crossed half of the items height
+      // When dragging downwards, only move when the cursor is below 50%
+      // When dragging upwards, only move when the cursor is above 50%
+
+      // Dragging downwards
+      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
+        return;
+      }
+
+      // Dragging upwards
+      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
+        return;
+      }
+
+      // Time to actually perform the action
+      onMove(dragIndex, hoverIndex);
+
+      // Note: we're mutating the monitor item here!
+      // Generally it's better to avoid mutations,
+      // but it's good here for the sake of performance
+      // to avoid expensive index searches.
+      item.index = hoverIndex;
     },
   });
 
   const [{ isDragging }, drag] = useDrag({
-    type: "form-component",
-    item: () => ({ id: component.id, index }),
-    collect: (monitor) => ({ isDragging: monitor.isDragging() }),
+    type: 'form-component',
+    item: () => {
+      return { id: component.id, index };
+    },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
   });
 
-  const dragDropRef = (node: HTMLDivElement | null) => {
-    ref.current = node;
-    drag(node);
-    drop(node);
+  const opacity = isDragging ? 0.4 : 1;
+  drag(drop(ref));
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect(component.id);
   };
 
-  const tooltipText = `${component.label}${component.required ? ' (Required)' : ''} - ${component.type.replace('_', ' ')}`;
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete(component.id);
+  };
+
+  const handleDropWithPosition = (type: ComponentType, targetId: string, position: 'left' | 'right' | 'top' | 'bottom') => {
+    if (onInsertWithPosition) {
+      onInsertWithPosition(type, targetId, position);
+    }
+  };
+
+  const componentClasses = [
+    'form-component',
+    'draggable-component',
+    isSelected ? 'form-component--selected' : '',
+    isDragging ? 'form-component--dragging' : '',
+  ].filter(Boolean).join(' ');
 
   const componentContent = (
     <div
-      ref={dragDropRef}
+      ref={ref}
+      className={componentClasses}
+      onClick={handleClick}
+      style={{ opacity }}
       data-handler-id={handlerId}
-      className={`form-component ${
-        isSelected ? "is-selected" : ""
-      } ${isDragging ? "is-dragging" : ""}`}
-      onClick={() => onSelect(component.id)}
-      title={tooltipText}
+      data-component-id={component.id}
     >
-      <div className="form-component__hover-controls">
-        <div 
-          className="form-component__hover-action form-component__hover-action--drag"
-          title="Drag to reorder"
-          style={{ cursor: 'grab' }}
-          onMouseDown={(e) => {
-            // Allow the drag system to handle this
-            e.stopPropagation();
-          }}
-        >
-          ⋮⋮
-        </div>
-        <button 
-          className="form-component__hover-action form-component__hover-action--delete"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(component.id);
-          }}
-          title="Delete component"
-        >
-          ×
-        </button>
+      <div className="form-component__content">
+        <ComponentPreview component={component} />
       </div>
       
-      <ComponentPreview component={component} />
-      <ComponentMetadata
-        fieldId={component.fieldId}
-        componentId={component.id}
-        helpText={component.helpText}
-      />
-      {children}
+      {isSelected && (
+        <div className="form-component__controls">
+          <button
+            className="form-component__delete-btn"
+            onClick={handleDelete}
+            title="Delete component"
+          >
+            ×
+          </button>
+        </div>
+      )}
+      
+      <div className="form-component__overlay" />
     </div>
   );
 
@@ -104,7 +148,7 @@ const DraggableComponent: React.FC<DraggableComponentProps> = ({
     return (
       <SmartDropZone 
         componentId={component.id}
-        onDropWithPosition={onInsertWithPosition}
+        onDropWithPosition={handleDropWithPosition}
       >
         {componentContent}
       </SmartDropZone>

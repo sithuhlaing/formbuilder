@@ -1,11 +1,20 @@
 
+import { useUndoRedo } from "./useUndoRedo";
 import { useState, useCallback } from "react";
 import type { FormComponentData, ComponentType, FormPage, FormTemplateType } from "../components/types";
-import { useUndoRedo } from "./useUndoRedo";
 
 interface ModalFunctions {
-  showConfirmation: (title: string, message: string, onConfirm: () => void, type?: 'info' | 'success' | 'warning' | 'error') => void;
-  showNotification: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+  showConfirmation: (
+    title: string, 
+    message: string, 
+    onConfirm: () => void, 
+    type?: 'warning' | 'error' | 'info'
+  ) => void;
+  showNotification: (
+    title: string, 
+    message: string, 
+    type: 'success' | 'error' | 'warning' | 'info'
+  ) => void;
 }
 
 export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
@@ -283,17 +292,41 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
   }, [pages, updatePages, modalFunctions]);
 
   const loadFromJSON = useCallback((jsonData: FormComponentData[], templateName?: string, templateType?: FormTemplateType, pagesData?: FormPage[]) => {
+    console.log('useFormBuilder loadFromJSON called:', { 
+      jsonDataLength: jsonData?.length, 
+      templateName, 
+      templateType, 
+      pagesCount: pagesData?.length,
+      firstComponent: jsonData?.[0]
+    });
+    
+    // Ensure we have valid data
+    if (!jsonData && (!pagesData || pagesData.length === 0)) {
+      console.error('No valid data to load');
+      return;
+    }
+    
     if (pagesData && pagesData.length > 0) {
       // Load multi-page structure
-      updatePages(pagesData);
-      setCurrentPageId(pagesData[0].id);
-    } else {
+      console.log('Loading multi-page structure:', pagesData.map(p => ({ id: p.id, title: p.title, componentCount: p.components.length })));
+      // Validate pages have components
+      const validPages = pagesData.map(page => ({
+        ...page,
+        components: page.components || []
+      }));
+      updatePages(validPages);
+      setCurrentPageId(validPages[0].id);
+    } else if (jsonData && jsonData.length > 0) {
       // For backward compatibility, load into first page
       const updatedPages = pages.map((page, index) => 
-        index === 0 ? { ...page, components: jsonData } : page
+        index === 0 ? { ...page, components: jsonData || [] } : page
       );
+      console.log('Loading into first page, components:', jsonData?.length);
       updatePages(updatedPages);
+    } else {
+      console.warn('No components to load');
     }
+    
     setSelectedComponentId(null);
     if (templateName) {
       setTemplateName(templateName);

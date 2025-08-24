@@ -4,10 +4,19 @@ import { SchemaGenerator } from "./schemaGenerator";
 
 export const templateService = {
   save: (templateName: string, components: FormComponentData[], templateType: FormTemplateType = "assessment", pages?: FormPage[], existingTemplateId?: string) => {
+    console.log('templateService.save called:', {
+      templateName,
+      components: components.length,
+      pages: pages?.map(p => ({ id: p.id, title: p.title, componentCount: p.components.length })),
+      existingTemplateId
+    });
+    
     // If pages are provided, use flattened components from all pages, otherwise use provided components
     const allComponents = pages && pages.length > 0 
       ? pages.flatMap(page => page.components)
       : components;
+    
+    console.log('allComponents after flattening:', allComponents.length);
     
     const jsonSchema = SchemaGenerator.generateSchema(templateName, allComponents);
     const savedTemplates = JSON.parse(localStorage.getItem('formTemplates') || '[]');
@@ -25,6 +34,11 @@ export const templateService = {
           pages: pages,
           jsonSchema
         };
+        console.log('Updating existing template:', {
+          templateId: updatedTemplate.templateId,
+          fields: updatedTemplate.fields.length,
+          pages: updatedTemplate.pages?.length
+        });
         savedTemplates[existingTemplateIndex] = updatedTemplate;
         localStorage.setItem('formTemplates', JSON.stringify(savedTemplates));
         return updatedTemplate;
@@ -41,6 +55,12 @@ export const templateService = {
       pages: pages,
       jsonSchema
     };
+    
+    console.log('Creating new template:', {
+      templateId: template.templateId,
+      fields: template.fields.length,
+      pages: template.pages?.length
+    });
     
     savedTemplates.push(template);
     localStorage.setItem('formTemplates', JSON.stringify(savedTemplates));
@@ -137,8 +157,8 @@ export const templateService = {
       // Validate components if found
       if (components) {
         const validComponents = components.filter(comp => 
-          comp.id && comp.type && comp.label && 
-          ['text_input', 'textarea', 'select', 'checkbox', 'radio_group', 'date_picker', 'file_upload'].includes(comp.type)
+          comp.id && comp.type && 
+          ['text_input', 'number_input', 'textarea', 'select', 'multi_select', 'checkbox', 'radio_group', 'date_picker', 'file_upload', 'section_divider', 'signature', 'horizontal_layout', 'vertical_layout'].includes(comp.type)
         );
         
         if (validComponents.length === 0) {

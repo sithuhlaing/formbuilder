@@ -1,10 +1,8 @@
-import React, { useCallback, useRef } from "react";
-import { useDrop } from "react-dnd";
-import type { DropTargetMonitor } from "react-dnd";
-import DraggableComponent from "./organisms/DraggableComponent";
-import SurveyDropZone from "./molecules/SurveyDropZone";
-import type { CanvasProps, FormComponentData, ComponentType } from "./types";
-import LayoutContainer from "./LayoutContainer";
+import React, { useCallback, useRef } from 'react';
+import { useDrop } from 'react-dnd';
+import SurveyDropZone from './molecules/SurveyDropZone';
+import CanvasContent from './molecules/CanvasContent';
+import type { ComponentType, FormComponentData, CanvasProps } from './types';
 
 const Canvas: React.FC<CanvasProps> = ({
   components,
@@ -20,99 +18,62 @@ const Canvas: React.FC<CanvasProps> = ({
 }) => {
   const dropRef = useRef<HTMLDivElement>(null);
 
-  // Update the renderComponent function to handle both container types:
+  const handleInsertBetween = useCallback((type: ComponentType, insertIndex: number) => {
+    if (onInsertBetween) {
+      onInsertBetween(type, insertIndex);
+    }
+  }, [onInsertBetween]);
 
-  const renderComponent = useCallback(
-    (component: FormComponentData, index: number) => {
-      const isContainer = component.type === "horizontal_layout" || component.type === "vertical_layout";
-
-      return (
-        <div key={component.id} data-component-id={component.id}>
-          <DraggableComponent
-            component={component}
-            index={index}
-            isSelected={selectedComponentId === component.id}
-            onSelect={onSelectComponent}
-            onDelete={onDeleteComponent}
-            onMove={onMoveComponent}
-            onInsertWithPosition={onInsertWithPosition}
-          >
-            {isContainer && component.children && (
-              <LayoutContainer
-                container={component}
-                onDrop={(item) => onDropInContainer(item, component.id)}
-                renderComponent={renderComponent}
-              />
-            )}
-          </DraggableComponent>
-        </div>
-      );
-    },
-    [
-      selectedComponentId,
-      onSelectComponent,
-      onDeleteComponent,
-      onMoveComponent,
-      onInsertWithPosition,
-      onDropInContainer,
-    ]
-  );
+  const handleInsertHorizontal = useCallback((type: ComponentType, targetId: string, position: 'left' | 'right') => {
+    if (onInsertHorizontal) {
+      onInsertHorizontal(type, targetId, position);
+    }
+  }, [onInsertHorizontal]);
 
   const [{ isOver }, drop] = useDrop<
-    { type: ComponentType; id?: string },
+    { type: ComponentType },
     void,
     { isOver: boolean }
   >({
     accept: "component",
-    drop: (item: { type: ComponentType; id?: string }) => {
-      if (item.id) {
-        // This handles moving a component from a container to the root canvas
-        onMoveComponent(item.id, null);
-      } else if (item.type) {
-        onAddComponent(item.type);
-      }
-      return {};
+    drop: (item: { type: ComponentType }) => {
+      onAddComponent(item.type);
     },
-    collect: (monitor: DropTargetMonitor) => ({
-      isOver: monitor.isOver(),
+    collect: (monitor) => ({
+      isOver: monitor.isOver({ shallow: true }),
     }),
   });
 
-  // Connect the drop ref
   drop(dropRef);
-
-  if (components.length === 0) {
-    return (
-      <div
-        ref={dropRef}
-        className={`drop-zone ${isOver ? "is-over" : ""}`}
-      >
-        <div className="empty-canvas">
-          <div className="empty-canvas__icon">📝</div>
-          <h3 className="empty-canvas__title">
-            Start Building Your Form
-          </h3>
-          <p className="empty-canvas__description">
-            Drag components from the sidebar to begin creating your form
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div
       ref={dropRef}
-      className={`drop-zone has-items ${isOver ? "is-over" : ""}`}
+      className={`canvas ${isOver ? 'canvas--drop-active' : ''}`}
+      style={{
+        flex: 1,
+        padding: '20px',
+        backgroundColor: '#ffffff',
+        borderRadius: '8px',
+        border: '1px solid #e5e7eb',
+        minHeight: '500px',
+        position: 'relative',
+        overflow: 'auto',
+      }}
     >
       <SurveyDropZone
-        onInsertBetween={onInsertBetween || (() => {})}
-        onInsertHorizontal={onInsertHorizontal || (() => {})}
+        onInsertBetween={handleInsertBetween}
+        onInsertHorizontal={handleInsertHorizontal}
         componentCount={components.length}
       >
-        {components.map((component, index) =>
-          renderComponent(component, index)
-        )}
+        <CanvasContent
+          components={components}
+          selectedComponentId={selectedComponentId}
+          onSelectComponent={onSelectComponent}
+          onDeleteComponent={onDeleteComponent}
+          onMoveComponent={onMoveComponent}
+          onInsertWithPosition={onInsertWithPosition}
+        />
       </SurveyDropZone>
     </div>
   );

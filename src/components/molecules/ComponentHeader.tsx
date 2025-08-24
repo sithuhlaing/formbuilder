@@ -1,8 +1,8 @@
 
 import React from "react";
-import ComponentIcon from "../atoms/ComponentIcon";
-import DeleteButton from "../atoms/DeleteButton";
-import DragHandle from "../atoms/DragHandle";
+import ComponentIcon from "../atoms/icons/ComponentIcon";
+import DeleteButton from "../atoms/controls/DeleteButton";
+import DragHandle from "../atoms/controls/DragHandle";
 import type { ComponentType } from "../types";
 
 interface ComponentHeaderProps {

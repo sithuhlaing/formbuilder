@@ -15,45 +15,61 @@ export type ComponentType =
 
 export type ValidationType = "none" | "email" | "number" | "custom";
 
-export type LayoutDirection = "horizontal" | "vertical";
-export type LayoutAlignment = "start" | "center" | "end" | "stretch";
-export type LayoutGap = "none" | "small" | "medium" | "large";
+export type FormTemplateType = "assessment" | "survey" | "application" | "feedback" | "registration" | "other";
+
+export interface ValidationRule {
+  type: ValidationType;
+  message?: string;
+  pattern?: string;
+  min?: number;
+  max?: number;
+  required?: boolean;
+}
+
+export interface LayoutConfig {
+  width?: string;
+  height?: string;
+  padding?: string;
+  margin?: string;
+  alignment?: 'left' | 'center' | 'right';
+}
 
 export interface FormComponentData {
   id: string;
   type: ComponentType;
-  label: string;
-  required?: boolean;
+  label?: string;
   placeholder?: string;
+  required?: boolean;
   options?: string[];
+  validation?: ValidationType | {
+    type: ValidationType;
+    message?: string;
+    pattern?: string;
+  };
+  layout?: {
+    width?: string;
+    height?: string;
+    direction?: "horizontal" | "vertical";
+    alignment?: "start" | "center" | "end";
+    gap?: "small" | "medium" | "large";
+  };
+  children?: FormComponentData[];
+  description?: string;
+  acceptedFileTypes?: string;
   fieldId?: string;
   helpText?: string;
-  acceptedFileTypes?: string;
-  validation?: ValidationType;
   customValidation?: string;
-  // Number input specific properties
   min?: number;
   max?: number;
   step?: number;
-  // Section divider specific properties
-  description?: string;
-  // Layout properties
-  layout?: {
-    direction?: LayoutDirection;
-    alignment?: LayoutAlignment;
-    gap?: LayoutGap;
-    width?: string; // e.g., "50%", "200px", "auto"
-  };
-  // Container properties
-  children?: FormComponentData[];
+  defaultValue?: string;
 }
-
-export type FormTemplateType = "assessment" | "referral" | "compliance" | "other";
 
 export interface FormPage {
   id: string;
   title: string;
   components: FormComponentData[];
+  description?: string;
 }
 
 export interface FormTemplate {
@@ -63,17 +79,14 @@ export interface FormTemplate {
   createdDate: string;
   fields: FormComponentData[];
   pages?: FormPage[];
-  jsonSchema?: object;
+  jsonSchema?: any;
+  description?: string;
 }
 
-export interface FormBuilderProps {
-  onSave: (template: FormTemplate) => void;
-  onPreview: (template: FormTemplate) => void;
-}
-
-export interface PropertiesProps {
-  component: FormComponentData | null;
-  onUpdateComponent: (updates: Partial<FormComponentData>) => void;
+export interface ComponentGroup {
+  id: string;
+  components: FormComponentData[];
+  layout: 'horizontal' | 'vertical';
 }
 
 export interface CanvasProps {
@@ -84,13 +97,9 @@ export interface CanvasProps {
   onMoveComponent: (dragIndex: number, hoverIndex: number) => void;
   onAddComponent: (type: ComponentType) => void;
   onInsertWithPosition?: (type: ComponentType, targetId: string, position: 'left' | 'right' | 'top' | 'bottom') => void;
-  onInsertBetween?: (type: ComponentType, insertIndex: number) => void;
+  onInsertBetween?: (type: ComponentType, index: number) => void;
   onInsertHorizontal?: (type: ComponentType, targetId: string, position: 'left' | 'right') => void;
-  onDropInContainer: (item: { type: ComponentType; id?: string }, containerId: string) => void;
-}
-
-export interface SidebarProps {
-  onAddComponent: (type: ComponentType) => void;
+  onDropInContainer?: (item: any, containerId: string) => void;
 }
 
 export interface DraggableComponentProps {
@@ -101,5 +110,25 @@ export interface DraggableComponentProps {
   onDelete: (id: string) => void;
   onMove: (dragIndex: number, hoverIndex: number) => void;
   onInsertWithPosition?: (type: ComponentType, targetId: string, position: 'left' | 'right' | 'top' | 'bottom') => void;
-  children?: React.ReactNode;
+}
+
+export interface LayoutContainerProps {
+  container: FormComponentData;
+  onDrop: (item: any, containerId: string) => void;
+  renderComponent: (component: FormComponentData, index: number) => React.ReactNode;
+}
+
+export interface PropertiesProps {
+  component: FormComponentData | null;
+  onUpdateComponent: (updates: Partial<FormComponentData>) => void;
+}
+
+export type DropPosition = 'left' | 'right' | 'top' | 'bottom' | null;
+
+export interface SmartDropZoneProps {
+  componentId: string;
+  onDropWithPosition: (type: ComponentType, targetId: string, position: DropPosition) => void;
+  children: React.ReactNode;
+  isInHorizontalContainer?: boolean;
+  horizontalContainerCount?: number;
 }

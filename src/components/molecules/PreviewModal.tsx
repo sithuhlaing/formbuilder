@@ -7,7 +7,11 @@ interface PreviewModalProps {
   templateName: string;
   components: FormComponentData[];
   pages?: FormPage[];
-  showNotification?: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+  showNotification?: (title: string, message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
+}
+
+interface PreviewFormData {
+  [key: string]: any;
 }
 
 const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -18,530 +22,373 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
   pages = [],
   showNotification,
 }) => {
+  const [formData, setFormData] = useState<PreviewFormData>({});
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [formData, setFormData] = useState<Record<string, any>>({});
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  // Reset form when modal is closed
-  const handleClose = () => {
-    setCurrentPageIndex(0);
-    setFormData({});
-    setErrors({});
-    onClose();
-  };
-  
+
   if (!isOpen) return null;
+  
+  console.log('PreviewModal opened:', {
+    templateName,
+    componentCount: components.length,
+    pageCount: pages?.length || 0,
+    hasPages: pages && pages.length > 0
+  });
 
-  // Use pages if available, otherwise create single page from components
-  const previewPages = pages.length > 0 ? pages : [{ id: '1', title: 'Page 1', components }];
-  const totalPages = previewPages.length;
-  const currentPage = previewPages[currentPageIndex] || previewPages[0];
-
-  const goToNextPage = () => {
-    if (currentPageIndex < totalPages - 1) {
-      setCurrentPageIndex(currentPageIndex + 1);
-    }
-  };
-
-  const goToPrevPage = () => {
-    if (currentPageIndex > 0) {
-      setCurrentPageIndex(currentPageIndex - 1);
-    }
-  };
-
-  const goToPage = (index: number) => {
-    if (index >= 0 && index < totalPages) {
-      setCurrentPageIndex(index);
-    }
-  };
+  const hasPages = pages.length > 0;
+  const currentComponents = hasPages ? pages[currentPageIndex]?.components || [] : components;
+  const currentPageTitle = hasPages ? pages[currentPageIndex]?.title : undefined;
 
   const handleInputChange = (fieldId: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [fieldId]: value
     }));
-    
-    // Clear error when user starts typing
-    if (errors[fieldId]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[fieldId];
-        return newErrors;
-      });
-    }
   };
 
-  const validateCurrentPage = () => {
-    const currentPageErrors: Record<string, string> = {};
-    let isValid = true;
-    
-    currentPage.components.forEach(component => {
-      const fieldId = component.fieldId || component.id;
-      const value = formData[fieldId];
-      
-      // Check required fields
-      if (component.required) {
-        if (!value || (Array.isArray(value) && value.length === 0) || value.toString().trim() === '') {
-          currentPageErrors[fieldId] = `${component.label} is required`;
-          isValid = false;
-        }
-      }
-      
-      // Check validation rules
-      if (value && component.validation && component.validation !== 'none') {
-        switch (component.validation) {
-          case 'email':
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(value)) {
-              currentPageErrors[fieldId] = 'Please enter a valid email address';
-              isValid = false;
-            }
-            break;
-          case 'number':
-            if (isNaN(Number(value))) {
-              currentPageErrors[fieldId] = 'Please enter a valid number';
-              isValid = false;
-            }
-            break;
-          case 'custom':
-            if (component.customValidation) {
-              try {
-                const regex = new RegExp(component.customValidation);
-                if (!regex.test(value)) {
-                  currentPageErrors[fieldId] = 'Input does not match required format';
-                  isValid = false;
-                }
-              } catch (e) {
-                // Invalid regex, skip validation
-              }
-            }
-            break;
-        }
-      }
-    });
-    
-    setErrors(prev => ({ ...prev, ...currentPageErrors }));
-    return isValid;
-  };
-
-  const handleNextPage = () => {
-    if (validateCurrentPage()) {
-      goToNextPage();
-    }
-  };
-
-  const handleSubmitForm = () => {
-    if (validateCurrentPage()) {
-      console.log('Form submitted with data:', formData);
-      
-      if (showNotification) {
-        showNotification(
-          'Form Submitted Successfully!',
-          `Your form "${templateName}" has been submitted successfully.\n\nSubmitted data:\n${JSON.stringify(formData, null, 2)}`,
-          'success'
-        );
-      } else {
-        // Fallback to alert for backward compatibility
-        alert(`Form submitted successfully!\n\nSubmitted data:\n${JSON.stringify(formData, null, 2)}`);
-      }
-      
-      setFormData({});
-      setCurrentPageIndex(0);
-      onClose();
-    }
-  };
-
-  const renderFormField = (component: FormComponentData) => {
-    const fieldId = component.fieldId || component.id;
-    const fieldValue = formData[fieldId] || '';
-    const fieldError = errors[fieldId];
+  const renderComponent = (component: FormComponentData): React.ReactNode => {
+    const value = formData[component.fieldId || component.id] || '';
 
     switch (component.type) {
       case 'text_input':
         return (
-          <div className="preview-field" key={component.id}>
-            <label className="preview-field__label">
+          <div key={component.id} className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               {component.label}
-              {component.required && <span className="preview-field__required">*</span>}
+              {component.required && <span className="text-red-500 ml-1">*</span>}
             </label>
             <input
               type="text"
-              className={`preview-field__input ${fieldError ? 'preview-field__input--error' : ''}`}
-              placeholder={component.placeholder || ''}
-              value={fieldValue}
-              onChange={(e) => handleInputChange(fieldId, e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={component.placeholder}
+              value={value}
+              onChange={(e) => handleInputChange(component.fieldId || component.id, e.target.value)}
+              required={component.required}
             />
-            {fieldError && (
-              <div className="preview-field__error">{fieldError}</div>
-            )}
-            {component.helpText && (
-              <div className="preview-field__help">{component.helpText}</div>
-            )}
+          </div>
+        );
+
+      case 'number_input':
+        return (
+          <div key={component.id} className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {component.label}
+              {component.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+            <input
+              type="number"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={component.placeholder}
+              value={value}
+              min={component.min}
+              max={component.max}
+              step={component.step}
+              onChange={(e) => handleInputChange(component.fieldId || component.id, e.target.value)}
+              required={component.required}
+            />
           </div>
         );
 
       case 'textarea':
         return (
-          <div className="preview-field" key={component.id}>
-            <label className="preview-field__label">
+          <div key={component.id} className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               {component.label}
-              {component.required && <span className="preview-field__required">*</span>}
+              {component.required && <span className="text-red-500 ml-1">*</span>}
             </label>
             <textarea
-              className={`preview-field__textarea ${fieldError ? 'preview-field__textarea--error' : ''}`}
-              placeholder={component.placeholder || ''}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={component.placeholder}
+              value={value}
               rows={4}
-              value={fieldValue}
-              onChange={(e) => handleInputChange(fieldId, e.target.value)}
+              onChange={(e) => handleInputChange(component.fieldId || component.id, e.target.value)}
+              required={component.required}
             />
-            {fieldError && (
-              <div className="preview-field__error">{fieldError}</div>
-            )}
-            {component.helpText && (
-              <div className="preview-field__help">{component.helpText}</div>
-            )}
           </div>
         );
 
       case 'select':
         return (
-          <div className="preview-field" key={component.id}>
-            <label className="preview-field__label">
+          <div key={component.id} className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               {component.label}
-              {component.required && <span className="preview-field__required">*</span>}
+              {component.required && <span className="text-red-500 ml-1">*</span>}
             </label>
-            <select 
-              className={`preview-field__select ${fieldError ? 'preview-field__select--error' : ''}`}
-              value={fieldValue}
-              onChange={(e) => handleInputChange(fieldId, e.target.value)}
+            <select
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={value}
+              onChange={(e) => handleInputChange(component.fieldId || component.id, e.target.value)}
+              required={component.required}
             >
-              <option value="">Choose an option</option>
-              {(component.options || []).map((option, index) => (
-                <option key={index} value={option}>
-                  {option}
-                </option>
+              <option value="">Select an option</option>
+              {component.options?.map((option, index) => (
+                <option key={index} value={option}>{option}</option>
               ))}
             </select>
-            {fieldError && (
-              <div className="preview-field__error">{fieldError}</div>
-            )}
-            {component.helpText && (
-              <div className="preview-field__help">{component.helpText}</div>
-            )}
           </div>
         );
 
-      case 'checkbox':
+      case 'multi_select':
         return (
-          <div className="preview-field" key={component.id}>
-            <fieldset className="preview-field__fieldset">
-              <legend className="preview-field__label">
-                {component.label}
-                {component.required && <span className="preview-field__required">*</span>}
-              </legend>
-              <div className="preview-field__checkbox-group">
-                {(component.options || []).map((option, index) => {
-                  const checkboxValues = Array.isArray(fieldValue) ? fieldValue : [];
-                  const isChecked = checkboxValues.includes(option);
-                  
-                  return (
-                    <label key={index} className="preview-field__checkbox">
-                      <input 
-                        type="checkbox" 
-                        checked={isChecked}
-                        onChange={(e) => {
-                          const currentValues = Array.isArray(formData[fieldId]) ? formData[fieldId] : [];
-                          let newValues;
-                          
-                          if (e.target.checked) {
-                            newValues = [...currentValues, option];
-                          } else {
-                            newValues = currentValues.filter((val: string) => val !== option);
-                          }
-                          
-                          handleInputChange(fieldId, newValues);
-                        }}
-                      />
-                      <span>{option}</span>
-                    </label>
-                  );
-                })}
-              </div>
-              {fieldError && (
-                <div className="preview-field__error">{fieldError}</div>
-              )}
-            </fieldset>
-            {component.helpText && (
-              <div className="preview-field__help">{component.helpText}</div>
-            )}
+          <div key={component.id} className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {component.label}
+              {component.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+            <div className="border border-gray-300 rounded-md">
+              {component.options?.map((option, index) => (
+                <label key={index} className="flex items-center px-3 py-2 border-b border-gray-200 last:border-b-0">
+                  <input
+                    type="checkbox"
+                    value={option}
+                    checked={Array.isArray(value) ? value.includes(option) : false}
+                    onChange={(e) => {
+                      const currentValues = Array.isArray(value) ? value : [];
+                      const newValues = e.target.checked
+                        ? [...currentValues, option]
+                        : currentValues.filter(v => v !== option);
+                      handleInputChange(component.fieldId || component.id, newValues);
+                    }}
+                    className="mr-3"
+                  />
+                  {option}
+                </label>
+              ))}
+            </div>
           </div>
         );
 
       case 'radio_group':
         return (
-          <div className="preview-field" key={component.id}>
-            <fieldset className="preview-field__fieldset">
-              <legend className="preview-field__label">
-                {component.label}
-                {component.required && <span className="preview-field__required">*</span>}
-              </legend>
-              <div className="preview-field__radio-group">
-                {(component.options || []).map((option, index) => (
-                  <label key={index} className="preview-field__radio">
-                    <input 
-                      type="radio" 
-                      name={fieldId}
-                      value={option}
-                      checked={fieldValue === option}
-                      onChange={(e) => handleInputChange(fieldId, e.target.value)}
-                    />
-                    <span>{option}</span>
-                  </label>
-                ))}
-              </div>
-              {fieldError && (
-                <div className="preview-field__error">{fieldError}</div>
-              )}
-            </fieldset>
-            {component.helpText && (
-              <div className="preview-field__help">{component.helpText}</div>
-            )}
+          <div key={component.id} className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {component.label}
+              {component.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+            <div className="space-y-2">
+              {component.options?.map((option, index) => (
+                <label key={index} className="flex items-center">
+                  <input
+                    type="radio"
+                    name={component.fieldId || component.id}
+                    value={option}
+                    checked={value === option}
+                    onChange={(e) => handleInputChange(component.fieldId || component.id, e.target.value)}
+                    className="mr-2"
+                    required={component.required}
+                  />
+                  {option}
+                </label>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'checkbox':
+        return (
+          <div key={component.id} className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {component.label}
+              {component.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+            <div className="space-y-2">
+              {component.options?.map((option, index) => (
+                <label key={index} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    value={option}
+                    checked={Array.isArray(value) ? value.includes(option) : false}
+                    onChange={(e) => {
+                      const currentValues = Array.isArray(value) ? value : [];
+                      const newValues = e.target.checked
+                        ? [...currentValues, option]
+                        : currentValues.filter(v => v !== option);
+                      handleInputChange(component.fieldId || component.id, newValues);
+                    }}
+                    className="mr-2"
+                  />
+                  {option}
+                </label>
+              ))}
+            </div>
           </div>
         );
 
       case 'date_picker':
         return (
-          <div className="preview-field" key={component.id}>
-            <label className="preview-field__label">
+          <div key={component.id} className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               {component.label}
-              {component.required && <span className="preview-field__required">*</span>}
+              {component.required && <span className="text-red-500 ml-1">*</span>}
             </label>
-            <input 
-              type="date" 
-              className={`preview-field__input ${fieldError ? 'preview-field__input--error' : ''}`}
-              value={fieldValue}
-              onChange={(e) => handleInputChange(fieldId, e.target.value)}
+            <input
+              type="date"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={value}
+              onChange={(e) => handleInputChange(component.fieldId || component.id, e.target.value)}
+              required={component.required}
             />
-            {fieldError && (
-              <div className="preview-field__error">{fieldError}</div>
-            )}
-            {component.helpText && (
-              <div className="preview-field__help">{component.helpText}</div>
-            )}
           </div>
         );
 
       case 'file_upload':
         return (
-          <div className="preview-field" key={component.id}>
-            <label className="preview-field__label">
+          <div key={component.id} className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               {component.label}
-              {component.required && <span className="preview-field__required">*</span>}
+              {component.required && <span className="text-red-500 ml-1">*</span>}
             </label>
-            <div className="preview-field__file-upload">
-              <input 
-                type="file" 
-                accept={component.acceptedFileTypes}
-                onChange={(e) => {
-                  const files = e.target.files;
-                  if (files && files.length > 0) {
-                    handleInputChange(fieldId, files[0].name);
-                  } else {
-                    handleInputChange(fieldId, '');
-                  }
-                }}
-              />
-              {fieldValue && (
-                <div className="preview-field__file-selected">
-                  Selected: {fieldValue}
-                </div>
-              )}
-              {fieldError && (
-                <div className="preview-field__error">{fieldError}</div>
-              )}
-              {component.acceptedFileTypes && (
-                <div className="preview-field__file-types">
-                  Accepted: {component.acceptedFileTypes}
-                </div>
-              )}
-            </div>
-            {component.helpText && (
-              <div className="preview-field__help">{component.helpText}</div>
+            <input
+              type="file"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              accept={component.acceptedFileTypes}
+              onChange={(e) => handleInputChange(component.fieldId || component.id, e.target.files?.[0])}
+              required={component.required}
+            />
+          </div>
+        );
+
+      case 'section_divider':
+        return (
+          <div key={component.id} className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-300 pb-2">
+              {component.label}
+            </h3>
+            {component.description && (
+              <p className="text-sm text-gray-600 mt-2">{component.description}</p>
             )}
+          </div>
+        );
+
+      case 'signature':
+        return (
+          <div key={component.id} className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {component.label}
+              {component.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+            <div className="border border-gray-300 rounded-md p-4 bg-gray-50">
+              <p className="text-sm text-gray-500">Signature field (preview only)</p>
+            </div>
           </div>
         );
 
       case 'horizontal_layout':
-        return (
-          <div key={component.id} className="preview-container horizontal-layout grid-row"
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              gap: component.layout?.gap === 'none' ? '0' : 
-                   component.layout?.gap === 'small' ? 'var(--space-2)' :
-                   component.layout?.gap === 'large' ? 'var(--space-6)' : 'var(--space-4)',
-              alignItems: component.layout?.alignment === 'center' ? 'center' :
-                         component.layout?.alignment === 'end' ? 'flex-end' :
-                         component.layout?.alignment === 'stretch' ? 'stretch' : 'flex-start',
-              flexWrap: 'nowrap'
-            }}
-          >
-            {(component.children || []).map(child => (
-              <div key={child.id} className="grid-column" style={{ 
-                width: child.layout?.width || `${(100 / (component.children?.length || 1)).toFixed(2)}%`,
-                minWidth: '100px',
-                flexShrink: 0,
-                boxSizing: 'border-box'
-              }}>
-                {renderFormField(child)}
-              </div>
-            ))}
-          </div>
-        );
-
       case 'vertical_layout':
         return (
-          <div key={component.id} className="preview-container vertical-layout"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: component.layout?.gap === 'none' ? '0' : 
-                   component.layout?.gap === 'small' ? 'var(--space-2)' :
-                   component.layout?.gap === 'large' ? 'var(--space-6)' : 'var(--space-4)',
-              alignItems: component.layout?.alignment === 'center' ? 'center' :
-                         component.layout?.alignment === 'end' ? 'flex-end' :
-                         component.layout?.alignment === 'stretch' ? 'stretch' : 'flex-start'
-            }}
+          <div 
+            key={component.id} 
+            className={`mb-4 ${component.type === 'horizontal_layout' ? 'flex gap-4' : 'space-y-4'}`}
           >
-            {(component.children || []).map(child => (
-              <div key={child.id} style={{ 
-                width: child.layout?.width || 'auto'
-              }}>
-                {renderFormField(child)}
-              </div>
-            ))}
+            {component.children?.map(child => renderComponent(child))}
           </div>
         );
 
       default:
-        return null;
+        return (
+          <div key={component.id} className="mb-4 p-4 bg-gray-100 rounded">
+            <p className="text-sm text-gray-600">Unknown component type: {component.type}</p>
+          </div>
+        );
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (showNotification) {
+      showNotification('Form Submitted', 'This is a preview. Form data would be submitted in the actual form.', 'info');
+    } else {
+      alert('This is a preview. Form data would be submitted in the actual form.');
+    }
+  };
+
+  const goToNextPage = () => {
+    if (currentPageIndex < pages.length - 1) {
+      setCurrentPageIndex(prev => prev + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPageIndex > 0) {
+      setCurrentPageIndex(prev => prev - 1);
     }
   };
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="modal-title">{templateName || 'Untitled Form'}</h2>
-          <button className="modal-close" onClick={handleClose}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div className="flex justify-between items-center p-6 border-b">
+          <h2 className="text-xl font-semibold text-gray-800">
+            Preview: {templateName}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-2xl"
+          >
             ×
           </button>
         </div>
-        
-        <div className="modal-body">
-          <div className="preview-form">
-            
-            {/* Page Navigation */}
-            {totalPages > 1 && (
-              <div className="preview-form__page-nav">
-                <div className="page-progress">
-                  <div className="page-progress__bar">
-                    <div 
-                      className="page-progress__fill" 
-                      style={{ width: `${((currentPageIndex + 1) / totalPages) * 100}%` }}
-                    />
-                  </div>
-                  <div className="page-progress__text">
-                    Page {currentPageIndex + 1} of {totalPages}
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {/* Page Title */}
-            {totalPages > 1 && (
-              <div className="preview-form__page-title">
-                <h3>{currentPage.title}</h3>
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+          {hasPages && (
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-gray-800">{currentPageTitle}</h3>
+            </div>
+          )}
+          
+          <form onSubmit={handleSubmit}>
+            {currentComponents.length > 0 ? (
+              currentComponents.map(renderComponent)
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No components found for this page
               </div>
             )}
             
-            <form className="preview-form__content" onSubmit={(e) => e.preventDefault()}>
-              {currentPage.components.length === 0 ? (
-                <div className="preview-form__empty">
-                  <p>No form fields on this page. Add components to see the preview.</p>
-                </div>
-              ) : (
-                currentPage.components.map(renderFormField)
-              )}
-            </form>
-
-            {/* Navigation Controls */}
-            <div className="preview-form__actions">
-              {totalPages > 1 && (
-                <div className="preview-form__page-controls">
-                  <button 
-                    type="button" 
-                    onClick={goToPrevPage}
-                    disabled={currentPageIndex === 0}
-                    className="btn btn--secondary"
-                  >
-                    ← Previous
-                  </button>
-                  
-                  <div className="page-indicators">
-                    {previewPages.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => goToPage(index)}
-                        className={`page-dot ${index === currentPageIndex ? 'page-dot--active' : ''}`}
-                        title={`Go to ${previewPages[index].title}`}
-                      />
-                    ))}
-                  </div>
-                  
-                  {currentPageIndex < totalPages - 1 ? (
-                    <button 
-                      type="button" 
-                      onClick={handleNextPage}
-                      className="btn btn--primary"
-                    >
-                      Next →
-                    </button>
-                  ) : (
-                    <button 
-                      type="button" 
-                      onClick={handleSubmitForm}
-                      className="btn btn--primary"
-                    >
-                      Submit Form
-                    </button>
-                  )}
-                </div>
-              )}
+            <div className="mt-8 flex justify-between">
+              <button
+                type="button"
+                onClick={goToPrevPage}
+                disabled={currentPageIndex === 0}
+                className={`px-4 py-2 rounded-md ${
+                  currentPageIndex === 0 
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Previous
+              </button>
               
-              {totalPages === 1 && currentPage.components.length > 0 && (
-                <div>
-                  <button 
-                    type="button" 
-                    onClick={handleSubmitForm}
-                    className="preview-form__submit"
-                  >
-                    Submit Form
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={() => {
-                      setFormData({});
-                      setErrors({});
-                    }}
-                    className="preview-form__reset"
-                  >
-                    Reset
-                  </button>
-                </div>
+              <div className="flex space-x-2">
+                {pages.map((_, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setCurrentPageIndex(index)}
+                    className={`w-3 h-3 rounded-full ${
+                      index === currentPageIndex ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+              
+              {currentPageIndex < pages.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={goToNextPage}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                >
+                  Submit
+                </button>
               )}
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </div>

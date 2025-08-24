@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ConfirmationModal from './ConfirmationModal';
-import ActionButton from '../atoms/ActionButton';
+import { ActionButton } from '../atoms';
 import type { FormPage } from '../types';
 
 interface PageNavigationProps {

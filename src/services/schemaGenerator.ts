@@ -7,6 +7,12 @@ interface JsonSchemaProperty {
   pattern?: string;
   title?: string;
   description?: string;
+  items?: {
+    type: string;
+    enum?: string[];
+  };
+  minimum?: number;
+  maximum?: number;
 }
 
 interface JsonSchema {
@@ -32,10 +38,15 @@ export class SchemaGenerator {
 
     components.forEach(component => {
       if (component.fieldId) {
-        schema.properties[component.fieldId] = this.generatePropertySchema(component);
+        const propertySchema = this.generatePropertySchema(component);
         
-        if (component.required) {
-          schema.required.push(component.fieldId);
+        // Skip null properties (like section dividers)
+        if (propertySchema) {
+          schema.properties[component.fieldId] = propertySchema;
+          
+          if (component.required) {
+            schema.required.push(component.fieldId);
+          }
         }
       }
     });
@@ -59,8 +70,32 @@ export class SchemaGenerator {
         }
         break;
 
+      case "multi_select":
+        baseProperty.type = "array";
+        if (component.options && component.options.length > 0) {
+          baseProperty.items = {
+            type: "string",
+            enum: component.options
+          };
+        } else {
+          baseProperty.items = {
+            type: "string"
+          };
+        }
+        break;
+
       case "checkbox":
-        baseProperty.type = "boolean";
+        if (component.options && component.options.length > 1) {
+          // Multiple checkboxes - array of selected options
+          baseProperty.type = "array";
+          baseProperty.items = {
+            type: "string",
+            enum: component.options
+          };
+        } else {
+          // Single checkbox - boolean
+          baseProperty.type = "boolean";
+        }
         break;
 
       case "date_picker":
@@ -73,7 +108,22 @@ export class SchemaGenerator {
 
       case "number_input":
         baseProperty.type = "number";
+        if (component.min !== undefined) {
+          baseProperty.minimum = component.min;
+        }
+        if (component.max !== undefined) {
+          baseProperty.maximum = component.max;
+        }
         break;
+
+      case "signature":
+        baseProperty.format = "data-url";
+        baseProperty.description = "Base64 encoded signature image";
+        break;
+
+      case "section_divider":
+        // Section dividers don't generate form fields in JSON schema
+        return null as any; // Skip this component
     }
 
     // Add validation
@@ -111,13 +161,41 @@ export class SchemaGenerator {
 
   static validateComponent(component: FormComponentData, value: any): string | null {
     // Basic required validation
-    if (component.required && (!value || value === "")) {
-      return `${component.label} is required`;
+    if (component.required) {
+      if (component.type === "multi_select" || (component.type === "checkbox" && Array.isArray(value))) {
+        if (!value || !Array.isArray(value) || value.length === 0) {
+          return `${component.label} is required`;
+        }
+      } else if (!value || value === "") {
+        return `${component.label} is required`;
+      }
     }
 
     if (!value) return null;
 
     // Type-specific validation
+    switch (component.type) {
+      case "number_input":
+        const numValue = Number(value);
+        if (isNaN(numValue)) {
+          return `${component.label} must be a valid number`;
+        }
+        if (component.min !== undefined && numValue < component.min) {
+          return `${component.label} must be at least ${component.min}`;
+        }
+        if (component.max !== undefined && numValue > component.max) {
+          return `${component.label} must not exceed ${component.max}`;
+        }
+        break;
+
+      case "multi_select":
+        if (!Array.isArray(value)) {
+          return `${component.label} must be an array of selections`;
+        }
+        break;
+    }
+
+    // General validation rules
     switch (component.validation) {
       case "email":
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
