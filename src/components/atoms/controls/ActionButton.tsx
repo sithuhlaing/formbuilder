@@ -1,14 +1,6 @@
 import React from 'react';
 import type { ActionButtonProps } from '../../types/props';
 
-const VARIANT_STYLES = {
-  default: 'bg-gray-100 hover:bg-gray-200 text-gray-700',
-  danger: 'bg-red-100 hover:bg-red-200 text-red-700',
-  primary: 'bg-blue-100 hover:bg-blue-200 text-blue-700',
-  warning: 'bg-yellow-100 hover:bg-yellow-200 text-yellow-700',
-  delete: 'bg-red-100 hover:bg-red-200 text-red-700'
-} as const;
-
 const ActionButton: React.FC<ActionButtonProps> = ({
   onClick,
   icon,
@@ -16,8 +8,52 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   variant = 'default',
   disabled = false
 }) => {
-  const variantClass = VARIANT_STYLES[variant];
-  const disabledClass = disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
+  const getVariantStyle = () => {
+    const base = {
+      padding: 'var(--space-2)',
+      borderRadius: 'var(--radius-md)',
+      border: '1px solid transparent',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? '0.5' : '1',
+      transition: 'all var(--transition-fast)',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 'var(--text-sm)'
+    };
+
+    switch (variant) {
+      case 'danger':
+      case 'delete':
+        return { 
+          ...base, 
+          backgroundColor: 'var(--color-red-100)', 
+          color: 'var(--color-red-700)',
+          border: '1px solid var(--color-red-200)'
+        };
+      case 'primary':
+        return { 
+          ...base, 
+          backgroundColor: 'var(--color-blue-100)', 
+          color: 'var(--color-blue-700)',
+          border: '1px solid var(--color-blue-200)'
+        };
+      case 'warning':
+        return { 
+          ...base, 
+          backgroundColor: 'var(--color-orange-100)', 
+          color: 'var(--color-orange-700)',
+          border: '1px solid var(--color-orange-200)'
+        };
+      default:
+        return { 
+          ...base, 
+          backgroundColor: 'var(--color-gray-100)', 
+          color: 'var(--color-gray-700)',
+          border: '1px solid var(--color-gray-200)'
+        };
+    }
+  };
 
   const handleClick = (e: React.MouseEvent) => {
     if (!disabled) {
@@ -30,7 +66,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
       onClick={handleClick}
       title={title}
       disabled={disabled}
-      className={`p-2 rounded-md transition-colors duration-200 ${variantClass} ${disabledClass}`}
+      style={getVariantStyle()}
     >
       {icon}
     </button>

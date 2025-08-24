@@ -1,69 +1,115 @@
-# React + TypeScript + Vite
+# Form Builder
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive drag-and-drop form builder with multi-page support, built with React, TypeScript, and Vite.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🎯 Drag-and-drop interface for building forms
+- 📄 Multi-page form support
+- 🎨 13 different field types (text, number, select, etc.)
+- 👁️ Live preview mode
+- 💾 Template saving and loading
+- 📱 Responsive design
+- 🔄 Unified modal system
 
-## Expanding the ESLint configuration
+## Development
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Node.js 18+
+- npm
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+### Installation
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Development Server
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
+
+### Building for Production
+
+```bash
+npm run build
+```
+
+### Running Tests
+
+```bash
+npm run test
+```
+
+### Linting
+
+```bash
+npm run lint
+```
+
+## Deployment
+
+This project is automatically deployed to GitHub Pages using GitHub Actions.
+
+### Automatic Deployment
+
+Every push to the `main` branch triggers:
+1. Code linting
+2. Test execution  
+3. Production build
+4. Deployment to GitHub Pages
+
+### Manual Deployment
+
+You can also deploy manually:
+
+```bash
+npm run deploy
+```
+
+## GitHub Pages Setup
+
+1. Go to your repository settings
+2. Navigate to "Pages" in the sidebar
+3. Under "Source", select "GitHub Actions"
+4. The site will be available at: `https://[username].github.io/formbuilder/`
+
+## Project Structure
+
+```
+src/
+├── components/          # React components
+│   ├── atoms/          # Basic UI components
+│   ├── molecules/      # Composite components
+│   └── Modal.tsx       # Unified modal system
+├── hooks/              # Custom React hooks
+├── services/           # Business logic and services
+├── styles/             # CSS files
+└── types/              # TypeScript type definitions
+```
+
+## Technologies Used
+
+- **React** - UI framework
+- **TypeScript** - Type safety
+- **Vite** - Build tool and dev server
+- **React DnD** - Drag and drop functionality
+- **CSS Variables** - Consistent theming
+- **Vitest** - Testing framework
+- **GitHub Actions** - CI/CD pipeline
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
