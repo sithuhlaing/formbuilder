@@ -20,24 +20,24 @@ import type {
 } from "./components/types";
 
 // A helper function to find and update components recursively
-const findAndModifyComponent = (
-  components: FormComponentData[],
-  targetId: string,
-  modification: (component: FormComponentData) => FormComponentData
-): FormComponentData[] => {
-  return components.map(component => {
-    if (component.id === targetId) {
-      return modification(component);
-    }
-    if (component.children) {
-      return {
-        ...component,
-        children: findAndModifyComponent(component.children, targetId, modification),
-      };
-    }
-    return component;
-  });
-};
+// const findAndModifyComponent = (
+//   components: FormComponentData[],
+//   targetId: string,
+//   modification: (component: FormComponentData) => FormComponentData
+// ): FormComponentData[] => {
+//   return components.map(component => {
+//     if (component.id === targetId) {
+//       return modification(component);
+//     }
+//     if (component.children) {
+//       return {
+//         ...component,
+//         children: findAndModifyComponent(component.children, targetId, modification),
+//       };
+//     }
+//     return component;
+//   });
+// };
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'list' | 'builder'>('list');
