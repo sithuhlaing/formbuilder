@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import ConfirmationModal from './ConfirmationModal';
+import ConfirmDialog from '../ConfirmDialog';
 import { ActionButton } from '../atoms';
 import type { FormPage } from '../types';
 
@@ -163,7 +163,7 @@ const PageNavigation: React.FC<PageNavigationProps> = ({
       </div>
       
       {/* Delete Page Confirmation Modal */}
-      <ConfirmationModal
+      <ConfirmDialog
         isOpen={deleteConfirmation.isOpen}
         onClose={() => setDeleteConfirmation({ isOpen: false, pageId: '', pageTitle: '' })}
         onConfirm={confirmDeletePage}
@@ -172,7 +172,6 @@ const PageNavigation: React.FC<PageNavigationProps> = ({
         type="error"
         confirmText="Delete"
         cancelText="Cancel"
-        icon="🗑️"
       />
     </div>
   );

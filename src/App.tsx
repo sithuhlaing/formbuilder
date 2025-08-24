@@ -7,8 +7,8 @@ import Properties from './components/Properties';
 import PreviewModal from './components/molecules/PreviewModal';
 import PageNavigation from './components/molecules/PageNavigation';
 import TemplateListView from './components/TemplateListView';
-import ConfirmationModal from './components/molecules/ConfirmationModal';
-import NotificationModal from './components/molecules/NotificationModal';
+import ConfirmDialog from './components/ConfirmDialog';
+import NotificationDialog from './components/NotificationDialog';
 import { useFormBuilder } from './hooks/useFormBuilder';
 import { useModals } from './hooks/useModals';
 import { templateService } from './services/templateService';
@@ -155,24 +155,27 @@ const App: React.FC = () => {
     };
 
     const hasAnyComponents = pages.some(page => page.components.length > 0);
+    console.log('🔍 Edit template check:', { 
+      templateName: template.name,
+      totalPages: pages.length,
+      hasAnyComponents,
+      pageComponents: pages.map(page => page.components.length)
+    });
     
-    if (hasAnyComponents) {
-      console.log('⚠️ Showing confirmation dialog for template replacement');
-      const totalComponents = pages.reduce((total, page) => total + page.components.length, 0);
-      
-      // Add a slight delay to ensure state is clean
-      setTimeout(() => {
-        showConfirmation(
-          '🔄 Replace Current Form?',
-          `You have ${totalComponents} component(s) in your current form.\n\nClick "Continue" to replace with "${template.name}" template.\n\n(You can undo this with Ctrl+Z after loading)`,
-          forceLoadTemplate, // Use force load to ensure clean slate
-          'warning'
-        );
-      }, 100);
-    } else {
-      console.log('✅ Loading template directly (no existing components)');
-      loadTemplate();
-    }
+    // Show confirmation dialog for template loading
+    console.log('⚠️ Showing confirmation dialog for template loading');
+    const totalComponents = pages.reduce((total, page) => total + page.components.length, 0);
+    
+    const message = hasAnyComponents 
+      ? `You have ${totalComponents} component(s) in your current form.\n\nClick "Continue" to replace with "${template.name}" template.`
+      : `Load the "${template.name}" template?`;
+    
+    showConfirmation(
+      '🔄 Load Template',
+      message,
+      forceLoadTemplate,
+      hasAnyComponents ? 'warning' : 'info'
+    );
   };
 
   const handleBackToList = () => {
@@ -194,11 +197,7 @@ const App: React.FC = () => {
       const result = templateService.loadFromJSON(jsonData);
       
       if (result.error) {
-        showNotification(
-          'Error Loading JSON',
-          `Error loading JSON: ${result.error}`,
-          'error'
-        );
+        console.log('❌ Error Loading JSON:', `Error loading JSON: ${result.error}`);
         return;
       }
       
@@ -217,23 +216,16 @@ const App: React.FC = () => {
           
           setCurrentTemplateId(null); // Clear template ID for uploaded JSON
           
-          showNotification(
-            'JSON Loaded Successfully!',
-            `Successfully loaded ${result.components!.length} components${result.template ? ` from template "${result.template.name}"` : ''}.`,
-            'success'
-          );
+          console.log('✅ JSON Loaded Successfully:', `Successfully loaded ${result.components!.length} components${result.template ? ` from template "${result.template.name}"` : ''}.`);
         };
 
         const hasAnyComponents = pages.some(page => page.components.length > 0);
         
         if (hasAnyComponents) {
-          showConfirmation(
-            'Replace Current Form?',
-            'Loading this JSON will replace your current form. Do you want to continue?\n\nYou can undo this action with Ctrl+Z after loading.',
-            loadJSON,
-            'warning'
-          );
+          console.log('⚠️ Replacing current form with JSON data');
+          loadJSON();
         } else {
+          console.log('📄 Loading JSON data (no existing form)');
           loadJSON();
         }
       }
@@ -277,9 +269,6 @@ const App: React.FC = () => {
           <div className="header__container">
             <div className="header__brand">
               <h1>Form Builder</h1>
-              <span className="header__brand-subtitle">
-                Build dynamic forms with drag & drop
-              </span>
             </div>
             <div className="header__actions">
               <button
@@ -450,12 +439,11 @@ const App: React.FC = () => {
           showNotification={showNotification}
         />
         
-        {/* Confirmation Modal */}
-        {console.log('🔍 RENDERING CONFIRMATION MODAL:', { 
-          isOpen: confirmation.isOpen, 
-          title: confirmation.title 
-        })}
-        <ConfirmationModal
+        {/* Confirmation Modal - temporarily disabled */}
+        
+        
+        {/* Unified Modal System */}
+        <ConfirmDialog
           isOpen={confirmation.isOpen}
           onClose={closeConfirmation}
           onConfirm={confirmation.onConfirm}
@@ -466,25 +454,7 @@ const App: React.FC = () => {
           cancelText="Cancel"
         />
         
-        {/* DEBUG: Force show modal state */}
-        {confirmation.isOpen && (
-          <div style={{
-            position: 'fixed',
-            top: '10px',
-            right: '10px', 
-            background: 'red',
-            color: 'white',
-            padding: '10px',
-            zIndex: 99999,
-            borderRadius: '4px',
-            fontSize: '12px'
-          }}>
-            🚨 MODAL SHOULD BE OPEN: {confirmation.title}
-          </div>
-        )}
-        
-        {/* Notification Modal */}
-        <NotificationModal
+        <NotificationDialog
           isOpen={notification.isOpen}
           onClose={closeNotification}
           title={notification.title}

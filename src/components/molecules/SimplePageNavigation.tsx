@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import PageItem from './PageItem';
-import ConfirmDialog from './ConfirmDialog';
+import ConfirmDialog from '../ConfirmDialog';
 import { Button } from '../atoms';
 
 interface Page {

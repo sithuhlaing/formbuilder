@@ -42,8 +42,3 @@ export { default as SimpleDropZone } from './layout/SimpleDropZone';
 // Icons
 export { default as ComponentIcon } from './icons/ComponentIcon';
 
-// Modal Components
-export { default as ModalBody } from './modals/ModalBody';
-export { default as ModalFooter } from './modals/ModalFooter';
-export { default as ModalHeader } from './modals/ModalHeader';
-export { default as ModalOverlay } from './modals/ModalOverlay';

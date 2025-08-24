@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { templateService } from '../services/templateService';
 import PreviewModal from './molecules/PreviewModal';
-import ConfirmationModal from './molecules/ConfirmationModal';
+import ConfirmDialog from './ConfirmDialog';
 import ActionButton from './atoms/controls/ActionButton';
 import type { FormTemplate } from './types';
 
@@ -131,6 +131,7 @@ const TemplateListView: React.FC<TemplateListViewProps> = ({
                       <ActionButton
                         onClick={(e) => {
                           e?.stopPropagation();
+                          console.log('🔍 Edit button clicked in TemplateListView for:', template.name);
                           onEditTemplate(template);
                         }}
                         icon="✏️"
@@ -208,7 +209,7 @@ const TemplateListView: React.FC<TemplateListViewProps> = ({
       )}
 
       {/* Delete Confirmation Modal */}
-      <ConfirmationModal
+      <ConfirmDialog
         isOpen={deleteConfirmation.isOpen}
         onClose={() => setDeleteConfirmation({ isOpen: false, templateId: '', templateName: '' })}
         onConfirm={confirmDeleteTemplate}
