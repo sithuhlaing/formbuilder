@@ -139,7 +139,7 @@ const ComponentPreview: React.FC<ComponentPreviewProps> = ({ component }) => {
             </div>
           </div>
         );
-      case "horizontal_container":
+      case "horizontal_layout":
         return (
           <div className="form-field-preview">
             <div className="container-preview horizontal-container">
@@ -175,7 +175,7 @@ const ComponentPreview: React.FC<ComponentPreviewProps> = ({ component }) => {
             </div>
           </div>
         );
-      case "vertical_container":
+      case "vertical_layout":
         return (
           <div className="form-field-preview">
             <div className="container-preview vertical-container">

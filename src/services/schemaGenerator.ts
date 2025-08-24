@@ -1,4 +1,4 @@
-import type { FormComponentData, ValidationType } from "../components/types";
+import type { FormComponentData } from "../components/types";
 
 interface JsonSchemaProperty {
   type: string;

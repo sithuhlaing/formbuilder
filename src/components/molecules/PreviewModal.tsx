@@ -371,7 +371,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
           </div>
         );
 
-      case 'horizontal_container':
+      case 'horizontal_layout':
         return (
           <div key={component.id} className="preview-container horizontal-layout grid-row"
             style={{
@@ -399,7 +399,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
           </div>
         );
 
-      case 'vertical_container':
+      case 'vertical_layout':
         return (
           <div key={component.id} className="preview-container vertical-layout"
             style={{

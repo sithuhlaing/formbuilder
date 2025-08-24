@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useDrop } from 'react-dnd';
+import type { DropTargetMonitor } from 'react-dnd';
 import type { ComponentType } from '../types';
 
 interface SmartDropZoneProps {
@@ -50,9 +51,13 @@ const SmartDropZone: React.FC<SmartDropZoneProps> = ({
     }
     
     return null;
-  }, []);
+  }, [isInHorizontalContainer, horizontalContainerCount]);
 
-  const [{ isOver }, drop] = useDrop({
+  const [{ isOver }, drop] = useDrop<
+    { type: ComponentType },
+    void,
+    { isOver: boolean }
+  >({
     accept: "component",
     hover: (item, monitor) => {
       const clientOffset = monitor.getClientOffset();
@@ -74,7 +79,7 @@ const SmartDropZone: React.FC<SmartDropZoneProps> = ({
       }
       setDropPosition(null);
     },
-    collect: (monitor) => ({
+    collect: (monitor: DropTargetMonitor) => ({
       isOver: monitor.isOver({ shallow: true }),
     }),
   });

@@ -1,17 +1,17 @@
 export type ComponentType = 
   | "text_input"
+  | "number_input"
   | "textarea" 
   | "select"
+  | "multi_select"
   | "checkbox"
   | "radio_group"
   | "date_picker"
   | "file_upload"
-  | "number_input"
-  | "multi_select"
   | "section_divider"
   | "signature"
-  | "horizontal_container"
-  | "vertical_container";
+  | "horizontal_layout"
+  | "vertical_layout";
 
 export type ValidationType = "none" | "email" | "number" | "custom";
 
@@ -86,6 +86,7 @@ export interface CanvasProps {
   onInsertWithPosition?: (type: ComponentType, targetId: string, position: 'left' | 'right' | 'top' | 'bottom') => void;
   onInsertBetween?: (type: ComponentType, insertIndex: number) => void;
   onInsertHorizontal?: (type: ComponentType, targetId: string, position: 'left' | 'right') => void;
+  onDropInContainer: (item: { type: ComponentType; id?: string }, containerId: string) => void;
 }
 
 export interface SidebarProps {
@@ -100,4 +101,5 @@ export interface DraggableComponentProps {
   onDelete: (id: string) => void;
   onMove: (dragIndex: number, hoverIndex: number) => void;
   onInsertWithPosition?: (type: ComponentType, targetId: string, position: 'left' | 'right' | 'top' | 'bottom') => void;
+  children?: React.ReactNode;
 }

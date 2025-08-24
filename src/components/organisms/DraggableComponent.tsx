@@ -1,11 +1,10 @@
 
 import React, { useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
-import ComponentHeader from "../molecules/ComponentHeader";
 import ComponentPreview from "../molecules/ComponentPreview";
 import ComponentMetadata from "../molecules/ComponentMetadata";
 import SmartDropZone from "../molecules/SmartDropZone";
-import type { DraggableComponentProps, ComponentType } from "../types";
+import type { DraggableComponentProps } from "../types";
 
 const DraggableComponent: React.FC<DraggableComponentProps> = ({
   component,
@@ -15,6 +14,7 @@ const DraggableComponent: React.FC<DraggableComponentProps> = ({
   onDelete,
   onMove,
   onInsertWithPosition,
+  children,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -95,6 +95,7 @@ const DraggableComponent: React.FC<DraggableComponentProps> = ({
         componentId={component.id}
         helpText={component.helpText}
       />
+      {children}
     </div>
   );
 

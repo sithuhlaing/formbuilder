@@ -52,16 +52,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onAddComponent }) => {
     { type: "text_input" as ComponentType, label: "Text Input", description: "Single line text field", icon: "📝" },
     { type: "number_input" as ComponentType, label: "Number Input", description: "Numeric input with validation", icon: "🔢" },
     { type: "textarea" as ComponentType, label: "Textarea", description: "Multi-line text field", icon: "📄" },
+    { type: "select" as ComponentType, label: "Select", description: "Dropdown selection", icon: "🔽" },
+    { type: "multi_select" as ComponentType, label: "Multi-Select", description: "Multiple dropdown selections", icon: "✅" },
+    { type: "checkbox" as ComponentType, label: "Checkbox", description: "Multiple selections", icon: "✔️" },
+    { type: "radio_group" as ComponentType, label: "Radio Group", description: "Single selection", icon: "🔘" },
     { type: "date_picker" as ComponentType, label: "Date Picker", description: "Date selection", icon: "📅" },
     { type: "file_upload" as ComponentType, label: "File Upload", description: "File attachment", icon: "📎" },
-    { type: "select" as ComponentType, label: "Select", description: "Dropdown selection", icon: "📋" },
-    { type: "multi_select" as ComponentType, label: "Multi-Select", description: "Multiple dropdown selections", icon: "📑" },
-    { type: "checkbox" as ComponentType, label: "Checkbox", description: "Multiple selections", icon: "☑️" },
-    { type: "radio_group" as ComponentType, label: "Radio Group", description: "Single selection", icon: "🔘" },
-    { type: "section_divider" as ComponentType, label: "Section Divider", description: "Organize form sections", icon: "📊" },
+    { type: "section_divider" as ComponentType, label: "Section Divider", description: "Organize form sections", icon: "➖" },
     { type: "signature" as ComponentType, label: "Signature", description: "Digital signature capture", icon: "✍️" },
-    { type: "horizontal_container" as ComponentType, label: "Horizontal Layout", description: "Arrange fields side by side", icon: "↔️" },
-    { type: "vertical_container" as ComponentType, label: "Vertical Layout", description: "Stack fields vertically", icon: "↕️" },
+    { type: "horizontal_layout" as ComponentType, label: "Horizontal Layout", description: "Arrange fields side by side", icon: "↔️" },
+    { type: "vertical_layout" as ComponentType, label: "Vertical Layout", description: "Stack fields vertically", icon: "↕️" },
   ];
 
   const inputComponents = componentTypes.filter(c => 
@@ -73,7 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onAddComponent }) => {
   );
 
   const layoutComponents = componentTypes.filter(c => 
-    ["section_divider", "horizontal_container", "vertical_container"].includes(c.type)
+    ["section_divider", "horizontal_layout", "vertical_layout"].includes(c.type)
   );
 
   return (

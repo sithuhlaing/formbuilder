@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -13,7 +12,32 @@ import NotificationModal from "./components/molecules/NotificationModal";
 import { useFormBuilder } from "./hooks/useFormBuilder";
 import { useModals } from "./hooks/useModals";
 import { templateService } from "./services/templateService";
-import type { FormTemplateType, FormTemplate } from "./components/types";
+import type { 
+  FormTemplateType, 
+  FormTemplate, 
+  ComponentType,
+  FormComponentData,
+} from "./components/types";
+
+// A helper function to find and update components recursively
+const findAndModifyComponent = (
+  components: FormComponentData[],
+  targetId: string,
+  modification: (component: FormComponentData) => FormComponentData
+): FormComponentData[] => {
+  return components.map(component => {
+    if (component.id === targetId) {
+      return modification(component);
+    }
+    if (component.children) {
+      return {
+        ...component,
+        children: findAndModifyComponent(component.children, targetId, modification),
+      };
+    }
+    return component;
+  });
+};
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'list' | 'builder'>('list');
@@ -178,6 +202,17 @@ const App: React.FC = () => {
     event.target.value = ''; // Reset input to allow same file upload again
   };
 
+  const handleDropInContainer = (
+    item: { type: ComponentType; id?: string },
+    containerId: string
+  ) => {
+    // Use the addComponent function from useFormBuilder
+    // This will need to be enhanced in useFormBuilder to handle container drops
+    console.log('Drop in container:', item, containerId);
+    // For now, just add to main canvas
+    addComponent(item.type);
+  };
+
   // Show template list view
   if (currentView === 'list') {
     return (
@@ -332,6 +367,7 @@ const App: React.FC = () => {
                 onInsertWithPosition={insertComponentWithPosition}
                 onInsertBetween={insertBetweenComponents}
                 onInsertHorizontal={insertHorizontalToComponent}
+                onDropInContainer={handleDropInContainer}
               />
             </div>
           </section>

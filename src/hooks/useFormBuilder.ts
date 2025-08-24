@@ -88,7 +88,7 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
           ...baseComponent,
           label: "Digital Signature",
         };
-      case "horizontal_container":
+      case "horizontal_layout":
         return {
           ...baseComponent,
           label: "Horizontal Layout",
@@ -99,7 +99,7 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
           },
           children: [],
         };
-      case "vertical_container":
+      case "vertical_layout":
         return {
           ...baseComponent,
           label: "Vertical Layout", 
@@ -323,7 +323,7 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
     
     // Check if target is already in a horizontal container
     let parentContainer = newComponents.find(comp => 
-      comp.type === 'horizontal_container' && 
+      comp.type === 'horizontal_layout' && 
       comp.children?.some(child => child.id === targetId)
     );
 
@@ -357,7 +357,7 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
       }
     } else {
       // Create new horizontal container
-      const containerComponent = createComponent('horizontal_container');
+      const containerComponent = createComponent('horizontal_layout');
       containerComponent.label = 'Layout Row';
       containerComponent.children = position === 'left' 
         ? [newComponent, targetComponent]
@@ -390,7 +390,7 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
     
     // Check if target is already in a horizontal container
     const parentContainer = newComponents.find(comp => 
-      comp.type === 'horizontal_container' && 
+      comp.type === 'horizontal_layout' && 
       comp.children?.some(child => child.id === targetId)
     );
     
@@ -428,10 +428,10 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
           } else {
             alert('Maximum 12 elements per row. Creating new row below.');
           }
-          const containerComponent = createComponent('vertical_container');
+          const containerComponent = createComponent('vertical_layout');
           containerComponent.label = 'Layout Column';
           
-          const newRowContainer = createComponent('horizontal_container');
+          const newRowContainer = createComponent('horizontal_layout');
           newRowContainer.label = 'Layout Row';
           newRowContainer.children = [newComponent];
           newComponent.layout = { ...newComponent.layout, width: '100%' };
@@ -444,7 +444,7 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
         }
       } else {
         // Create new horizontal container
-        const containerComponent = createComponent('horizontal_container');
+        const containerComponent = createComponent('horizontal_layout');
         containerComponent.label = 'Layout Row';
         containerComponent.children = position === 'left' 
           ? [newComponent, targetComponent]
@@ -459,7 +459,7 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
       }
     } else {
       // Vertical positioning - unlimited
-      const containerComponent = createComponent('vertical_container');
+      const containerComponent = createComponent('vertical_layout');
       containerComponent.label = 'Layout Column';
       containerComponent.children = position === 'top'
         ? [newComponent, targetComponent] 
@@ -476,6 +476,53 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
     updateCurrentPageComponents(newComponents);
     setSelectedComponentId(newComponent.id);
   }, [components, createComponent, updateCurrentPageComponents]);
+
+  const addComponentToContainer = useCallback((type: ComponentType, containerId: string) => {
+    const newComponent = createComponent(type);
+    
+    const updateComponentRecursively = (components: FormComponentData[]): FormComponentData[] => {
+      return components.map(component => {
+        if (component.id === containerId) {
+          // Found the target container
+          if (component.type === 'horizontal_layout' || component.type === 'vertical_layout') {
+            const updatedChildren = [...(component.children || []), newComponent];
+            
+            // For horizontal containers, recalculate widths
+            if (component.type === 'horizontal_layout') {
+              const columnPercentage = `${(100 / updatedChildren.length).toFixed(2)}%`;
+              updatedChildren.forEach(child => {
+                child.layout = { ...child.layout, width: columnPercentage };
+              });
+            } else {
+              // For vertical containers, set full width
+              updatedChildren.forEach(child => {
+                child.layout = { ...child.layout, width: '100%' };
+              });
+            }
+            
+            return {
+              ...component,
+              children: updatedChildren
+            };
+          }
+        }
+        
+        // Recursively search in children
+        if (component.children) {
+          return {
+            ...component,
+            children: updateComponentRecursively(component.children)
+          };
+        }
+        
+        return component;
+      });
+    };
+    
+    const updatedComponents = updateComponentRecursively(components);
+    updateCurrentPageComponents(updatedComponents);
+    setSelectedComponentId(newComponent.id);
+  }, [createComponent, components, updateCurrentPageComponents]);
 
   return {
     components,
@@ -505,5 +552,7 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
     clearPage,
     // Undo/Redo actions
     ...undoRedoActions,
+    // New function for adding components to containers
+    addComponentToContainer,
   };
 };

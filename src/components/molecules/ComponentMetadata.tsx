@@ -8,8 +8,8 @@ interface ComponentMetadataProps {
 }
 
 const ComponentMetadata: React.FC<ComponentMetadataProps> = ({
-  fieldId,
-  componentId,
+  fieldId: _fieldId,
+  componentId: _componentId,
   helpText,
 }) => {
   return (
