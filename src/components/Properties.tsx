@@ -229,6 +229,76 @@ const Properties: React.FC<PropertiesProps> = ({
         )}
       </div>
 
+      {/* Number Input Properties */}
+      {component.type === 'number_input' && (
+        <div className="properties-section">
+          <h3 className="properties-section__title">
+            <span className="properties-section__icon">🔢</span>
+            Number Settings
+          </h3>
+          
+          <div className="field-group">
+            <label className="field-group__label">Minimum Value</label>
+            <input
+              type="number"
+              value={component.min || ''}
+              onChange={(e) => onUpdateComponent({ min: Number(e.target.value) || undefined })}
+              className="input"
+              placeholder="0"
+            />
+          </div>
+
+          <div className="field-group">
+            <label className="field-group__label">Maximum Value</label>
+            <input
+              type="number"
+              value={component.max || ''}
+              onChange={(e) => onUpdateComponent({ max: Number(e.target.value) || undefined })}
+              className="input"
+              placeholder="100"
+            />
+          </div>
+
+          <div className="field-group">
+            <label className="field-group__label">Step</label>
+            <input
+              type="number"
+              value={component.step || 1}
+              onChange={(e) => onUpdateComponent({ step: Number(e.target.value) || 1 })}
+              className="input"
+              placeholder="1"
+            />
+            <p className="field-group__description">
+              Step increment for numeric input (e.g., 0.1 for decimals)
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Section Divider Properties */}
+      {component.type === 'section_divider' && (
+        <div className="properties-section">
+          <h3 className="properties-section__title">
+            <span className="properties-section__icon">📊</span>
+            Section Settings
+          </h3>
+          
+          <div className="field-group">
+            <label className="field-group__label">Description</label>
+            <textarea
+              value={component.description || ''}
+              onChange={(e) => onUpdateComponent({ description: e.target.value })}
+              className="textarea"
+              placeholder="Optional section description..."
+              rows={3}
+            />
+            <p className="field-group__description">
+              Additional text to explain this section
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Field ID */}
       <div className="properties-section">
         <h3 className="properties-section__title">

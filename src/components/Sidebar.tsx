@@ -50,26 +50,30 @@ const ComponentItem: React.FC<ComponentItemProps> = ({
 const Sidebar: React.FC<SidebarProps> = ({ onAddComponent }) => {
   const componentTypes = [
     { type: "text_input" as ComponentType, label: "Text Input", description: "Single line text field", icon: "📝" },
+    { type: "number_input" as ComponentType, label: "Number Input", description: "Numeric input with validation", icon: "🔢" },
     { type: "textarea" as ComponentType, label: "Textarea", description: "Multi-line text field", icon: "📄" },
     { type: "date_picker" as ComponentType, label: "Date Picker", description: "Date selection", icon: "📅" },
     { type: "file_upload" as ComponentType, label: "File Upload", description: "File attachment", icon: "📎" },
     { type: "select" as ComponentType, label: "Select", description: "Dropdown selection", icon: "📋" },
+    { type: "multi_select" as ComponentType, label: "Multi-Select", description: "Multiple dropdown selections", icon: "📑" },
     { type: "checkbox" as ComponentType, label: "Checkbox", description: "Multiple selections", icon: "☑️" },
     { type: "radio_group" as ComponentType, label: "Radio Group", description: "Single selection", icon: "🔘" },
+    { type: "section_divider" as ComponentType, label: "Section Divider", description: "Organize form sections", icon: "📊" },
+    { type: "signature" as ComponentType, label: "Signature", description: "Digital signature capture", icon: "✍️" },
     { type: "horizontal_container" as ComponentType, label: "Horizontal Layout", description: "Arrange fields side by side", icon: "↔️" },
     { type: "vertical_container" as ComponentType, label: "Vertical Layout", description: "Stack fields vertically", icon: "↕️" },
   ];
 
   const inputComponents = componentTypes.filter(c => 
-    ["text_input", "textarea", "date_picker", "file_upload"].includes(c.type)
+    ["text_input", "number_input", "textarea", "date_picker", "file_upload", "signature"].includes(c.type)
   );
   
   const selectionComponents = componentTypes.filter(c => 
-    ["select", "checkbox", "radio_group"].includes(c.type)
+    ["select", "multi_select", "checkbox", "radio_group"].includes(c.type)
   );
 
   const layoutComponents = componentTypes.filter(c => 
-    ["horizontal_container", "vertical_container"].includes(c.type)
+    ["section_divider", "horizontal_container", "vertical_container"].includes(c.type)
   );
 
   return (
@@ -104,7 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onAddComponent }) => {
         </div>
       </Accordion>
 
-      <Accordion title="Layout Containers" icon="📐" defaultExpanded={false}>
+      <Accordion title="Structure & Layout" icon="📐" defaultExpanded={false}>
         <div className="component-grid">
           {layoutComponents.map((component) => (
             <ComponentItem

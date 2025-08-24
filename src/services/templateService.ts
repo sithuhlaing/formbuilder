@@ -1,36 +1,68 @@
 
-import type { FormComponentData, FormTemplate, FormTemplateType } from "../components/types";
+import type { FormComponentData, FormTemplate, FormTemplateType, FormPage } from "../components/types";
 import { SchemaGenerator } from "./schemaGenerator";
 
 export const templateService = {
-  save: (templateName: string, components: FormComponentData[], templateType: FormTemplateType = "assessment") => {
-    const jsonSchema = SchemaGenerator.generateSchema(templateName, components);
+  save: (templateName: string, components: FormComponentData[], templateType: FormTemplateType = "assessment", pages?: FormPage[], existingTemplateId?: string) => {
+    // If pages are provided, use flattened components from all pages, otherwise use provided components
+    const allComponents = pages && pages.length > 0 
+      ? pages.flatMap(page => page.components)
+      : components;
     
+    const jsonSchema = SchemaGenerator.generateSchema(templateName, allComponents);
+    const savedTemplates = JSON.parse(localStorage.getItem('formTemplates') || '[]');
+    
+    if (existingTemplateId) {
+      // Update existing template
+      const existingTemplateIndex = savedTemplates.findIndex((t: FormTemplate) => t.templateId === existingTemplateId);
+      if (existingTemplateIndex !== -1) {
+        const existingTemplate = savedTemplates[existingTemplateIndex];
+        const updatedTemplate: FormTemplate = {
+          ...existingTemplate,
+          name: templateName,
+          type: templateType,
+          fields: allComponents,
+          pages: pages,
+          jsonSchema
+        };
+        savedTemplates[existingTemplateIndex] = updatedTemplate;
+        localStorage.setItem('formTemplates', JSON.stringify(savedTemplates));
+        return updatedTemplate;
+      }
+    }
+    
+    // Create new template
     const template: FormTemplate = {
       templateId: Date.now().toString(),
       name: templateName,
       type: templateType,
       createdDate: new Date().toISOString(),
-      fields: components,
+      fields: allComponents,
+      pages: pages,
       jsonSchema
     };
     
-    const savedTemplates = JSON.parse(localStorage.getItem('formTemplates') || '[]');
     savedTemplates.push(template);
     localStorage.setItem('formTemplates', JSON.stringify(savedTemplates));
     
     return template;
   },
 
-  exportJSON: (templateName: string, components: FormComponentData[], templateType: FormTemplateType = "assessment") => {
-    const jsonSchema = SchemaGenerator.generateSchema(templateName, components);
+  exportJSON: (templateName: string, components: FormComponentData[], templateType: FormTemplateType = "assessment", pages?: FormPage[]) => {
+    // If pages are provided, use flattened components from all pages, otherwise use provided components
+    const allComponents = pages && pages.length > 0 
+      ? pages.flatMap(page => page.components)
+      : components;
+    
+    const jsonSchema = SchemaGenerator.generateSchema(templateName, allComponents);
     
     const template: FormTemplate = {
       templateId: Date.now().toString(),
       name: templateName,
       type: templateType,
       createdDate: new Date().toISOString(),
-      fields: components,
+      fields: allComponents,
+      pages: pages,
       jsonSchema
     };
     
@@ -69,23 +101,26 @@ export const templateService = {
     return SchemaGenerator.generateFormInstance(template.jsonSchema as any, formData);
   },
 
-  loadFromJSON: (jsonData: string): { template?: FormTemplate, components?: FormComponentData[], error?: string } => {
+  loadFromJSON: (jsonData: string): { template?: FormTemplate, components?: FormComponentData[], pages?: FormPage[], error?: string } => {
     try {
       const parsed = JSON.parse(jsonData);
       
       // Handle different JSON formats
       let template: FormTemplate | undefined;
       let components: FormComponentData[] | undefined;
+      let pages: FormPage[] | undefined;
       
       // Format 1: Direct FormTemplate
       if (parsed.templateId && parsed.fields) {
         template = parsed as FormTemplate;
         components = parsed.fields;
+        pages = parsed.pages;
       }
       // Format 2: Export format with template wrapper
       else if (parsed.template && parsed.template.templateId && parsed.template.fields) {
         template = parsed.template;
         components = parsed.template.fields;
+        pages = parsed.template.pages;
       }
       // Format 3: Just components array
       else if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].id && parsed[0].type) {
@@ -110,7 +145,7 @@ export const templateService = {
           return { error: "No valid components found in JSON." };
         }
         
-        return { template, components: validComponents };
+        return { template, components: validComponents, pages };
       }
       
       return { error: "No components found in the uploaded JSON." };

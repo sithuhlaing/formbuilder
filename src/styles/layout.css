@@ -104,6 +104,12 @@
   border-bottom: 1px solid var(--color-gray-200);
 }
 
+.canvas__pages {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-gray-200);
+  background-color: var(--color-gray-50);
+}
+
 .canvas__title-input {
   border: none;
   background: transparent;

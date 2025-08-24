@@ -7,6 +7,9 @@ export type ComponentType =
   | "date_picker"
   | "file_upload"
   | "number_input"
+  | "multi_select"
+  | "section_divider"
+  | "signature"
   | "horizontal_container"
   | "vertical_container";
 
@@ -28,6 +31,12 @@ export interface FormComponentData {
   acceptedFileTypes?: string;
   validation?: ValidationType;
   customValidation?: string;
+  // Number input specific properties
+  min?: number;
+  max?: number;
+  step?: number;
+  // Section divider specific properties
+  description?: string;
   // Layout properties
   layout?: {
     direction?: LayoutDirection;

@@ -23,6 +23,21 @@ const ComponentPreview: React.FC<ComponentPreviewProps> = ({ component }) => {
             />
           </div>
         );
+      case "number_input":
+        return (
+          <div className="form-field-preview">
+            <label className="label">
+              {component.label}
+              {component.required && <span className="text-red-500"> *</span>}
+            </label>
+            <input
+              type="number"
+              placeholder={component.placeholder || "Enter a number..."}
+              disabled
+              className="input form-component__preview"
+            />
+          </div>
+        );
       case "textarea":
         return (
           <div className="form-field-preview">
@@ -182,6 +197,73 @@ const ComponentPreview: React.FC<ComponentPreviewProps> = ({ component }) => {
                     <span>Drop components here to arrange vertically</span>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        );
+      case "multi_select":
+        return (
+          <div className="form-field-preview">
+            <label className="label">
+              {component.label}
+              {component.required && <span className="text-red-500"> *</span>}
+            </label>
+            <div className="multi-select-preview">
+              <div className="multi-select-input">
+                <span className="multi-select-placeholder">Select multiple options...</span>
+                <span className="multi-select-arrow">▼</span>
+              </div>
+              {component.options && (
+                <div className="multi-select-options">
+                  {component.options.slice(0, 3).map((option, index) => (
+                    <div key={index} className="multi-select-option">
+                      <input type="checkbox" disabled className="checkbox__input" />
+                      <span>{option}</span>
+                    </div>
+                  ))}
+                  {component.options.length > 3 && (
+                    <div className="multi-select-option">
+                      <span>+{component.options.length - 3} more options</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      case "section_divider":
+        return (
+          <div className="form-field-preview">
+            <div className="section-divider-preview">
+              <div className="section-divider-header">
+                <span className="section-divider-icon">📊</span>
+                <h3 className="section-divider-title">{component.label}</h3>
+              </div>
+              {component.description && (
+                <div className="section-divider-description">
+                  {component.description}
+                </div>
+              )}
+              <div className="section-divider-line"></div>
+            </div>
+          </div>
+        );
+      case "signature":
+        return (
+          <div className="form-field-preview">
+            <label className="label">
+              {component.label}
+              {component.required && <span className="text-red-500"> *</span>}
+            </label>
+            <div className="signature-preview">
+              <div className="signature-canvas">
+                <div className="signature-placeholder">
+                  <span className="signature-icon">✍️</span>
+                  <span>Click to sign</span>
+                </div>
+              </div>
+              <div className="signature-actions">
+                <button type="button" disabled className="btn btn--secondary btn--sm">Clear</button>
               </div>
             </div>
           </div>

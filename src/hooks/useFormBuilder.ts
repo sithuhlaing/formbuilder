@@ -1,9 +1,14 @@
 
 import { useState, useCallback } from "react";
-import type { FormComponentData, ComponentType, FormPage } from "../components/types";
+import type { FormComponentData, ComponentType, FormPage, FormTemplateType } from "../components/types";
 import { useUndoRedo } from "./useUndoRedo";
 
-export const useFormBuilder = () => {
+interface ModalFunctions {
+  showConfirmation: (title: string, message: string, onConfirm: () => void, type?: 'info' | 'success' | 'warning' | 'error') => void;
+  showNotification: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+}
+
+export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
   const [pages, updatePages, undoRedoActions] = useUndoRedo<FormPage[]>([
     { id: '1', title: 'Page 1', components: [] }
   ]);
@@ -59,6 +64,29 @@ export const useFormBuilder = () => {
         return {
           ...baseComponent,
           acceptedFileTypes: ".pdf,.doc,.docx,.jpg,.png",
+        };
+      case "number_input":
+        return {
+          ...baseComponent,
+          placeholder: "Enter number...",
+          min: 0,
+          step: 1,
+        };
+      case "multi_select":
+        return {
+          ...baseComponent,
+          options: ["Option 1", "Option 2", "Option 3"],
+        };
+      case "section_divider":
+        return {
+          ...baseComponent,
+          label: "Section Title",
+          description: "Section description (optional)",
+        };
+      case "signature":
+        return {
+          ...baseComponent,
+          label: "Digital Signature",
         };
       case "horizontal_container":
         return {
@@ -134,13 +162,51 @@ export const useFormBuilder = () => {
   }, [components, updateCurrentPageComponents]);
 
   const clearAll = useCallback(() => {
-    if (components.length === 0) return;
+    if (pages.length === 1 && components.length === 0) return;
     
-    if (window.confirm('Are you sure you want to clear all components from this page? You can undo this action with Ctrl+Z.')) {
-      updateCurrentPageComponents([]);
+    const hasMultiplePages = pages.length > 1;
+    const hasComponents = pages.some(page => page.components.length > 0);
+    
+    if (!hasMultiplePages && !hasComponents) return;
+    
+    const title = hasMultiplePages ? 'Reset Form' : 'Clear All Components';
+    const message = hasMultiplePages 
+      ? 'Are you sure you want to reset the form? This will keep only the first page and clear all components.\n\nYou can undo this action with Ctrl+Z.'
+      : 'Are you sure you want to clear all components from this page?\n\nYou can undo this action with Ctrl+Z.';
+    
+    const performClearAll = () => {
+      // Reset to single clean first page
+      const cleanFirstPage: FormPage = {
+        id: '1',
+        title: 'Page 1',
+        components: []
+      };
+      updatePages([cleanFirstPage]);
+      setCurrentPageId('1');
       setSelectedComponentId(null);
+    };
+
+    if (modalFunctions) {
+      modalFunctions.showConfirmation(title, message, performClearAll, 'warning');
+    } else {
+      // Fallback to window.confirm for backward compatibility
+      if (window.confirm(message)) {
+        performClearAll();
+      }
     }
-  }, [components.length, updateCurrentPageComponents]);
+  }, [pages, components.length, updatePages, modalFunctions]);
+
+  const clearAllSilent = useCallback(() => {
+    // Reset to single clean first page without confirmation
+    const cleanFirstPage: FormPage = {
+      id: '1',
+      title: 'Page 1',
+      components: []
+    };
+    updatePages([cleanFirstPage]);
+    setCurrentPageId('1');
+    setSelectedComponentId(null);
+  }, [updatePages]);
 
   const addPage = useCallback(() => {
     const newPageId = generateId();
@@ -156,7 +222,15 @@ export const useFormBuilder = () => {
 
   const deletePage = useCallback((pageId: string) => {
     if (pages.length <= 1) {
-      alert('Cannot delete the last page. At least one page is required.');
+      if (modalFunctions) {
+        modalFunctions.showNotification(
+          'Cannot Delete Page',
+          'Cannot delete the last page. At least one page is required.',
+          'warning'
+        );
+      } else {
+        alert('Cannot delete the last page. At least one page is required.');
+      }
       return;
     }
     
@@ -167,7 +241,7 @@ export const useFormBuilder = () => {
       setCurrentPageId(filteredPages[0].id);
     }
     setSelectedComponentId(null);
-  }, [pages, currentPageId, updatePages]);
+  }, [pages, currentPageId, updatePages, modalFunctions]);
 
   const updatePageTitle = useCallback((pageId: string, title: string) => {
     const updatedPages = pages.map(page =>
@@ -181,12 +255,45 @@ export const useFormBuilder = () => {
     setSelectedComponentId(null);
   }, []);
 
-  const loadFromJSON = useCallback((jsonData: FormComponentData[], templateName?: string, templateType?: FormTemplateType) => {
-    // For backward compatibility, load into first page
-    const updatedPages = pages.map((page, index) => 
-      index === 0 ? { ...page, components: jsonData } : page
-    );
-    updatePages(updatedPages);
+  const clearPage = useCallback((pageId: string) => {
+    const page = pages.find(p => p.id === pageId);
+    if (!page || page.components.length === 0) return;
+    
+    const performClearPage = () => {
+      const updatedPages = pages.map(p => 
+        p.id === pageId ? { ...p, components: [] } : p
+      );
+      updatePages(updatedPages);
+      setSelectedComponentId(null);
+    };
+
+    if (modalFunctions) {
+      modalFunctions.showConfirmation(
+        'Clear Page Components',
+        `Are you sure you want to clear all components from "${page.title}"?\n\nYou can undo this action with Ctrl+Z.`,
+        performClearPage,
+        'warning'
+      );
+    } else {
+      // Fallback to window.confirm for backward compatibility
+      if (window.confirm(`Are you sure you want to clear all components from "${page.title}"? You can undo this action with Ctrl+Z.`)) {
+        performClearPage();
+      }
+    }
+  }, [pages, updatePages, modalFunctions]);
+
+  const loadFromJSON = useCallback((jsonData: FormComponentData[], templateName?: string, templateType?: FormTemplateType, pagesData?: FormPage[]) => {
+    if (pagesData && pagesData.length > 0) {
+      // Load multi-page structure
+      updatePages(pagesData);
+      setCurrentPageId(pagesData[0].id);
+    } else {
+      // For backward compatibility, load into first page
+      const updatedPages = pages.map((page, index) => 
+        index === 0 ? { ...page, components: jsonData } : page
+      );
+      updatePages(updatedPages);
+    }
     setSelectedComponentId(null);
     if (templateName) {
       setTemplateName(templateName);
@@ -197,9 +304,9 @@ export const useFormBuilder = () => {
     const newComponent = createComponent(type);
     const newComponents = [...components];
     newComponents.splice(insertIndex, 0, newComponent);
-    updateComponents(newComponents);
+    updateCurrentPageComponents(newComponents);
     setSelectedComponentId(newComponent.id);
-  }, [components, createComponent, updateComponents]);
+  }, [components, createComponent, updateCurrentPageComponents]);
 
   const insertHorizontalToComponent = useCallback((
     type: ComponentType,
@@ -237,7 +344,15 @@ export const useFormBuilder = () => {
         
         parentContainer.children = updatedChildren;
       } else {
-        alert('Maximum 12 elements per row reached.');
+        if (modalFunctions) {
+          modalFunctions.showNotification(
+            'Row Limit Reached',
+            'Maximum 12 elements per row reached.',
+            'warning'
+          );
+        } else {
+          alert('Maximum 12 elements per row reached.');
+        }
         return;
       }
     } else {
@@ -256,9 +371,9 @@ export const useFormBuilder = () => {
       newComponents[targetIndex] = containerComponent;
     }
     
-    updateComponents(newComponents);
+    updateCurrentPageComponents(newComponents);
     setSelectedComponentId(newComponent.id);
-  }, [components, createComponent, updateComponents]);
+  }, [components, createComponent, updateCurrentPageComponents]);
 
   const insertComponentWithPosition = useCallback((
     type: ComponentType, 
@@ -304,7 +419,15 @@ export const useFormBuilder = () => {
           parentContainer.children = updatedChildren;
         } else {
           // Maximum reached - create new row
-          alert('Maximum 12 elements per row. Creating new row below.');
+          if (modalFunctions) {
+            modalFunctions.showNotification(
+              'Row Limit Reached',
+              'Maximum 12 elements per row. Creating new row below.',
+              'info'
+            );
+          } else {
+            alert('Maximum 12 elements per row. Creating new row below.');
+          }
           const containerComponent = createComponent('vertical_container');
           containerComponent.label = 'Layout Column';
           
@@ -350,9 +473,9 @@ export const useFormBuilder = () => {
       newComponents[targetIndex] = containerComponent;
     }
     
-    updateComponents(newComponents);
+    updateCurrentPageComponents(newComponents);
     setSelectedComponentId(newComponent.id);
-  }, [components, createComponent, updateComponents]);
+  }, [components, createComponent, updateCurrentPageComponents]);
 
   return {
     components,
@@ -366,10 +489,20 @@ export const useFormBuilder = () => {
     deleteComponent,
     moveComponent,
     clearAll,
+    clearAllSilent,
     loadFromJSON,
     insertComponentWithPosition,
     insertBetweenComponents,
     insertHorizontalToComponent,
+    // Page management
+    pages,
+    currentPage,
+    currentPageId,
+    addPage,
+    deletePage,
+    updatePageTitle,
+    switchToPage,
+    clearPage,
     // Undo/Redo actions
     ...undoRedoActions,
   };
