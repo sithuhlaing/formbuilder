@@ -1,0 +1,247 @@
+{
+  "form_builder": {
+    "name": "OH eHR Form Builder",
+    "description": "Dynamic form builder for creating and managing occupational health form templates",
+    "screen": "oh_form_templates.form_builder_modal",
+    "layout": "three_panel",
+    "components": {
+      "left_panel": {
+        "type": "drag_source_panel",
+        "title": "Form Elements",
+        "elements": [
+          { "type": "text_input", "label": "Text Input", "icon": "input", "schema_type": "string" },
+          { "type": "textarea", "label": "Textarea", "icon": "textarea", "schema_type": "string" },
+          { "type": "select", "label": "Select", "icon": "select", "schema_type": "string" },
+          { "type": "checkbox", "label": "Checkbox", "icon": "checkbox", "schema_type": "boolean" },
+          { "type": "radio_group", "label": "Radio Group", "icon": "radio", "schema_type": "string" },
+          { "type": "date_picker", "label": "Date Picker", "icon": "calendar", "schema_type": "string", "format": "date" },
+          { "type": "file_upload", "label": "File Upload", "icon": "upload", "schema_type": "string", "format": "binary" }
+        ],
+        "drag_library": "react-dnd",
+        "accessibility": {
+          "aria_label": "Form elements panel",
+          "keyboard_support": true
+        }
+      },
+      "middle_panel": {
+        "type": "drop_target_canvas",
+        "title": "Form Canvas",
+        "droppable": true,
+        "render_engine": "react",
+        "components": "{{current_form_components}}",
+        "actions": {
+          "on_drop": "add_component_to_form",
+          "on_select": "select_component_for_properties",
+          "reorder": "reorder_components",
+          "delete": "delete_component"
+        },
+        "accessibility": {
+          "aria_label": "Form canvas",
+          "keyboard_support": true
+        }
+      },
+      "right_panel": {
+        "type": "properties_editor",
+        "title": "Component Properties",
+        "condition": "selected_component != null",
+        "form": {
+          "label": { "type": "input", "label": "Label", "value": "{{selected_component.label}}", "on_change": "update_property" },
+          "required": { "type": "checkbox", "label": "Required", "value": "{{selected_component.required}}", "on_change": "update_property" },
+          "placeholder": {
+            "type": "input",
+            "label": "Placeholder",
+            "value": "{{selected_component.placeholder}}",
+            "condition": "selected_component.type in ['text_input', 'textarea']",
+            "on_change": "update_property"
+          },
+          "options": {
+            "type": "dynamic_list",
+            "label": "Options",
+            "value": "{{selected_component.options}}",
+            "condition": "selected_component.type in ['select', 'radio_group', 'checkbox']",
+            "on_change": "update_property"
+          },
+          "validation": {
+            "type": "select",
+            "label": "Validation Type",
+            "options": ["none", "email", "number", "custom"],
+            "value": "{{selected_component.validation}}",
+            "on_change": "update_property"
+          },
+          "custom_validation": {
+            "type": "input",
+            "label": "Custom Regex",
+            "value": "{{selected_component.customValidation}}",
+            "condition": "selected_component.validation == 'custom'",
+            "on_change": "update_property"
+          }
+        },
+        "accessibility": {
+          "aria_label": "Component properties editor",
+          "keyboard_support": true
+        }
+      }
+    },
+    "actions": {
+      "save_template": {
+        "type": "button",
+        "label": "Save Template",
+        "action": "save_form_as_json",
+        "style": "primary",
+        "service": "document",
+        "endpoint": "/forms/templates",
+        "method": "POST",
+        "data_format": "headless_json",
+        "description": "Saves form template with JSON schema"
+      },
+      "preview_form": {
+        "type": "button",
+        "label": "Preview Form",
+        "action": "preview_form",
+        "style": "secondary",
+        "description": "Renders form preview in a modal"
+      }
+    }
+  },
+  "template_engine": {
+    "name": "OH eHR Template Engine",
+    "description": "Manages form templates and validates submissions using JSON schema",
+    "functionalities": {
+      "schema_generation": {
+        "description": "Generate JSON schema from form structure",
+        "input": "FormTemplate.fields",
+        "output": "FormTemplate.jsonSchema",
+        "mappings": [
+          { "type": "text_input", "schema": "{ type: 'string' }" },
+          { "type": "textarea", "schema": "{ type: 'string' }" },
+          { "type": "select", "schema": "{ type: 'string', enum: options }" },
+          { "type": "checkbox", "schema": "{ type: 'boolean' }" },
+          { "type": "radio_group", "schema": "{ type: 'string', enum: options }" },
+          { "type": "date_picker", "schema": "{ type: 'string', format: 'date' }" },
+          { "type": "file_upload", "schema": "{ type: 'string', format: 'binary' }" },
+          { "required": true, "schema_addition": "{ required: [fieldId] }" },
+          { "validation": "email", "schema_addition": "{ format: 'email' }" },
+          { "validation": "number", "schema_addition": "{ type: 'number' }" },
+          { "validation": "custom", "schema_addition": "{ pattern: customValidation }" }
+        ]
+      },
+      "form_rendering": {
+        "description": "Render form from JSON schema in fill modal",
+        "screen": "oh_forms.fill_modal, manager_forms.fill_modal",
+        "endpoint": "/forms/schema/{templateId}",
+        "method": "GET",
+        "render_engine": "react-json-schema-form",
+        "components": "nhsuk-form-group"
+      },
+      "validation": {
+        "description": "Validate form submission against JSON schema",
+        "action": "submit_form_with_validation",
+        "endpoint": "/forms/submit",
+        "method": "POST",
+        "pre_action": "unmarshal_data_and_validate_schema",
+        "post_action": "marshal_submission_data",
+        "validator": "ajv",
+        "error_display": "nhsuk-error-message"
+      },
+      "workflow_integration": {
+        "description": "Integrate with form_management workflow",
+        "steps": [
+          { "action": "create_template", "endpoint": "/forms/templates", "next": "assign_template" },
+          { "action": "assign_template", "endpoint": "/forms/assign", "services": ["document", "notification"] },
+          { "action": "submit_form", "endpoint": "/forms/submit", "services": ["document"] },
+          { "action": "approve_or_reject", "endpoint": "/forms/approve or /forms/reject", "services": ["document", "notification"] }
+        ]
+      }
+    },
+    "dtos": {
+      "FormField": {
+        "fieldId": "string",
+        "label": "string",
+        "type": "text_input | textarea | select | checkbox | radio_group | date_picker | file_upload",
+        "required": "boolean",
+        "placeholder": "string | null",
+        "options": "string[] | null",
+        "validation": "none | email | number | custom",
+        "customValidation": "string | null"
+      },
+      "FormTemplate": {
+        "templateId": "string",
+        "name": "string",
+        "type": "assessment | referral | compliance | other",
+        "createdDate": "string",
+        "fields": "FormField[]",
+        "jsonSchema": "{ type: 'object', properties: { [fieldId: string]: { type: string, required: boolean, format?: string, enum?: string[], pattern?: string } }, required: string[] }"
+      },
+      "FormInstance": {
+        "formId": "string",
+        "templateId": "string",
+        "name": "string",
+        "status": "draft | submitted | approved | rejected",
+        "data": "{ [fieldId: string]: any }",
+        "assignedTo": "string | null"
+      },
+      "EnhancedFormDTO": {
+        "template": "FormTemplate",
+        "instances": "FormInstance[]",
+        "workflow": {
+          "currentStep": "number",
+          "totalSteps": "number",
+          "approvalChain": "string[]",
+          "notifications": "{ recipient: string; trigger: string }[]"
+        },
+        "validation": {
+          "rules": "{ fieldId: string; rule: string; message: string }[]",
+          "errors": "{ [fieldId: string]: string }"
+        }
+      }
+    }
+  },
+  "security": {
+    "authentication": "JWT",
+    "encryption": "AES-256",
+    "transport": "TLS 1.3",
+    "access_control": "RBAC",
+    "audit_logging": {
+      "service": "audit",
+      "endpoint": "/audit-logs",
+      "actions": ["create_template", "assign_template", "submit_form", "approve_form", "reject_form"]
+    }
+  },
+  "accessibility": {
+    "standard": "WCAG 2.1 AA",
+    "framework": "NHS UK Design System",
+    "features": ["keyboard_navigation", "screen_reader_support", "high_contrast"]
+  },
+  "performance": {
+    "optimizations": ["debounce_property_updates", "memoize_components", "lazy_load_schema"],
+    "undo_redo": {
+      "enabled": true,
+      "storage": "in_memory"
+    }
+  },
+  "integration": {
+    "services": [
+      {
+        "name": "document_service",
+        "endpoints": [
+          { "endpoint": "/forms/templates", "method": "POST/GET/PUT/DELETE" },
+          { "endpoint": "/forms/assign", "method": "POST" },
+          { "endpoint": "/forms/submit", "method": "POST" },
+          { "endpoint": "/forms/schema/{templateId}", "method": "GET" }
+        ]
+      },
+      {
+        "name": "notification_service",
+        "endpoints": [
+          { "endpoint": "/notifications", "method": "POST", "triggers": ["form_assigned", "form_submitted", "form_approved"] }
+        ]
+      },
+      {
+        "name": "audit_service",
+        "endpoints": [
+          { "endpoint": "/audit-logs", "method": "POST/GET" }
+        ]
+      }
+    ]
+  }
+}

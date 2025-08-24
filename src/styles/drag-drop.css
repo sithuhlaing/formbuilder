@@ -1,0 +1,841 @@
+/* Drag & Drop Styles - Form Builder Specific */
+
+/* Draggable Items in Sidebar */
+.draggable-item {
+  position: relative;
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+  background-color: white;
+  border: 2px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  cursor: grab;
+  transition: all var(--transition-fast);
+  user-select: none;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Draggable items in accordion context */
+.accordion .draggable-item {
+  margin-bottom: var(--space-2);
+  border: 1px solid var(--color-gray-200);
+  box-shadow: none;
+}
+
+.accordion .draggable-item:last-child {
+  margin-bottom: 0;
+}
+
+.draggable-item:hover {
+  border-color: var(--color-primary-300);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.draggable-item:active {
+  cursor: grabbing;
+}
+
+.draggable-item.is-dragging {
+  opacity: 0.5;
+  transform: rotate(2deg) scale(1.02);
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-modal);
+}
+
+.draggable-item__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.draggable-item__icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-primary-100);
+  border-radius: var(--radius-md);
+  color: var(--color-primary-600);
+  font-size: var(--text-sm);
+  flex-shrink: 0;
+}
+
+.draggable-item__title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.draggable-item__description {
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+}
+
+.draggable-item__drag-handle {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  width: 12px;
+  height: 12px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  cursor: grab;
+}
+
+.draggable-item:hover .draggable-item__drag-handle {
+  opacity: 0.5;
+}
+
+/* Drop Zones */
+.drop-zone {
+  min-height: 400px;
+  border: 2px dashed var(--color-gray-300);
+  border-radius: var(--radius-lg);
+  background-color: white;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.drop-zone.is-over {
+  border-color: var(--color-primary-400);
+  background-color: var(--color-primary-50);
+  box-shadow: inset 0 0 20px var(--color-primary-100);
+}
+
+.drop-zone.has-items {
+  border-style: solid;
+  border-color: transparent;
+  background-color: transparent;
+  min-height: auto;
+}
+
+/* Empty Canvas State */
+.empty-canvas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 400px;
+  text-align: center;
+  padding: var(--space-8);
+}
+
+.empty-canvas__icon {
+  font-size: 4rem;
+  margin-bottom: var(--space-4);
+  opacity: 0.3;
+}
+
+.empty-canvas__title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-900);
+  margin-bottom: var(--space-2);
+}
+
+.empty-canvas__description {
+  font-size: var(--text-base);
+  color: var(--color-gray-500);
+  max-width: 400px;
+  line-height: var(--line-height-relaxed);
+}
+
+/* Form Components in Canvas */
+.form-component {
+  position: relative;
+  margin-bottom: var(--space-4);
+  background-color: white;
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.form-component:hover {
+  border-color: var(--color-gray-300);
+  box-shadow: var(--shadow-md);
+}
+
+.form-component.is-selected {
+  border-color: var(--color-primary-500);
+  background-color: var(--color-primary-50);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.form-component.is-dragging {
+  opacity: 0.5;
+  transform: rotate(-1deg);
+  box-shadow: var(--shadow-xl);
+}
+
+/* Hover Controls */
+.form-component__hover-controls {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: flex;
+  gap: var(--space-1);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  z-index: 10;
+}
+
+.form-component:hover .form-component__hover-controls,
+.form-component.is-selected .form-component__hover-controls {
+  opacity: 1;
+}
+
+.form-component__hover-action {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: white;
+  color: var(--color-gray-500);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-component__hover-action:hover {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-700);
+  box-shadow: var(--shadow-md);
+}
+
+.form-component__hover-action--delete:hover {
+  background-color: var(--color-error);
+  color: white;
+}
+
+.form-component__hover-action--drag {
+  cursor: grab;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.form-component__hover-action--drag:active {
+  cursor: grabbing;
+}
+
+.form-component__hover-action--delete {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Legacy styles for backward compatibility - hiding them */
+.form-component__header {
+  display: none;
+}
+
+.form-component__info,
+.form-component__type-icon,
+.form-component__label,
+.form-component__required,
+.form-component__actions,
+.form-component__action {
+  display: none;
+}
+
+/* Component Preview */
+.form-component__preview {
+  margin-bottom: var(--space-3);
+  pointer-events: none;
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-200);
+}
+
+.form-field-preview {
+  margin-bottom: var(--space-4);
+}
+
+.form-field-preview:last-child {
+  margin-bottom: 0;
+}
+
+.form-field-preview .label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+}
+
+.form-field-preview fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.form-field-preview legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+}
+
+/* Checkbox and Radio Groups in Preview */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: not-allowed;
+}
+
+.radio-option input {
+  margin: 0;
+}
+
+.radio-option__text {
+  font-size: var(--text-sm);
+  color: var(--color-gray-700);
+}
+
+/* File Upload Preview */
+.file-upload-preview {
+  border: 2px dashed var(--color-gray-300);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  text-align: center;
+  background-color: var(--color-gray-50);
+  transition: all var(--transition-fast);
+}
+
+.file-upload-preview__icon {
+  font-size: var(--text-2xl);
+  margin-bottom: var(--space-2);
+  opacity: 0.7;
+}
+
+.file-upload-preview__text {
+  color: var(--color-gray-600);
+  font-size: var(--text-sm);
+}
+
+.file-upload-preview__text small {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+}
+
+/* Component Metadata */
+.form-component__metadata {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-gray-200);
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+}
+
+.form-component__field-id {
+  font-family: var(--font-family-mono);
+  background-color: var(--color-gray-100);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+/* Component Metadata in Preview Mode */
+.component-metadata {
+  margin-top: var(--space-2);
+}
+
+.component-metadata__help-text {
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  font-style: italic;
+  line-height: var(--line-height-relaxed);
+}
+
+/* Drag Preview */
+.drag-preview {
+  background-color: white;
+  border: 2px solid var(--color-primary-400);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  box-shadow: var(--shadow-xl);
+  opacity: 0.9;
+  transform: rotate(3deg);
+  pointer-events: none;
+  z-index: var(--z-modal);
+}
+
+/* Drop Indicators */
+.drop-indicator {
+  height: 2px;
+  background-color: var(--color-primary-500);
+  border-radius: var(--radius-full);
+  margin: var(--space-2) 0;
+  opacity: 0;
+  transform: scaleX(0);
+  transition: all var(--transition-fast);
+  transform-origin: left;
+}
+
+.drop-indicator.is-active {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+/* Animations */
+@keyframes componentAppear {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.form-component.is-new {
+  animation: componentAppear var(--transition-slow) ease-out;
+}
+
+@keyframes dragPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+}
+
+.draggable-item.can-drop {
+  animation: dragPulse 2s infinite;
+}
+
+/* Layout Container Styles */
+.container-preview {
+  border: 2px dashed var(--color-gray-300);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin: var(--space-2) 0;
+  background-color: var(--color-gray-50);
+  transition: all var(--transition-fast);
+}
+
+.container-preview:hover {
+  border-color: var(--color-primary-400);
+  background-color: var(--color-primary-50);
+}
+
+.container-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.container-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-800);
+}
+
+.container-info {
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  font-style: italic;
+}
+
+.container-drop-zone {
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container-placeholder {
+  text-align: center;
+  color: var(--color-gray-500);
+  font-size: var(--text-sm);
+  font-style: italic;
+  padding: var(--space-4);
+}
+
+.container-items {
+  width: 100%;
+}
+
+.container-items.horizontal {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.container-items.vertical {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.container-item {
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  background-color: white;
+  transition: all var(--transition-fast);
+}
+
+.container-item:hover {
+  border-color: var(--color-primary-300);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Grid System - 12 Column Layout */
+.grid-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  width: 100%;
+  gap: var(--space-2);
+  align-items: stretch;
+}
+
+.grid-column {
+  flex-shrink: 0;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Horizontal Layout Container */
+.horizontal-container .container-items {
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+
+.horizontal-container .container-item {
+  flex-shrink: 0;
+  min-width: 100px;
+  max-width: 100%;
+}
+
+/* Grid column utilities */
+.col-1 { width: 8.333333%; }
+.col-2 { width: 16.666667%; }
+.col-3 { width: 25%; }
+.col-4 { width: 33.333333%; }
+.col-5 { width: 41.666667%; }
+.col-6 { width: 50%; }
+.col-7 { width: 58.333333%; }
+.col-8 { width: 66.666667%; }
+.col-9 { width: 75%; }
+.col-10 { width: 83.333333%; }
+.col-11 { width: 91.666667%; }
+.col-12 { width: 100%; }
+
+/* Vertical Layout Container */
+.vertical-container .container-items {
+  flex-direction: column;
+}
+
+.vertical-container .container-item {
+  width: 100%;
+}
+
+/* Preview Modal Layout Styles */
+.preview-container {
+  padding: var(--space-3);
+  margin: var(--space-3) 0;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  background-color: var(--color-gray-25);
+}
+
+.horizontal-layout {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.vertical-layout {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Width utilities for layout components */
+.w-auto { width: auto; }
+.w-quarter { width: 25%; }
+.w-third { width: 33.33%; }
+.w-half { width: 50%; }
+.w-two-thirds { width: 66.66%; }
+.w-three-quarters { width: 75%; }
+.w-full { width: 100%; }
+
+/* Gap utilities */
+.gap-none { gap: 0; }
+.gap-small { gap: var(--space-2); }
+.gap-medium { gap: var(--space-4); }
+.gap-large { gap: var(--space-6); }
+
+/* Alignment utilities */
+.align-start { align-items: flex-start; }
+.align-center { align-items: center; }
+.align-end { align-items: flex-end; }
+.align-stretch { align-items: stretch; }
+
+/* Smart Drop Zone Styles */
+.smart-drop-zone {
+  position: relative;
+  transition: all var(--transition-fast);
+}
+
+.smart-drop-zone.is-drop-target {
+  transform: scale(1.02);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+/* Drop Position Indicators */
+.drop-indicator {
+  background-color: var(--color-primary-500);
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.7);
+  animation: dropIndicatorPulse 1s infinite alternate;
+}
+
+@keyframes dropIndicatorPulse {
+  0% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* Drop Position Labels */
+.drop-position-label {
+  position: absolute;
+  background-color: var(--color-primary-600);
+  color: white;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  z-index: 1001;
+  white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+  animation: labelFadeIn 0.2s ease-out;
+}
+
+@keyframes labelFadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.drop-position-label--left {
+  left: -80px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.drop-position-label--right {
+  right: -85px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.drop-position-label--top {
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.drop-position-label--bottom {
+  bottom: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Grid limit warning */
+.grid-limit-warning {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--color-warning);
+  color: white;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  z-index: 1002;
+  white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+  animation: warningPulse 1s infinite alternate;
+}
+
+@keyframes warningPulse {
+  0% { opacity: 0.8; }
+  100% { opacity: 1; }
+}
+
+/* Enhanced hover effects for better UX */
+.smart-drop-zone:hover .form-component {
+  border-color: var(--color-primary-200);
+}
+
+.smart-drop-zone.is-drop-target .form-component {
+  border-color: var(--color-primary-500);
+  background-color: var(--color-primary-25);
+}
+
+/* Prevent drop zone interference with existing drag operations */
+.form-component.is-dragging + .smart-drop-zone {
+  pointer-events: none;
+}
+
+/* Survey-Style Drop Zone */
+.survey-drop-zone {
+  position: relative;
+  min-height: 100px;
+  transition: all var(--transition-fast);
+}
+
+.survey-drop-zone.is-drop-active {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Drop indicators for between elements */
+.drop-indicator-between {
+  position: absolute;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    var(--color-primary-500), 
+    var(--color-primary-400), 
+    var(--color-primary-500)
+  );
+  border-radius: 2px;
+  box-shadow: 
+    0 0 10px rgba(59, 130, 246, 0.7),
+    0 0 20px rgba(59, 130, 246, 0.3);
+  z-index: 1000;
+}
+
+.drop-indicator-between::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: -4px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid var(--color-primary-500);
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.5));
+}
+
+.drop-indicator-between::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: -4px;
+  width: 0;
+  height: 0;
+  border-right: 8px solid var(--color-primary-500);
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.5));
+}
+
+/* Horizontal drop indicators */
+.drop-indicator-horizontal {
+  position: absolute;
+  width: 4px;
+  background: linear-gradient(180deg, 
+    var(--color-primary-500), 
+    var(--color-primary-400), 
+    var(--color-primary-500)
+  );
+  border-radius: 2px;
+  box-shadow: 
+    0 0 10px rgba(59, 130, 246, 0.7),
+    0 0 20px rgba(59, 130, 246, 0.3);
+  z-index: 1000;
+}
+
+.drop-indicator-horizontal::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: -8px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid var(--color-primary-500);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.5));
+}
+
+.drop-indicator-horizontal::after {
+  content: '';
+  position: absolute;
+  left: -4px;
+  bottom: -8px;
+  width: 0;
+  height: 0;
+  border-bottom: 8px solid var(--color-primary-500);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.5));
+}
+
+/* Drop labels */
+.drop-label {
+  pointer-events: none;
+  animation: labelSlideIn 0.2s ease-out;
+  max-width: 300px;
+  text-align: center;
+}
+
+@keyframes labelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Enhanced component highlighting during survey drops */
+.survey-drop-zone.is-drop-active .form-component {
+  border-color: var(--color-primary-300);
+  box-shadow: 0 0 0 1px var(--color-primary-100);
+}
+
+/* Segment highlighting */
+.survey-drop-zone.is-drop-active [data-component-id]:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-radius: var(--radius-md);
+  transition: background-color 0.1s ease;
+}
