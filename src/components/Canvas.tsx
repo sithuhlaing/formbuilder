@@ -1,7 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { useDrop } from 'react-dnd';
-import SurveyDropZone from './molecules/SurveyDropZone';
-import CanvasContent from './molecules/CanvasContent';
+import SurveyDropZone from './molecules/dropzones/SurveyDropZone';
+import CanvasContent from './molecules/layout/CanvasContent';
 import type { ComponentType, FormComponentData, CanvasProps } from './types';
 
 const Canvas: React.FC<CanvasProps> = ({

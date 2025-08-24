@@ -13,6 +13,14 @@
     "deploy": "npm run build:github && gh-pages -d dist"
   },
   "dependencies": {
+    "@lexical/history": "^0.34.0",
+    "@lexical/link": "^0.34.0",
+    "@lexical/list": "^0.34.0",
+    "@lexical/plain-text": "^0.34.0",
+    "@lexical/react": "^0.34.0",
+    "@lexical/rich-text": "^0.34.0",
+    "@lexical/utils": "^0.34.0",
+    "lexical": "^0.34.0",
     "react": "^19.1.1",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",

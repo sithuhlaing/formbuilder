@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import Sidebar from './components/Sidebar';
 import Canvas from './components/Canvas';
 import Properties from './components/Properties';
-import PreviewModal from './components/molecules/PreviewModal';
-import PageNavigation from './components/molecules/PageNavigation';
+import PreviewModal from './components/molecules/forms/PreviewModal';
+import PageNavigation from './components/molecules/navigation/PageNavigation';
 import TemplateListView from './components/TemplateListView';
 import ConfirmDialog from './components/ConfirmDialog';
 import NotificationDialog from './components/NotificationDialog';
@@ -84,6 +84,11 @@ const App: React.FC = () => {
     redo,
   } = useFormBuilder({ showConfirmation, showNotification });
 
+  // Debug currentView changes
+  useEffect(() => {
+    console.log('🔄 currentView changed to:', currentView);
+  }, [currentView]);
+
   const handleSave = () => {
     console.log('Saving template:', {
       templateName,
@@ -137,11 +142,20 @@ const App: React.FC = () => {
 
   const handleEditTemplate = (template: FormTemplate) => {
     console.log('🖱️ EDIT BUTTON CLICKED for template:', template.name);
+    console.log('📊 Template data received:', {
+      templateId: template.templateId,
+      name: template.name,
+      type: template.type,
+      fieldsCount: template.fields?.length || 0,
+      pagesCount: template.pages?.length || 0,
+      createdDate: template.createdDate
+    });
     const loadTemplate = () => {
       console.log('✅ Loading template:', template.name, 'Fields:', template.fields.length, 'Pages:', template.pages?.length);
       loadFromJSON(template.fields, template.name, template.type, template.pages);
       setTemplateType(template.type);
       setCurrentTemplateId(template.templateId); // Set template ID for editing
+      console.log('🔄 Setting currentView to builder...');
       setCurrentView('builder');
     };
 
@@ -161,20 +175,19 @@ const App: React.FC = () => {
       pageComponents: pages.map(page => page.components.length)
     });
     
-    // Show confirmation dialog for template loading
-    console.log('⚠️ Showing confirmation dialog for template loading');
+    // Temporarily bypass modal and load directly for testing
+    console.log('⚠️ Loading template directly (bypassing modal for debugging)');
     const totalComponents = pages.reduce((total, page) => total + page.components.length, 0);
     
-    const message = hasAnyComponents 
-      ? `You have ${totalComponents} component(s) in your current form.\n\nClick "Continue" to replace with "${template.name}" template.`
-      : `Load the "${template.name}" template?`;
+    console.log('🔄 About to force load template:', {
+      templateName: template.name,
+      templateId: template.templateId,
+      fieldsCount: template.fields.length,
+      pagesCount: template.pages?.length || 0,
+      currentComponents: totalComponents
+    });
     
-    showConfirmation(
-      '🔄 Load Template',
-      message,
-      forceLoadTemplate,
-      hasAnyComponents ? 'warning' : 'info'
-    );
+    forceLoadTemplate();
   };
 
   const handleBackToList = () => {

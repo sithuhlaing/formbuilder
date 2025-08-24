@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import type { XYCoord } from 'react-dnd';
-import SmartDropZone from '../molecules/SmartDropZone';
-import ComponentPreview from '../molecules/ComponentPreview';
+import SmartDropZone from '../molecules/dropzones/SmartDropZone';
+import ComponentPreview from '../molecules/utils/ComponentPreview';
 import type { FormComponentData, ComponentType, DraggableComponentProps } from '../types';
 
 interface DragItem {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { templateService } from '../services/templateService';
-import PreviewModal from './molecules/PreviewModal';
+import PreviewModal from './molecules/forms/PreviewModal';
 import ConfirmDialog from './ConfirmDialog';
 import ActionButton from './atoms/controls/ActionButton';
 import type { FormTemplate } from './types';

@@ -1,23 +1,45 @@
+// Preview Components
+export { default as CheckboxPreview } from './preview/CheckboxPreview';
+export { default as FileUploadPreview } from './preview/FileUploadPreview';
+export { default as InputPreview } from './preview/InputPreview';
+export { default as MultiSelectPreview } from './preview/MultiSelectPreview';
+export { default as RadioGroupPreview } from './preview/RadioGroupPreview';
+export { default as RichTextPreview } from './preview/RichTextPreview';
+export { default as SectionDividerPreview } from './preview/SectionDividerPreview';
+export { default as SelectPreview } from './preview/SelectPreview';
+export { default as SignaturePreview } from './preview/SignaturePreview';
+export { default as TextareaPreview } from './preview/TextareaPreview';
+export { default as PreviewHorizontalLayout } from './preview/PreviewHorizontalLayout';
+export { default as PreviewVerticalLayout } from './preview/PreviewVerticalLayout';
 
-export { default as ComponentPreview } from './ComponentPreview';
-export { default as CanvasContent } from './CanvasContent';
-export { default as ComponentGroup } from './ComponentGroup';
-export { default as ComponentItem } from './ComponentItem';
-export { default as TextInputPreview } from './TextInputPreview';
-export { default as NumberInputPreview } from './NumberInputPreview';
-export { default as TextareaPreview } from './TextareaPreview';
-export { default as SelectPreview } from './SelectPreview';
-export { default as CheckboxPreview } from './CheckboxPreview';
-export { default as RadioGroupPreview } from './RadioGroupPreview';
-export { default as DatePickerPreview } from './DatePickerPreview';
-export { default as FileUploadPreview } from './FileUploadPreview';
-export { default as MultiSelectPreview } from './MultiSelectPreview';
-export { default as SectionDividerPreview } from './SectionDividerPreview';
-export { default as SignaturePreview } from './SignaturePreview';
-export { default as PreviewHorizontalLayout } from './PreviewHorizontalLayout';
-export { default as PreviewVerticalLayout } from './PreviewVerticalLayout';
-export { default as PageNavigation } from './PageNavigation';
-export { default as ConfirmationModal } from './ConfirmationModal';
-export { default as NotificationModal } from './NotificationModal';
-export { default as PreviewModal } from './PreviewModal';
-export { default as SurveyDropZone } from './SurveyDropZone';
+// Navigation Components
+export { default as PageItem } from './navigation/PageItem';
+export { default as PageNavigation } from './navigation/PageNavigation';
+export { default as PageNavigator } from './navigation/PageNavigator';
+export { default as SimplePageNavigation } from './navigation/SimplePageNavigation';
+
+// Layout Components
+export { default as Accordion } from './layout/Accordion';
+export { default as CanvasContent } from './layout/CanvasContent';
+export { default as EmptyCanvas } from './layout/EmptyCanvas';
+export { default as FieldContainer } from './layout/FieldContainer';
+
+// Form Components
+export { default as FormRenderer } from './forms/FormRenderer';
+export { default as PreviewForm } from './forms/PreviewForm';
+export { default as PreviewModal } from './forms/PreviewModal';
+
+// Control Components
+export { default as ButtonGroup } from './controls/ButtonGroup';
+export { default as ComponentGroup } from './controls/ComponentGroup';
+export { default as ComponentHeader } from './controls/ComponentHeader';
+export { default as ComponentItem } from './controls/ComponentItem';
+export { default as SidebarSection } from './controls/SidebarSection';
+
+// Drop Zone Components
+export { default as SmartDropZone } from './dropzones/SmartDropZone';
+export { default as SurveyDropZone } from './dropzones/SurveyDropZone';
+
+// Utility Components
+export { default as ComponentMetadata } from './utils/ComponentMetadata';
+export { default as ComponentPreview } from './utils/ComponentPreview';

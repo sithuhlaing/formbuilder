@@ -1,7 +1,7 @@
 
 import React, { useRef } from "react";
 import { useDrag } from "react-dnd";
-import Accordion from "./molecules/Accordion";
+import Accordion from "./molecules/layout/Accordion";
 import type { SidebarProps, ComponentType } from "./types";
 
 interface ComponentItemProps {
@@ -52,6 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onAddComponent }) => {
     { type: "text_input" as ComponentType, label: "Text Input", description: "Single line text field", icon: "📝" },
     { type: "number_input" as ComponentType, label: "Number Input", description: "Numeric input with validation", icon: "🔢" },
     { type: "textarea" as ComponentType, label: "Textarea", description: "Multi-line text field", icon: "📄" },
+    { type: "rich_text" as ComponentType, label: "Rich Text", description: "Rich text editor with formatting", icon: "📋" },
     { type: "select" as ComponentType, label: "Select", description: "Dropdown selection", icon: "🔽" },
     { type: "multi_select" as ComponentType, label: "Multi-Select", description: "Multiple dropdown selections", icon: "✅" },
     { type: "checkbox" as ComponentType, label: "Checkbox", description: "Multiple selections", icon: "✔️" },
@@ -65,7 +66,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onAddComponent }) => {
   ];
 
   const inputComponents = componentTypes.filter(c => 
-    ["text_input", "number_input", "textarea", "date_picker", "file_upload", "signature"].includes(c.type)
+    ["text_input", "number_input", "textarea", "rich_text", "date_picker", "file_upload", "signature"].includes(c.type)
   );
   
   const selectionComponents = componentTypes.filter(c => 

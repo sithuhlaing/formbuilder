@@ -1,6 +1,6 @@
 
 import React from "react";
-import SidebarSection from "../molecules/SidebarSection";
+import SidebarSection from "../molecules/controls/SidebarSection";
 
 export interface SidebarItem {
   id: string;

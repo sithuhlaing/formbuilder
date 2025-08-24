@@ -158,7 +158,7 @@ export const templateService = {
       if (components) {
         const validComponents = components.filter(comp => 
           comp.id && comp.type && 
-          ['text_input', 'number_input', 'textarea', 'select', 'multi_select', 'checkbox', 'radio_group', 'date_picker', 'file_upload', 'section_divider', 'signature', 'horizontal_layout', 'vertical_layout'].includes(comp.type)
+          ['text_input', 'number_input', 'textarea', 'rich_text', 'select', 'multi_select', 'checkbox', 'radio_group', 'date_picker', 'file_upload', 'section_divider', 'signature', 'horizontal_layout', 'vertical_layout'].includes(comp.type)
         );
         
         if (validComponents.length === 0) {

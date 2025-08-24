@@ -1,6 +1,7 @@
 
 import React from 'react';
 import type { FormComponentData } from '../../types';
+import RichTextField from './RichTextField';
 
 interface FormFieldProps {
   component: FormComponentData;
@@ -65,6 +66,20 @@ const FormField: React.FC<FormFieldProps> = ({ component, value, onChange }) => 
             rows={4}
             onChange={(e) => onChange(e.target.value)}
             required={component.required}
+          />
+        </div>
+      );
+
+    case 'rich_text':
+      return (
+        <div className="mb-4">
+          <RichTextField
+            value={value || ''}
+            onChange={onChange}
+            label={component.label}
+            placeholder={component.placeholder || 'Enter rich text...'}
+            required={component.required}
+            height={component.height || '200px'}
           />
         </div>
       );

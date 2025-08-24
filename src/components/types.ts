@@ -2,6 +2,7 @@ export type ComponentType =
   | "text_input"
   | "number_input"
   | "textarea" 
+  | "rich_text"
   | "select"
   | "multi_select"
   | "checkbox"
@@ -41,11 +42,7 @@ export interface FormComponentData {
   placeholder?: string;
   required?: boolean;
   options?: string[];
-  validation?: ValidationType | {
-    type: ValidationType;
-    message?: string;
-    pattern?: string;
-  };
+  validation?: ValidationRule;
   layout?: {
     width?: string;
     height?: string;
