@@ -1,0 +1,997 @@
+
+/* Mobile-first responsive design */
+
+/* Base mobile styles */
+@media (max-width: 768px) {
+  .app {
+    padding: var(--space-2, 8px);
+  }
+  
+  .main {
+    flex-direction: column;
+    gap: var(--space-4, 16px);
+  }
+  
+  /* Page navigation mobile improvements */
+  .page-navigation {
+    order: -1;
+    margin-bottom: var(--space-4, 16px);
+  }
+  
+  .page-navigation__tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .page-navigation__tabs::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .page-navigation__tab {
+    min-width: 120px;
+    white-space: nowrap;
+  }
+  
+  /* Form builder mobile layout */
+  .form-builder {
+    flex-direction: column;
+  }
+  
+  .form-builder__sidebar {
+    order: 1;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  
+  .form-builder__canvas {
+    order: 2;
+    min-height: 400px;
+  }
+  
+  /* Component palette mobile */
+  .component-palette {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: var(--space-2, 8px);
+    padding: var(--space-3, 12px);
+  }
+  
+  .component-palette__item {
+    padding: var(--space-2, 8px);
+    text-align: center;
+    font-size: var(--text-xs, 12px);
+  }
+  
+  /* Modal mobile improvements */
+  .modal {
+    padding: var(--space-2, 8px);
+  }
+  
+  .modal__content {
+    width: calc(100vw - 2rem);
+    max-width: none;
+    margin: 0;
+    border-radius: var(--radius-lg, 8px);
+  }
+  
+  /* Touch-friendly buttons */
+  .btn {
+    min-height: 44px;
+    padding: var(--space-3, 12px) var(--space-4, 16px);
+  }
+  
+  .page-navigation__action-btn {
+    width: 44px;
+    height: 44px;
+  }
+  
+  /* Form elements mobile */
+  .form-element {
+    margin-bottom: var(--space-4, 16px);
+  }
+  
+  .form-element__input,
+  .form-element__textarea,
+  .form-element__select {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: var(--space-3, 12px);
+  }
+  
+  /* Mobile-specific drag and drop improvements */
+  .draggable-item {
+    touch-action: none;
+    user-select: none;
+  }
+  
+  .drop-zone {
+    min-height: 60px;
+    padding: var(--space-4, 16px);
+    border: 2px dashed var(--color-gray-300, #d1d5db);
+    border-radius: var(--radius-md, 8px);
+    background: var(--color-gray-50, #f9fafb);
+    text-align: center;
+    color: var(--color-gray-500, #6b7280);
+    font-size: var(--text-sm, 14px);
+  }
+  
+  .drop-zone--active {
+    border-color: var(--color-primary-400, #60a5fa);
+    background: var(--color-primary-50, #eff6ff);
+    color: var(--color-primary-600, #2563eb);
+  }
+  
+  /* Mobile form preview improvements */
+  .form-preview {
+    padding: var(--space-4, 16px) var(--space-3, 12px);
+    background: white;
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--color-gray-200, #e5e7eb);
+  }
+  
+  .form-preview__field {
+    margin-bottom: var(--space-4, 16px);
+  }
+  
+  .form-preview__label {
+    display: block;
+    font-size: var(--text-sm, 14px);
+    font-weight: 500;
+    margin-bottom: var(--space-2, 8px);
+    color: var(--color-gray-700, #374151);
+  }
+  
+  .form-preview__input,
+  .form-preview__textarea,
+  .form-preview__select {
+    width: 100%;
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: var(--space-3, 12px);
+    border: 1px solid var(--color-gray-300, #d1d5db);
+    border-radius: var(--radius-md, 8px);
+    background: white;
+    transition: border-color 0.2s ease;
+  }
+  
+  .form-preview__input:focus,
+  .form-preview__textarea:focus,
+  .form-preview__select:focus {
+    outline: none;
+    border-color: var(--color-primary-500, #3b82f6);
+    box-shadow: 0 0 0 2px var(--color-primary-100, #dbeafe);
+  }
+  
+  /* Mobile checkbox and radio improvements */
+  .checkbox,
+  .radio {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3, 12px);
+    cursor: pointer;
+    padding: var(--space-2, 8px);
+    border-radius: var(--radius-md, 8px);
+    transition: background-color 0.2s ease;
+  }
+  
+  .checkbox:active,
+  .radio:active {
+    background: var(--color-gray-50, #f9fafb);
+  }
+  
+  .checkbox__input,
+  .radio__input {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    flex-shrink: 0;
+  }
+  
+  .checkbox__box,
+  .radio__box {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--color-gray-300, #d1d5db);
+    border-radius: var(--radius-sm, 4px);
+    background: white;
+    position: relative;
+    flex-shrink: 0;
+  }
+  
+  .radio__box {
+    border-radius: 50%;
+  }
+  
+  .checkbox__input:checked + .checkbox__box,
+  .radio__input:checked + .radio__box {
+    border-color: var(--color-primary-500, #3b82f6);
+    background: var(--color-primary-500, #3b82f6);
+  }
+  
+  .checkbox__input:checked + .checkbox__box::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: var(--text-xs, 12px);
+    font-weight: bold;
+  }
+  
+  .radio__input:checked + .radio__box::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+  }
+  
+  /* Mobile navigation improvements */
+  .mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid var(--color-gray-200, #e5e7eb);
+    padding: var(--space-2, 8px);
+    display: flex;
+    justify-content: space-around;
+    z-index: 1000;
+  }
+  
+  .mobile-nav__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1, 4px);
+    padding: var(--space-2, 8px);
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    min-width: 60px;
+  }
+  
+  .mobile-nav__item:active {
+    background: var(--color-gray-100, #f3f4f6);
+  }
+  
+  .mobile-nav__item--active {
+    background: var(--color-primary-50, #eff6ff);
+    color: var(--color-primary-600, #2563eb);
+  }
+  
+  .mobile-nav__icon {
+    font-size: var(--text-lg, 18px);
+  }
+  
+  .mobile-nav__label {
+    font-size: var(--text-xs, 12px);
+    font-weight: 500;
+  }
+  
+  /* Floating action button for mobile */
+  .fab {
+    position: fixed;
+    bottom: 80px;
+    right: var(--space-4, 16px);
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--color-primary-600, #2563eb);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-xl, 20px);
+    z-index: 999;
+    transition: all 0.2s ease;
+  }
+  
+  .fab:active {
+    transform: scale(0.95);
+  }
+  
+  /* Mobile toast notifications */
+  .toast {
+    position: fixed;
+    bottom: 100px;
+    left: var(--space-4, 16px);
+    right: var(--space-4, 16px);
+    background: var(--color-gray-900, #111827);
+    color: white;
+    padding: var(--space-4, 16px);
+    border-radius: var(--radius-lg, 12px);
+    font-size: var(--text-sm, 14px);
+    z-index: 1001;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .toast--visible {
+    transform: translateY(0);
+  }
+  
+  .toast--success {
+    background: var(--color-green-600, #059669);
+  }
+  
+  .toast--error {
+    background: var(--color-red-600, #dc2626);
+  }
+  
+  .toast--warning {
+    background: var(--color-yellow-600, #d97706);
+  }
+  
+  /* Mobile loading states */
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1002;
+  }
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--color-gray-200, #e5e7eb);
+    border-top: 3px solid var(--color-primary-600, #2563eb);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Mobile safe area adjustments for devices with notches */
+  .app {
+    padding-top: max(var(--space-2, 8px), env(safe-area-inset-top));
+    padding-bottom: max(var(--space-2, 8px), env(safe-area-inset-bottom));
+    padding-left: max(var(--space-2, 8px), env(safe-area-inset-left));
+    padding-right: max(var(--space-2, 8px), env(safe-area-inset-right));
+  }
+  
+  .mobile-nav {
+    padding-bottom: max(var(--space-2, 8px), env(safe-area-inset-bottom));
+  }
+}
+
+/* Dark mode support for mobile */
+@media (max-width: 768px) and (prefers-color-scheme: dark) {
+  .app {
+    background: var(--color-gray-900, #111827);
+    color: var(--color-gray-100, #f3f4f6);
+  }
+  
+  .page-navigation,
+  .form-builder__sidebar,
+  .form-builder__canvas,
+  .properties,
+  .form-preview {
+    background: var(--color-gray-800, #1f2937);
+    border-color: var(--color-gray-700, #374151);
+  }
+  
+  .component-palette__item,
+  .form-component {
+    background: var(--color-gray-800, #1f2937);
+    border-color: var(--color-gray-700, #374151);
+  }
+  
+  .input,
+  .textarea,
+  .select,
+  .form-preview__input,
+  .form-preview__textarea,
+  .form-preview__select {
+    background: var(--color-gray-700, #374151);
+    border-color: var(--color-gray-600, #4b5563);
+    color: var(--color-gray-100, #f3f4f6);
+  }
+  
+  .mobile-nav {
+    background: var(--color-gray-800, #1f2937);
+    border-top-color: var(--color-gray-700, #374151);
+  }
+  
+  .mobile-nav__item {
+    color: var(--color-gray-300, #d1d5db);
+  }
+  
+  .mobile-nav__item--active {
+    background: var(--color-primary-900, #1e40af);
+    color: var(--color-primary-300, #93c5fd);
+  }
+  
+  .fab {
+    background: var(--color-primary-500, #3b82f6);
+  }
+  
+  .toast {
+    background: var(--color-gray-800, #1f2937);
+  }
+  
+  .toast--success {
+    background: var(--color-green-700, #047857);
+  }
+  
+  .toast--error {
+    background: var(--color-red-700, #b91c1c);
+  }
+  
+  .toast--warning {
+    background: var(--color-yellow-700, #b45309);
+  }
+}
+
+/* Continue from previous styles... */
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .page-dot,
+  .page-dot--active {
+    border: 0.5px solid var(--color-gray-300, #d1d5db);
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .main {
+    gap: var(--space-6, 24px);
+  }
+  
+  .form-builder__sidebar {
+    width: 280px;
+  }
+  
+  .component-palette {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .properties {
+    width: 300px;
+  }
+}
+
+/* Large mobile landscape */
+@media (max-width: 768px) and (orientation: landscape) {
+  .main {
+    flex-direction: row;
+  }
+  
+  .form-builder__sidebar {
+    width: 250px;
+    max-height: none;
+  }
+  
+  .page-navigation {
+    order: 0;
+    margin-bottom: 0;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .app {
+    padding: var(--space-1, 4px);
+  }
+  
+  .component-palette {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .page-navigation__tab {
+    min-width: 100px;
+    font-size: var(--text-sm, 14px);
+  }
+  
+  .modal__content {
+    width: calc(100vw - 1rem);
+  }
+  
+  .modal-title {
+    font-size: var(--text-lg, 18px);
+  }
+}
+
+/* Touch device improvements */
+@media (hover: none) and (pointer: coarse) {
+  .btn:hover {
+    transform: none;
+  }
+  
+  .btn:active {
+    transform: scale(0.98);
+  }
+  
+  .component-palette__item:active {
+    transform: scale(0.95);
+  }
+  
+  /* Larger touch targets */
+  .page-dot {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .page-dot--active {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Accessibility improvements for mobile */
+@media (max-width: 768px) {
+  /* Focus indicators */
+  .btn:focus,
+  .input:focus,
+  .textarea:focus,
+  .select:focus {
+    outline: 2px solid var(--color-primary-500, #3b82f6);
+    outline-offset: 2px;
+  }
+  
+  /* High contrast mode */
+  @media (prefers-contrast: high) {
+    .btn,
+    .input,
+    .textarea,
+    .select {
+      border-width: 2px;
+    }
+    
+    .form-component--selected {
+      border-width: 3px;
+    }
+  }
+  
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .btn,
+    .component-palette__item,
+    .form-component,
+    .modal__content,
+    .toast {
+      transition: none;
+    }
+    
+    .loading-spinner {
+      animation: none;
+    }
+  }
+}
+
+/* Print styles for mobile */
+@media print and (max-width: 768px) {
+  .mobile-nav,
+  .fab,
+  .toast,
+  .loading-overlay {
+    display: none !important;
+  }
+  
+  .app {
+    padding: 0;
+  }
+  
+  .main {
+    flex-direction: column;
+  }
+  
+  .form-builder__sidebar,
+  .properties {
+    display: none;
+  }
+  
+  .form-builder__canvas {
+    width: 100%;
+    border: none;
+    box-shadow: none;
+  }
+}
+
+/* Add these improvements to your existing mobile styles */
+
+@media (max-width: 768px) {
+  /* Improve header for mobile */
+  .header {
+    padding: var(--space-3, 12px) var(--space-2, 8px);
+    flex-shrink: 0;
+  }
+  
+  .header__title {
+    font-size: var(--text-lg, 18px);
+  }
+  
+  /* Better main layout */
+  .main {
+    flex: 1;
+    overflow: visible;
+  }
+  
+  /* Improve page navigation */
+  .page-navigation__header {
+    padding: var(--space-3, 12px);
+    flex-wrap: wrap;
+    gap: var(--space-2, 8px);
+  }
+  
+  .page-navigation__title {
+    font-size: var(--text-base, 16px);
+    min-width: 0;
+    flex: 1;
+  }
+  
+  .page-navigation__title-input {
+    font-size: var(--text-base, 16px);
+    padding: var(--space-2, 8px);
+  }
+  
+  .page-navigation__actions {
+    gap: var(--space-1, 4px);
+  }
+  
+  .page-navigation__tabs {
+    padding: 0 var(--space-2, 8px);
+  }
+  
+  .page-navigation__tab {
+    padding: var(--space-3, 12px) var(--space-4, 16px);
+    font-size: var(--text-sm, 14px);
+  }
+  
+  .page-navigation__tab-content {
+    padding: var(--space-4, 16px) var(--space-3, 12px);
+  }
+  
+  /* Better form builder layout */
+  .form-builder {
+    flex: 1;
+    gap: var(--space-3, 12px);
+    min-height: 0;
+  }
+  
+  .form-builder__sidebar {
+    max-height: 250px;
+    border-radius: var(--radius-md, 8px);
+    background: white;
+    border: 1px solid var(--color-gray-200, #e5e7eb);
+  }
+  
+  .form-builder__canvas {
+    flex: 1;
+    border-radius: var(--radius-md, 8px);
+    background: white;
+    border: 1px solid var(--color-gray-200, #e5e7eb);
+  }
+  
+  /* Properties panel improvements */
+  .properties {
+    order: 3;
+    background: white;
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--color-gray-200, #e5e7eb);
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  .properties-section {
+    padding: var(--space-4, 16px) var(--space-3, 12px);
+    border-bottom: 1px solid var(--color-gray-100, #f3f4f6);
+  }
+  
+  .properties-section:last-child {
+    border-bottom: none;
+  }
+  
+  .properties-section__title {
+    font-size: var(--text-sm, 14px);
+    margin-bottom: var(--space-3, 12px);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 8px);
+  }
+  
+  /* Better component palette */
+  .component-palette {
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  }
+  
+  .component-palette__item {
+    padding: var(--space-3, 12px) var(--space-2, 8px);
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--color-gray-200, #e5e7eb);
+    background: white;
+    min-height: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1, 4px);
+  }
+  
+  .component-palette__item:active {
+    transform: scale(0.95);
+    background: var(--color-gray-50, #f9fafb);
+  }
+  
+  .component-palette__item-icon {
+    font-size: var(--text-lg, 18px);
+  }
+  
+  /* Better modal for mobile */
+  .modal {
+    align-items: flex-end;
+  }
+  
+  .modal__content {
+    width: calc(100vw - 1rem);
+    border-radius: var(--radius-lg, 12px) var(--radius-lg, 12px) 0 0;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .modal__footer {
+    flex-direction: column;
+    gap: var(--space-2, 8px);
+  }
+  
+  .modal__footer .btn {
+    width: 100%;
+  }
+  
+  /* Better canvas */
+  .canvas {
+    padding: var(--space-4, 16px) var(--space-3, 12px);
+  }
+  
+  .canvas__drop-zone {
+    min-height: 300px;
+    border-radius: var(--radius-lg, 12px);
+    padding: var(--space-6, 24px) var(--space-4, 16px);
+  }
+  
+  /* Better form components */
+  .form-component {
+    padding: var(--space-3, 12px);
+    border-radius: var(--radius-md, 8px);
+    position: relative;
+  }
+  
+  .form-component__actions {
+    position: absolute;
+    top: var(--space-2, 8px);
+    right: var(--space-2, 8px);
+    display: flex;
+    gap: var(--space-1, 4px);
+  }
+  
+  .form-component__action-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: var(--color-gray-100, #f3f4f6);
+    border-radius: var(--radius-sm, 4px);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-xs, 12px);
+  }
+}
+
+/* Add safe area support for devices with notches */
+@media (max-width: 768px) {
+  .app {
+    padding-top: max(var(--space-2, 8px), env(safe-area-inset-top));
+    padding-bottom: max(var(--space-2, 8px), env(safe-area-inset-bottom));
+    padding-left: max(var(--space-2, 8px), env(safe-area-inset-left));
+    padding-right: max(var(--space-2, 8px), env(safe-area-inset-right));
+  }
+  
+  .mobile-nav {
+    padding-bottom: max(var(--space-2, 8px), env(safe-area-inset-bottom));
+  }
+}
+
+/* Add these header improvements to your existing mobile styles */
+@media (max-width: 768px) {
+  .header {
+    padding: var(--space-2, 8px) var(--space-3, 12px);
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    background: white;
+    border-bottom: 1px solid var(--color-gray-200, #e5e7eb);
+  }
+  
+  .header__title {
+    font-size: var(--text-lg, 18px);
+    font-weight: 600;
+    color: var(--color-gray-900, #111827);
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 8px);
+    flex-shrink: 0;
+  }
+  
+  .header__action-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-lg, 18px);
+    color: var(--color-gray-600, #4b5563);
+    transition: all 0.2s ease;
+  }
+  
+  .header__action-btn:active {
+    background: var(--color-gray-100, #f3f4f6);
+    transform: scale(0.95);
+  }
+  
+  .header__menu-btn {
+    display: block;
+  }
+  
+  .header__logo {
+    height: 32px;
+    width: auto;
+  }
+}
+
+/* For very small screens */
+@media (max-width: 480px) {
+  .header {
+    padding: var(--space-2, 8px);
+    min-height: 52px;
+  }
+  
+  .header__title {
+    font-size: var(--text-base, 16px);
+  }
+  
+  .header__action-btn {
+    width: 36px;
+    height: 36px;
+    font-size: var(--text-base, 16px);
+  }
+}
+
+/* Add these responsive header styles */
+@media (max-width: 768px) {
+  .header--form-builder {
+    padding: var(--space-2, 8px);
+    background: white;
+    border-bottom: 1px solid var(--color-gray-200, #e5e7eb);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .header--form-builder::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .header--form-builder .header__container {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 8px);
+    min-width: max-content;
+  }
+  
+  .header--form-builder .header__brand {
+    display: none; /* Hide brand on mobile form builder */
+  }
+  
+  .header--form-builder .header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1, 4px);
+    flex: 1;
+  }
+  
+  .header--form-builder .header__divider {
+    width: 1px;
+    height: 20px;
+    background: var(--color-gray-300, #d1d5db);
+    margin: 0 var(--space-1, 4px);
+  }
+  
+  .header--form-builder .header__back-btn {
+    background: var(--color-blue-500, #3b82f6);
+    color: white;
+    border: none;
+    flex-shrink: 0;
+  }
+  
+  .header--form-builder .header__action-btn {
+    min-width: 44px;
+    height: 36px;
+    padding: 0 var(--space-2, 8px);
+    border-radius: var(--radius-md, 8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1, 4px);
+    flex-shrink: 0;
+  }
+  
+  .header--form-builder .btn__text {
+    display: none; /* Hide text on mobile, show only icons */
+  }
+  
+  .header--form-builder .btn__icon {
+    font-size: var(--text-base, 16px);
+  }
+  
+  /* Show text for primary actions */
+  .header--form-builder .btn--primary .btn__text {
+    display: inline;
+    font-size: var(--text-xs, 12px);
+  }
+}
+
+/* For very small screens - even more compact */
+@media (max-width: 480px) {
+  .header--form-builder .header__action-btn {
+    min-width: 36px;
+    height: 32px;
+    padding: 0 var(--space-1, 4px);
+  }
+  
+  .header--form-builder .btn__icon {
+    font-size: var(--text-sm, 14px);
+  }
+  
+  .header--form-builder .btn--primary .btn__text {
+    font-size: 10px;
+  }
+}
+
+/* For larger mobile screens - show some text */
+@media (min-width: 481px) and (max-width: 768px) {
+  .header--form-builder .header__action-btn {
+    min-width: 50px;
+  }
+  
+  /* Show text for important actions */
+  .header--form-builder .header__back-btn .btn__text,
+  .header--form-builder .btn--primary .btn__text {
+    display: inline;
+    font-size: var(--text-xs, 12px);
+  }
+}

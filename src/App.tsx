@@ -277,7 +277,7 @@ const App: React.FC = () => {
     <DndProvider backend={HTML5Backend}>
       <div className="app">
         {/* Header */}
-        <header className="header">
+        <header className={`header ${currentView === 'builder' ? 'header--form-builder' : ''}`}>
           <div className="header__container">
             <div className="header__brand">
               <h1>Form Builder</h1>
@@ -285,43 +285,40 @@ const App: React.FC = () => {
             <div className="header__actions">
               <button
                 onClick={handleBackToList}
-                className="btn btn--secondary btn--sm"
+                className="btn btn--secondary btn--sm header__back-btn"
                 title="Back to template list"
               >
-                ← Back to Templates
+                <span className="btn__icon">←</span>
+                <span className="btn__text">Templates</span>
               </button>
-              <button
-                onClick={() => {
-                  console.log('🧹 MANUAL CLEAR - Before clearing, components:', components.length);
-                  clearAllSilent();
-                  console.log('✅ MANUAL CLEAR - Cleared all components');
-                }}
-                className="btn btn--warning btn--sm"
-                title="Clear current form (debug helper)"
-                style={{ backgroundColor: 'var(--color-orange-500)', color: 'white', marginLeft: '8px' }}
-              >
-                🧹 Clear
-              </button>
-              <div style={{ width: '1px', height: '20px', background: 'var(--color-gray-300)', margin: '0 var(--space-2)' }} />
+              
+              <div className="header__divider" />
+              
               <button
                 onClick={undo}
                 disabled={!canUndo}
-                className="btn btn--secondary btn--sm"
+                className="btn btn--secondary btn--sm header__action-btn"
                 title="Undo (Ctrl+Z)"
               >
-                ↶ Undo
+                <span className="btn__icon">↶</span>
+                <span className="btn__text">Undo</span>
               </button>
+              
               <button
                 onClick={redo}
                 disabled={!canRedo}
-                className="btn btn--secondary btn--sm"
+                className="btn btn--secondary btn--sm header__action-btn"
                 title="Redo (Ctrl+Y)"
               >
-                ↷ Redo
+                <span className="btn__icon">↷</span>
+                <span className="btn__text">Redo</span>
               </button>
-              <div style={{ width: '1px', height: '20px', background: 'var(--color-gray-300)', margin: '0 var(--space-2)' }} />
-              <label className="btn btn--secondary btn--sm" title="Upload JSON template or schema">
-                📁 Load JSON
+              
+              <div className="header__divider" />
+              
+              <label className="btn btn--secondary btn--sm header__action-btn" title="Upload JSON template or schema">
+                <span className="btn__icon">📁</span>
+                <span className="btn__text">Load</span>
                 <input
                   type="file"
                   accept=".json"
@@ -329,33 +326,47 @@ const App: React.FC = () => {
                   style={{ display: 'none' }}
                 />
               </label>
+              
               <button
                 onClick={clearAll}
                 disabled={components.length === 0}
-                className="btn btn--secondary btn--sm"
+                className="btn btn--secondary btn--sm header__action-btn"
+                title="Clear all components"
               >
-                Clear All
+                <span className="btn__icon">🗑️</span>
+                <span className="btn__text">Clear</span>
               </button>
+              
+              <div className="header__divider" />
+              
               <button
                 onClick={handlePreview}
                 disabled={components.length === 0}
-                className="btn btn--secondary btn--sm"
+                className="btn btn--secondary btn--sm header__action-btn"
+                title="Preview form"
               >
-                Preview
+                <span className="btn__icon">👁️</span>
+                <span className="btn__text">Preview</span>
               </button>
+              
               <button
                 onClick={handleExport}
                 disabled={components.length === 0}
-                className="btn btn--secondary btn--sm"
+                className="btn btn--secondary btn--sm header__action-btn"
+                title="Export as JSON"
               >
-                Export JSON
+                <span className="btn__icon">📤</span>
+                <span className="btn__text">Export</span>
               </button>
+              
               <button
                 onClick={handleSave}
                 disabled={components.length === 0}
-                className="btn btn--primary btn--sm"
+                className="btn btn--primary btn--sm header__action-btn"
+                title="Save template"
               >
-                Save Template
+                <span className="btn__icon">💾</span>
+                <span className="btn__text">Save</span>
               </button>
             </div>
           </div>

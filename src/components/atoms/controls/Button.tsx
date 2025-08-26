@@ -1,5 +1,6 @@
 
 import React from 'react';
+import UnifiedButton from './UnifiedButton';
 
 interface ButtonProps {
   children: React.ReactNode;
@@ -20,20 +21,17 @@ const Button: React.FC<ButtonProps> = ({
   className = '',
   type = 'button'
 }) => {
-  const baseClasses = 'btn';
-  const variantClass = `btn--${variant}`;
-  const sizeClass = `btn--${size}`;
-  const disabledClass = disabled ? 'btn--disabled' : '';
-
   return (
-    <button
-      type={type}
+    <UnifiedButton
       onClick={onClick}
+      variant={variant}
+      size={size}
       disabled={disabled}
-      className={`${baseClasses} ${variantClass} ${sizeClass} ${disabledClass} ${className}`.trim()}
+      className={className}
+      type={type}
     >
       {children}
-    </button>
+    </UnifiedButton>
   );
 };
 

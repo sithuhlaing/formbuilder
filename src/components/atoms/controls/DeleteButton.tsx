@@ -1,5 +1,6 @@
 
 import React from "react";
+import UnifiedButton from './UnifiedButton';
 
 interface DeleteButtonProps {
   onDelete: () => void;
@@ -8,19 +9,19 @@ interface DeleteButtonProps {
 
 const DeleteButton: React.FC<DeleteButtonProps> = ({ 
   onDelete, 
-  className = "text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded" 
+  className = "" 
 }) => {
   return (
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        onDelete();
-      }}
-      className={className}
+    <UnifiedButton
+      onClick={onDelete}
       title="Delete component"
-    >
-      🗑️
-    </button>
+      variant="danger"
+      icon="🗑️"
+      iconOnly={true}
+      size="sm"
+      stopPropagation={true}
+      className={className}
+    />
   );
 };
 
