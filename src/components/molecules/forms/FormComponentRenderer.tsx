@@ -511,6 +511,37 @@ const FormComponentRenderer: React.FC<FormComponentRendererProps> = ({
           </div>
         );
 
+      case 'email':
+        return (
+          <div style={baseStyle}>
+            <label style={labelStyle}>
+              {component.label} {component.required && <span style={{ color: '#ef4444' }}>*</span>}
+            </label>
+            <input
+              type="email"
+              placeholder={component.placeholder || "Enter email address"}
+              style={inputStyle}
+              disabled
+            />
+          </div>
+        );
+
+      case 'password':
+        return (
+          <div style={baseStyle}>
+            <label style={labelStyle}>
+              {component.label} {component.required && <span style={{ color: '#ef4444' }}>*</span>}
+            </label>
+            <input
+              type="password"
+              placeholder={component.placeholder || "Enter password"}
+              style={inputStyle}
+              disabled
+            />
+          </div>
+        );
+
+      case 'number':
       case 'number_input':
         return (
           <div style={baseStyle}>

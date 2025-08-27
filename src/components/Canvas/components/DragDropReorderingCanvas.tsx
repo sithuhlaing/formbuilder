@@ -35,17 +35,196 @@ const DragDropReorderingCanvas: React.FC<DragDropReorderingCanvasProps> = ({
   onAddComponentToRow,
   createComponent,
 }) => {
+  // Handler for inserting components at specific positions
+  const handleInsertAtPosition = useCallback((componentType: ComponentType, insertIndex: number) => {
+    if (!createComponent) {
+      console.warn('createComponent function not available, falling back to onAddComponent');
+      onAddComponent(componentType);
+      return;
+    }
+    
+    console.log('🎯 handleInsertAtPosition:', { componentType, insertIndex, currentCount: components.length });
+    
+    // HARD RULE VALIDATION: Ensure no overwriting
+    if (insertIndex < 0 || insertIndex > components.length) {
+      console.error('❌ HARD RULE VIOLATION: Invalid insert index would cause overwriting!', {
+        insertIndex,
+        maxValidIndex: components.length,
+        fallbackToAppend: true
+      });
+      // Fallback to append to prevent overwriting
+      onAddComponent(componentType);
+      return;
+    }
+    
+    // Create the new component
+    const newComponent = createComponent(componentType);
+    
+    // Insert at the specific position using splice (NEVER overwrite)
+    const newComponents = [...components];
+    newComponents.splice(insertIndex, 0, newComponent); // Insert, don't replace
+    
+    // HARD RULE VALIDATION: Ensure collection increased
+    if (newComponents.length !== components.length + 1) {
+      console.error('❌ HARD RULE VIOLATION: Collection did not increase by 1!', {
+        oldSize: components.length,
+        newSize: newComponents.length,
+        expected: components.length + 1,
+        rule: 'Drop always increases collection size, never replaces'
+      });
+    } else {
+      console.log('✅ HARD RULE ENFORCED: Collection increased by 1', {
+        oldSize: components.length,
+        newSize: newComponents.length,
+        insertIndex,
+        newComponent: newComponent.label,
+        rule: 'Never overwrite existing item'
+      });
+    }
+    
+    // Update components with positional insertion
+    onUpdateComponents(newComponents);
+  }, [components, createComponent, onAddComponent, onUpdateComponents]);
+
   // Drop zone for new components from the palette and components from row layouts
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: ['component', 'horizontal-component'],
     drop: (item: any, monitor) => {      
-      // Only handle drops that weren't handled by child components
+      console.log('📋 Canvas drop handler triggered:', {
+        itemType: item.type,
+        hasComponent: !!item.component,
+        didDrop: monitor.didDrop(),
+        isPaletteComponent: item.type && typeof item.type === 'string' && !item.component,
+        dropResult: monitor.getDropResult()
+      });
+
+      const dropResult = monitor.getDropResult();
+      
+      // Check if individual item handled the drop locally
+      if (dropResult && dropResult.handledLocally && item.type && typeof item.type === 'string' && !item.component) {
+        console.log('✅ INDIVIDUAL ITEM HANDLED LOCALLY: Container increased by +1', dropResult);
+        return { droppedOnCanvas: true, handledByIndividualItem: true };
+      }
+
+      // Handle insertIntoRow for CENTER on rowlayout
+      if (dropResult && dropResult.action === 'insert_into_row' && item.type && typeof item.type === 'string' && !item.component) {
+        console.log('🎯 DROP LOGIC: CENTER on rowlayout → insertIntoRow(targetRow, newItem)');
+        const { targetComponentId } = dropResult;
+        
+        // Find the row layout component and add new item to it
+        const targetRowLayout = components.find(c => c.id === targetComponentId);
+        if (targetRowLayout && targetRowLayout.type === 'horizontal_layout' && createComponent) {
+          const newComponent = createComponent(item.type);
+          const updatedRowLayout = {
+            ...targetRowLayout,
+            children: [...(targetRowLayout.children || []), newComponent]
+          };
+          
+          const newComponents = components.map(c => 
+            c.id === targetComponentId ? updatedRowLayout : c
+          );
+          
+          console.log('✅ INSERT INTO ROW COMPLETE:', {
+            instruction: 'If CENTER on rowlayout → insertIntoRow(targetRow, newItem)',
+            targetRow: targetRowLayout.label,
+            newItem: newComponent.label,
+            rowChildrenBefore: targetRowLayout.children?.length || 0,
+            rowChildrenAfter: updatedRowLayout.children?.length || 0,
+            collectionSizeUnchanged: newComponents.length === components.length,
+            rowContentGrew: true
+          });
+          
+          onUpdateComponents(newComponents);
+        }
+        
+        return { droppedOnCanvas: true, insertedIntoRow: true };
+      }
+
+      // Handle row layout creation/addition (Left/Right drops)
+      if (dropResult && dropResult.action === 'create_or_add_to_row' && item.type && typeof item.type === 'string' && !item.component) {
+        console.log('↔️ ROW LAYOUT RULE: Left/Right inside a row layout → placed side by side inside that row');
+        const { insertPosition, targetComponentId, targetIndex } = dropResult;
+        
+        if (createComponent) {
+          const newComponent = createComponent(item.type);
+          const targetComponent = components[targetIndex];
+          
+          if (targetComponent.type === 'horizontal_layout') {
+            // Add to existing row layout
+            console.log('📦 Adding to existing row layout');
+            const updatedRowLayout = {
+              ...targetComponent,
+              children: insertPosition === 'left' 
+                ? [newComponent, ...(targetComponent.children || [])]
+                : [...(targetComponent.children || []), newComponent]
+            };
+            
+            const newComponents = components.map((c, i) => 
+              i === targetIndex ? updatedRowLayout : c
+            );
+            
+            console.log('✅ COLLECTION GROWTH COMPLETE (Row Addition):', {
+              rule: 'Left/Right inside existing row → added side by side',
+              position: insertPosition,
+              rowChildrenCount: updatedRowLayout.children?.length || 0,
+              collectionSizeUnchanged: newComponents.length === components.length,
+              rowContentGrew: (updatedRowLayout.children?.length || 0) > (targetComponent.children?.length || 0)
+            });
+            
+            onUpdateComponents(newComponents);
+          } else {
+            // Create new row layout with target + new component
+            console.log('🆕 Creating new row layout');
+            const rowComponent = createComponent('horizontal_layout');
+            rowComponent.label = 'Row Layout';
+            rowComponent.children = insertPosition === 'left'
+              ? [newComponent, targetComponent]
+              : [targetComponent, newComponent];
+            
+            const newComponents = [...components];
+            newComponents[targetIndex] = rowComponent;
+            
+            console.log('✅ COLLECTION GROWTH COMPLETE (Row Creation):', {
+              rule: 'Left/Right on regular item → created new row layout',
+              position: insertPosition,
+              collectionSizeUnchanged: newComponents.length === components.length,
+              newRowChildren: rowComponent.children?.length || 0,
+              structureGrew: 'Converted 1 item into 1 row containing 2 items'
+            });
+            
+            onUpdateComponents(newComponents);
+          }
+        }
+        
+        return { droppedOnCanvas: true, rowLayoutHandled: true };
+      }
+
+      // FALLBACK: Direct canvas drop (no individual item involved) 
+      if (item.type && typeof item.type === 'string' && !item.component && !monitor.didDrop()) {
+        // 📍 If CENTER on empty canvas → append(newItem)
+        console.log('🎯 DROP LOGIC: CENTER on empty canvas → append(newItem)');
+        console.log('🎯 DRAG SOURCE CHECK: LEFT PANEL → CREATE NEW ITEM');
+        console.log('✅ IMPLEMENTATION + HARD RULES:');
+        console.log('  → Rule: drop always increases collection size, never replaces');
+        console.log('  → Never overwrite existing item');
+        console.log('📊 APPEND OPERATION:', {
+          instruction: 'If CENTER on empty canvas → append(newItem)',
+          dragSource: 'LEFT_PANEL',
+          action: 'CREATE_NEW_ITEM',
+          type: item.type,
+          beforeSize: components.length,
+          afterSize: components.length + 1,
+          operation: 'APPEND'
+        });
+        console.log('🎯 CALLING onAddComponent for type:', item.type);
+        onAddComponent(item.type);
+        console.log('✅ APPEND COMPLETE: New item added to end');
+        return { droppedOnCanvas: true };
+      }
+
+      // Only handle container movements if not already handled
       if (!monitor.didDrop()) {
-        if (item.type && typeof item.type === 'string') {
-          // New component from palette
-          console.log('🟢 Canvas drop handler: Adding new component to canvas:', item.type);
-          onAddComponent(item.type);
-        } else if (item.component && item.containerPath && onMoveFromContainerToCanvas) {
+        if (item.component && item.containerPath && onMoveFromContainerToCanvas) {
           // Component being moved from row layout to canvas
           console.log('Moving component from row to canvas:', item.component.label);
           onMoveFromContainerToCanvas(item.component.id, item.containerPath);
@@ -306,6 +485,7 @@ const DragDropReorderingCanvas: React.FC<DragDropReorderingCanvasProps> = ({
                 onAddToRowLayout={handleAddToRowLayout}
                 onUpdateComponents={onUpdateComponents}
                 allComponents={components}
+                createComponent={createComponent}
               />
             );
           })}

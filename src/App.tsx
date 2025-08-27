@@ -450,9 +450,6 @@ const App: React.FC = () => {
           showNotification={showNotification}
         />
         
-        {/* Confirmation Modal - temporarily disabled */}
-        
-        
         {/* Unified Modal System */}
         <ConfirmDialog
           isOpen={confirmation.isOpen}

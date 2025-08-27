@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import FormComponentRenderer from '../../molecules/forms/FormComponentRenderer';
+import SimplifiedFormComponentRenderer from '../../molecules/forms/SimplifiedFormComponentRenderer';
 import type { FormComponentData } from '../../../types';
 
 interface HorizontalDragDropItemProps {
@@ -303,13 +303,13 @@ const HorizontalDragDropItem: React.FC<HorizontalDragDropItemProps> = ({
 
         {/* Component content */}
         <div style={{ marginTop: '20px', marginRight: selectedComponentId === component.id ? '40px' : '8px' }}>
-          <FormComponentRenderer
+          <SimplifiedFormComponentRenderer
             component={component}
-            selectedComponentId={selectedComponentId}
-            onSelectComponent={onSelectComponent}
-            onUpdateComponent={onUpdateComponent}
-            containerPath={containerPath}
-            isInContainer={true}
+            isSelected={selectedComponentId === component.id}
+            onSelect={() => onSelectComponent(component.id)}
+            onUpdate={onUpdateComponent}
+            onDelete={() => console.log('Delete from horizontal container:', component.id)}
+            mode="builder"
           />
         </div>
       </div>

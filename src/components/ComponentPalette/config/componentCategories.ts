@@ -10,6 +10,20 @@ export const componentDefinitions: ComponentDefinition[] = [
     category: 'inputs'
   },
   {
+    type: 'email',
+    name: 'Email Input',
+    icon: '📧',
+    description: 'Email address input with validation',
+    category: 'inputs'
+  },
+  {
+    type: 'password',
+    name: 'Password Input',
+    icon: '🔒',
+    description: 'Password input field',
+    category: 'inputs'
+  },
+  {
     type: 'number_input',
     name: 'Number Input',
     icon: '#️⃣',

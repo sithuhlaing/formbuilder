@@ -1,23 +1,22 @@
-// Main Canvas component with SOLID principles applied
-export { default } from '../CanvasSolid';
+/**
+ * Modular Canvas System - Entry Point
+ * Exports all the new simplified and modular components
+ */
 
-// Types and interfaces for external use
-export type { CanvasActions, DragItem, DropPosition, IDragDropHandler, IDropZone } from './types';
+// Core logic
+export { SimpleDragDropRules } from './core/DragDropRules';
+export { CanvasStateManager } from './core/CanvasStateManager';
+export type { Intent } from './core/DragDropRules';
+export type { CanvasNode, CanvasState } from './core/CanvasStateManager';
 
-// Strategies for extending behavior (Open/Closed Principle)
-export { BetweenComponentsDropStrategy, CanvasMainDropStrategy } from './strategies/DropZoneStrategy';
-export type { IDropZoneStrategy } from './strategies/DropZoneStrategy';
+// Components
+export { default as SimplifiedCanvas } from './components/SimplifiedCanvas';
+export { default as SimplifiedDropZone } from './components/SimplifiedDropZone';
+export { default as SimplifiedRowLayout } from './components/SimplifiedRowLayout';
+export { default as AutoSizingCanvas } from './components/AutoSizingCanvas';
+export { default as AutoSizingRowLayout } from './components/AutoSizingRowLayout';
+export { default as ResponsiveCanvasWrapper } from './components/ResponsiveCanvasWrapper';
 
-// Handlers for business logic (Single Responsibility Principle)
-export { CanvasDragDropHandler } from './handlers/CanvasDragDropHandler';
-export { ComponentDragDropHandler } from './handlers/ComponentDragDropHandler';
-
-// Components for UI concerns (Single Responsibility Principle)
-export { default as CanvasDropZone } from './components/CanvasDropZone';
-export { default as ComponentDropIndicator } from './components/ComponentDropIndicator';
-export { default as DraggableCanvasItem } from './components/DraggableCanvasItem';
-export { default as CanvasEmptyState } from './components/CanvasEmptyState';
-
-// Abstractions for dependency inversion (Dependency Inversion Principle)
-export { ReactDndProvider } from './abstractions/DragDropAbstraction';
-export type { IDragDropProvider, DropZoneConfig, DragSourceConfig } from './abstractions/DragDropAbstraction';
+// Hooks
+export { useSimplifiedCanvas } from '../../hooks/useSimplifiedCanvas';
+export { useAutoSizingCanvas } from '../../hooks/useAutoSizingCanvas';

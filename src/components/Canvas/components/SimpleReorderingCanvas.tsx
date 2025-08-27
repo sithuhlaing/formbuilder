@@ -53,6 +53,7 @@ const SimpleReorderingCanvas: React.FC<SimpleReorderingCanvasProps> = ({
 
   return (
     <div
+      data-testid="canvas"
       style={{
         flex: 1,
         display: 'flex',

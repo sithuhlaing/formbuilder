@@ -1,6 +1,6 @@
 
 import { useUndoRedo } from "./useUndoRedo";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import type { FormComponentData, ComponentType, FormPage, FormTemplateType, FormTemplate } from "../types";
 
 interface ModalFunctions {
@@ -141,27 +141,121 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
     }
   }, []);
 
+  // 🛡️ THROTTLING: Prevent rapid-fire updates that cause race conditions
+  const lastUpdateRef = useRef<number>(0);
+  const THROTTLE_MS = 50; // Minimum time between updates
+
   const updateCurrentPageComponents = useCallback((newComponents: FormComponentData[]) => {
+    const now = Date.now();
+    if (now - lastUpdateRef.current < THROTTLE_MS) {
+      console.warn('🛡️ THROTTLED: Update blocked due to rapid succession (preventing race condition)');
+      return;
+    }
+    lastUpdateRef.current = now;
+    const currentCount = safePagesArray.find(p => p?.id === currentPageId)?.components?.length || 0;
+    
+    // 🚨 RACE CONDITION DETECTION
+    if (newComponents?.length === 1 && currentCount > 1) {
+      console.error('🚨 CRITICAL: Collection collapsed from', currentCount, 'to 1 element!');
+      console.error('🚨 This suggests a race condition or competing state update!');
+      console.error('🚨 Stack trace:', new Error().stack);
+    }
+    
+    if (!newComponents || newComponents.length === 0) {
+      console.error('🚨 CRITICAL: Empty or invalid components array passed!');
+      console.error('🚨 This could cause collection to disappear!');
+      console.error('🚨 Stack trace:', new Error().stack);
+    }
+    
+    // 🚨 SPECIAL TRACKING FOR 5-ELEMENT BUG
+    if (currentCount >= 5 || newComponents?.length >= 5) {
+      console.error('🚨 5-ELEMENT BUG TRACKING:', {
+        currentCount,
+        newCount: newComponents?.length || 0,
+        crossing5Threshold: currentCount < 5 && (newComponents?.length || 0) >= 5,
+        droppingFrom5: currentCount >= 5 && (newComponents?.length || 0) < currentCount,
+        timestamp: Date.now(),
+        caller: new Error().stack?.split('\n')[1]?.trim()
+      });
+    }
+    
+    console.log('🔄 updateCurrentPageComponents called with:', {
+      count: newComponents?.length || 0,
+      components: newComponents?.map(c => ({ id: c?.id, label: c?.label })) || [],
+      caller: new Error().stack?.split('\n')[1]?.trim() || 'unknown',
+      timestamp: Date.now(),
+      currentCount,
+      isInsertion: newComponents?.length > currentCount,
+      changeType: newComponents?.length > currentCount ? 'INSERTION' : newComponents?.length < currentCount ? 'DELETION' : 'REORDER',
+      suspiciousDropTo1: newComponents?.length === 1 && currentCount > 1,
+      suspiciousEmpty: !newComponents || newComponents.length === 0,
+      at5ElementThreshold: currentCount >= 5 || newComponents?.length >= 5
+    });
+    
     if (!newComponents || !Array.isArray(newComponents)) {
       console.warn('updateCurrentPageComponents: Invalid components array provided');
       return;
     }
     
+    // 🛡️ RACE CONDITION PROTECTION
+    if (newComponents.length === 0 && currentCount > 0) {
+      console.error('🛡️ BLOCKING: Attempt to clear non-empty collection blocked!');
+      console.error('🛡️ This prevents race condition that clears collection');
+      return;
+    }
+    
+    const validComponents = newComponents.filter(c => c && c.id);
+    
+    // 🛡️ ADDITIONAL PROTECTION: Don't allow severe collection drops without explicit reason
+    if (validComponents.length === 1 && currentCount > 2) {
+      console.error('🚨 CRITICAL BUG DETECTED: Collection dropping from', currentCount, 'to 1 element!');
+      console.error('🚨 This is exactly the bug user reported! Blocking this update!');
+      console.error('🚨 Caller:', new Error().stack?.split('\n')[1]);
+      console.error('🚨 Input components:', newComponents.map(c => ({ id: c?.id, label: c?.label, type: c?.type })));
+      console.error('🚨 Valid components:', validComponents.map(c => ({ id: c.id, label: c.label, type: c.type })));
+      
+      // BLOCK this update to prevent the bug
+      return;
+    }
+    
+    console.log('🧹 Filtered to valid components:', {
+      originalCount: newComponents.length,
+      validCount: validComponents.length,
+      validComponents: validComponents.map(c => ({ id: c.id, label: c.label }))
+    });
+    
     const updatedPages = safePagesArray.map(page =>
       page && page.id === currentPageId
-        ? { ...page, components: newComponents.filter(c => c && c.id) }
+        ? { ...page, components: validComponents }
         : page
     );
+    console.log('📄 Updated pages with new components, calling updatePages...');
     updatePages(updatedPages);
+    console.log('✅ updateCurrentPageComponents completed');
   }, [safePagesArray, currentPageId, updatePages]);
 
   const addComponent = useCallback((type: ComponentType) => {
+    console.log('🏗️ addComponent called with type:', type);
     const newComponent = createComponent(type);
+    console.log('📦 Created new component:', { id: newComponent.id, label: newComponent.label, type: newComponent.type });
+    
     // Get fresh current page to avoid stale closure
     const freshCurrentPage = safePagesArray.find(p => p && p.id === currentPageId) || safePagesArray[0];
     const freshComponents = freshCurrentPage?.components || [];
-    updateCurrentPageComponents([...freshComponents, newComponent]);
+    console.log('📋 Current components before adding:', {
+      count: freshComponents.length,
+      components: freshComponents.map(c => ({ id: c.id, label: c.label }))
+    });
+    
+    const newComponentsList = [...freshComponents, newComponent];
+    console.log('📋 New components list:', {
+      count: newComponentsList.length,
+      components: newComponentsList.map(c => ({ id: c.id, label: c.label }))
+    });
+    
+    updateCurrentPageComponents(newComponentsList);
     setSelectedComponentId(newComponent.id);
+    console.log('✅ addComponent completed, component added to collection');
   }, [createComponent, safePagesArray, currentPageId, updateCurrentPageComponents]);
 
   const updateComponent = useCallback((updates: Partial<FormComponentData>) => {
@@ -549,43 +643,90 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
     updateCurrentPageComponents(updatedComponents);
   }, [components, updateCurrentPageComponents]);
 
-  // Move component from container to canvas
+  // Move component from container to canvas with row layout dissolution
   const moveFromContainerToCanvas = useCallback((componentId: string, containerPath: string[]) => {
+    console.log('🎯 ROW LAYOUT RULE: Moving component from container, checking for dissolution');
+    
     let componentToMove: FormComponentData | null = null;
+    let parentContainer: FormComponentData | null = null;
 
-    // Find the component in the nested structure
-    const findInNestedComponents = (components: FormComponentData[]): FormComponentData | null => {
+    // Find the component and its parent container
+    const findComponentAndParent = (components: FormComponentData[]): { component: FormComponentData | null; parent: FormComponentData | null } => {
       for (const component of components) {
         if (component.children) {
+          // Check direct children
           for (const child of component.children) {
             if (child.id === componentId) {
-              return child;
+              return { component: child, parent: component };
             }
           }
-          const found = findInNestedComponents(component.children);
-          if (found) return found;
+          // Check nested children
+          const result = findComponentAndParent(component.children);
+          if (result.component) return result;
         }
       }
-      return null;
+      return { component: null, parent: null };
     };
 
-    componentToMove = findInNestedComponents(components);
+    const { component, parent } = findComponentAndParent(components);
+    componentToMove = component;
+    parentContainer = parent;
 
-    if (componentToMove) {
-      // Remove from container
-      removeFromContainer(componentId, containerPath);
-      
-      // Add to canvas (end of components list)
-      setTimeout(() => {
-        // Get fresh current page to avoid stale closure
-        const freshCurrentPage = safePagesArray.find(p => p && p.id === currentPageId) || safePagesArray[0];
-        const freshComponents = freshCurrentPage?.components || [];
-        const updatedComponents = [...freshComponents, componentToMove!];
-        updateCurrentPageComponents(updatedComponents);
-        setSelectedComponentId(componentId);
-      }, 50);
+    if (componentToMove && parentContainer) {
+      console.log('📦 Found component to move:', {
+        componentId: componentToMove.id,
+        componentLabel: componentToMove.label,
+        parentId: parentContainer.id,
+        parentType: parentContainer.type,
+        remainingChildren: (parentContainer.children?.length || 0) - 1
+      });
+
+      // CRITICAL RULE: If removing this component leaves only 1 child in row layout, dissolve the container
+      if (parentContainer.type === 'horizontal_layout' && parentContainer.children && parentContainer.children.length === 2) {
+        console.log('🔄 ROW LAYOUT DISSOLUTION: Only 1 child will remain, dissolving row layout');
+        
+        // Find the remaining child
+        const remainingChild = parentContainer.children.find(child => child.id !== componentId);
+        
+        if (remainingChild) {
+          // Replace the entire row layout with the remaining child + add moved component to canvas
+          const newComponents = components.map(c => {
+            if (c.id === parentContainer!.id) {
+              // Replace row layout with remaining child
+              console.log('✅ Promoting remaining child to main canvas:', remainingChild.label);
+              return remainingChild;
+            }
+            return c;
+          });
+          
+          // Add the moved component to the end of canvas
+          const finalComponents = [...newComponents, componentToMove];
+          
+          console.log('✅ ROW LAYOUT DISSOLVED:', {
+            oldRowLayout: parentContainer.label,
+            promotedChild: remainingChild.label,
+            movedComponent: componentToMove.label,
+            newCanvasSize: finalComponents.length
+          });
+          
+          updateCurrentPageComponents(finalComponents);
+          setSelectedComponentId(componentId);
+        }
+      } else {
+        // Normal case: just remove from container and add to canvas
+        console.log('📝 Normal container removal (not dissolving)');
+        removeFromContainer(componentId, containerPath);
+        
+        setTimeout(() => {
+          const freshCurrentPage = safePagesArray.find(p => p && p.id === currentPageId) || safePagesArray[0];
+          const freshComponents = freshCurrentPage?.components || [];
+          const updatedComponents = [...freshComponents, componentToMove!];
+          updateCurrentPageComponents(updatedComponents);
+          setSelectedComponentId(componentId);
+        }, 50);
+      }
     }
-  }, [safePagesArray, currentPageId, removeFromContainer, updateCurrentPageComponents]);
+  }, [components, safePagesArray, currentPageId, removeFromContainer, updateCurrentPageComponents]);
 
   // Add component to container with position
   const addComponentToContainerWithPosition = useCallback((type: ComponentType, containerId: string, position: 'left' | 'center' | 'right' = 'center') => {

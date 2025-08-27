@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import FormComponentRenderer from '../../molecules/forms/FormComponentRenderer';
+import SimplifiedFormComponentRenderer from '../../molecules/forms/SimplifiedFormComponentRenderer';
 import type { FormComponentData } from '../../../types';
 
 interface DragDropReorderingItemProps {
@@ -15,6 +15,7 @@ interface DragDropReorderingItemProps {
   onAddToRowLayout?: (draggedComponent: FormComponentData, targetRowLayout: FormComponentData, position: 'left' | 'right') => void;
   onUpdateComponents?: (components: FormComponentData[]) => void;
   allComponents: FormComponentData[]; // Need access to all components to find parent row layouts
+  createComponent?: (type: string) => FormComponentData; // For creating new components locally
 }
 
 interface DragItem {
@@ -35,7 +36,8 @@ const DragDropReorderingItem: React.FC<DragDropReorderingItemProps> = ({
   onCreateRowLayout,
   onAddToRowLayout,
   onUpdateComponents,
-  allComponents
+  allComponents,
+  createComponent
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [hoverPosition, setHoverPosition] = useState<'none' | 'top' | 'bottom' | 'left' | 'right' | 'center'>('none');
@@ -170,6 +172,21 @@ const DragDropReorderingItem: React.FC<DragDropReorderingItemProps> = ({
         position = 'center';
       }
       
+      // 🔍 DEBUG POSITION DETECTION
+      if (position !== 'center') {
+        console.log('🔍 Position Detection:', {
+          x, y, width, height,
+          topZone, bottomZone, leftZone, rightZone,
+          detectedPosition: position,
+          calculations: {
+            isTop: y < topZone,
+            isBottom: y > bottomZone,
+            isLeft: x < leftZone,
+            isRight: x > rightZone
+          }
+        });
+      }
+      
       setHoverPosition(position);
 
       // For top/bottom positions, use the original reordering logic
@@ -202,16 +219,121 @@ const DragDropReorderingItem: React.FC<DragDropReorderingItemProps> = ({
       const isHorizontalComponent = item.type === 'horizontal-component' && item.component;
       
       if (isPaletteComponent) {
-        // This is a new component from the palette
-        console.log(`Individual component drop: new component ${item.type} at position ${finalPosition} relative to ${component.label}`);
+        // 🎯 CHECK DRAG SOURCE: If from left panel → create a new item
+        console.log('🎯 DRAG SOURCE CHECK: LEFT PANEL → CREATE NEW ITEM');
+        console.log('✅ HARD RULES + IMPLEMENTATION:');
+        console.log('  → Each drop adds one more element to the canvas (like pushing into a collection)');
+        console.log('  → Rule: drop always increases collection size, never replaces');
+        console.log('📊 BEFORE DROP:', {
+          dragSource: 'LEFT_PANEL',
+          action: 'CREATE_NEW_ITEM',
+          currentCanvasSize: allComponents.length,
+          aboutToGrow: `${allComponents.length} → ${allComponents.length + 1}`,
+          dropPosition: finalPosition
+        });
         
-        // For palette drops, let the parent canvas handle it but don't prevent the drop
-        // The canvas will add the component appropriately
-        return;
+        // 🎯 DROP INSERT LOGIC: On drop implementation
+        if (finalPosition === 'top') {
+          // 📍 If BEFORE target → insertAt(targetIndex, newItem)
+          console.log('⬆️ DROP LOGIC: BEFORE target → insertAt(targetIndex, newItem)');
+          if (onUpdateComponents && allComponents && createComponent) {
+            const newComponent = createComponent(item.type);
+            const newComponents = [...allComponents];
+            newComponents.splice(index, 0, newComponent); // insertAt(targetIndex, newItem)
+            
+            console.log('✅ INSERT COMPLETE:', {
+              instruction: 'If BEFORE target → insertAt(targetIndex, newItem)',
+              targetIndex: index,
+              insertedAt: index,
+              collectionGrowth: `${allComponents.length} → ${newComponents.length}`,
+              neverOverwrite: true,
+              finalOrder: newComponents.map((c, i) => `${i}: ${c.label}`)
+            });
+            
+            onUpdateComponents(newComponents);
+          }
+        } else if (finalPosition === 'bottom') {
+          // 📍 If AFTER target → insertAt(targetIndex+1, newItem)
+          console.log('⬇️ DROP LOGIC: AFTER target → insertAt(targetIndex+1, newItem)');
+          if (onUpdateComponents && allComponents && createComponent) {
+            const newComponent = createComponent(item.type);
+            const newComponents = [...allComponents];
+            newComponents.splice(index + 1, 0, newComponent); // insertAt(targetIndex+1, newItem)
+            
+            console.log('✅ INSERT COMPLETE:', {
+              instruction: 'If AFTER target → insertAt(targetIndex+1, newItem)',
+              targetIndex: index,
+              insertedAt: index + 1,
+              collectionGrowth: `${allComponents.length} → ${newComponents.length}`,
+              neverOverwrite: true,
+              finalOrder: newComponents.map((c, i) => `${i}: ${c.label}`)
+            });
+            
+            onUpdateComponents(newComponents);
+          }
+        } else if (finalPosition === 'left' || finalPosition === 'right') {
+          // ✅ Left/Right inside a row layout → placed side by side inside that row
+          console.log('↔️ POSITION RULE: Left/Right inside a row layout → placed side by side inside that row');
+          console.log('🎯 ROW LAYOUT LOGIC: Will create or add to horizontal container');
+          // Let canvas handle row layout creation/addition
+          return {
+            insertPosition: finalPosition,
+            targetComponentId: component.id,
+            targetIndex: index,
+            action: 'create_or_add_to_row'
+          };
+        } else if (finalPosition === 'center') {
+          // 📍 Check if CENTER on row layout vs regular item
+          if (component.type === 'horizontal_layout') {
+            // 📍 If CENTER on item in rowlayout → insertIntoRow(targetRow, newItem)
+            console.log('🎯 DROP LOGIC: CENTER on rowlayout → insertIntoRow(targetRow, newItem)');
+            return {
+              insertPosition: finalPosition,
+              targetComponentId: component.id,
+              targetIndex: index,
+              action: 'insert_into_row'
+            };
+          } else {
+            // Regular item - treat as AFTER for consistency
+            console.log('🎯 CENTER on regular item → treating as AFTER target');
+            if (onUpdateComponents && allComponents && createComponent) {
+              const newComponent = createComponent(item.type);
+              const newComponents = [...allComponents];
+              newComponents.splice(index + 1, 0, newComponent); // Insert after target
+              
+              console.log('✅ INSERT COMPLETE:', {
+                instruction: 'CENTER on regular item → insertAt(targetIndex+1, newItem)',
+                targetIndex: index,
+                insertedAt: index + 1,
+                collectionGrowth: `${allComponents.length} → ${newComponents.length}`,
+                neverOverwrite: true,
+                finalOrder: newComponents.map((c, i) => `${i}: ${c.label}`)
+              });
+              
+              onUpdateComponents(newComponents);
+            }
+          }
+        }
+        
+        // ✅ FINAL SUMMARY: Your Hard Rules Enforced
+        console.log('🎉 INDIVIDUAL ITEM PROCESSING COMPLETE:');
+        console.log('  ✅ Each drop adds one more element to the canvas (like pushing into a collection)');
+        console.log('  ✅ The canvas size (number of items) grows by 1 each time');
+        console.log('  ✅ The dropped position determines where it sits');
+        console.log('  ✅ Never replace an existing item — the collection only increases or rearranges');
+        console.log('🛡️ RACE CONDITION PREVENTION: Returning handled=true to prevent canvas duplicate processing');
+        return { 
+          handledLocally: true, 
+          collectionIncreased: true,
+          preventCanvasProcessing: true,
+          timestamp: Date.now()
+        };
       }
       
       if (isHorizontalComponent) {
-        // This is a component being moved from a row layout
+        // 🎯 CHECK DRAG SOURCE: If from canvas → move existing item
+        console.log('🎯 DRAG SOURCE CHECK: CANVAS → MOVE EXISTING ITEM');
+        console.log('📋 ACTION: Move existing item (no collection growth, just rearrangement)');
         console.log(`Individual component drop: horizontal component ${item.component.label} at position ${finalPosition} relative to ${component.label}`);
         
         // For horizontal component drops, let the parent canvas handle it
@@ -221,6 +343,10 @@ const DragDropReorderingItem: React.FC<DragDropReorderingItemProps> = ({
       
       // Handle existing component reordering and row layout creation
       if (item.component) {
+        // 🎯 CHECK DRAG SOURCE: If from canvas → move existing item
+        console.log('🎯 DRAG SOURCE CHECK: CANVAS → MOVE EXISTING ITEM');
+        console.log('📋 ACTION: Move existing item (collection size stays same, just rearranging)');
+        
         // Handle row layout creation/addition for left/right drops
         if (finalPosition === 'left' || finalPosition === 'right') {
           const parentRowLayout = findParentRowLayout(component);
@@ -248,6 +374,7 @@ const DragDropReorderingItem: React.FC<DragDropReorderingItemProps> = ({
   return (
     <div
       ref={ref}
+      data-testid={`canvas-item-${index}`}
       data-handler-id={handlerId}
       style={{
         opacity,
@@ -415,11 +542,13 @@ const DragDropReorderingItem: React.FC<DragDropReorderingItemProps> = ({
 
         {/* Component content */}
         <div style={{ marginLeft: '28px', marginRight: selectedComponentId === component.id ? '32px' : '8px' }}>
-          <FormComponentRenderer
+          <SimplifiedFormComponentRenderer
             component={component}
-            selectedComponentId={selectedComponentId}
-            onSelectComponent={onSelectComponent}
-            onUpdateComponent={onUpdateComponent}
+            isSelected={selectedComponentId === component.id}
+            onSelect={() => onSelectComponent(component.id)}
+            onUpdate={onUpdateComponent}
+            onDelete={() => onDeleteComponent(component.id)}
+            mode="builder"
           />
         </div>
       </div>

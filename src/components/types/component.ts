@@ -1,6 +1,8 @@
 
 export type ComponentType = 
   | "text_input"
+  | "email"
+  | "password"
   | "number_input"
   | "textarea"
   | "rich_text" 
