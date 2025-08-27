@@ -1,106 +1,187 @@
 
-import type { FormComponentData, FormTemplate, FormTemplateType, FormPage } from "../components/types";
+import type { FormComponentData, FormTemplate, FormTemplateType, FormPage } from "../types";
 import { SchemaGenerator } from "./schemaGenerator";
+import { convertToLayoutSchema } from '../types/layout-schema';
 
 export const templateService = {
-  save: (templateName: string, components: FormComponentData[], templateType: FormTemplateType = "assessment", pages?: FormPage[], existingTemplateId?: string) => {
-    console.log('templateService.save called:', {
-      templateName,
-      components: components.length,
-      pages: pages?.map(p => ({ id: p.id, title: p.title, componentCount: p.components.length })),
-      existingTemplateId
-    });
-    
-    // If pages are provided, use flattened components from all pages, otherwise use provided components
-    const allComponents = pages && pages.length > 0 
-      ? pages.flatMap(page => page.components)
-      : components;
-    
-    console.log('allComponents after flattening:', allComponents.length);
-    
-    const jsonSchema = SchemaGenerator.generateSchema(templateName, allComponents);
-    const savedTemplates = JSON.parse(localStorage.getItem('formTemplates') || '[]');
-    
-    if (existingTemplateId) {
-      // Update existing template
-      const existingTemplateIndex = savedTemplates.findIndex((t: FormTemplate) => t.templateId === existingTemplateId);
-      if (existingTemplateIndex !== -1) {
-        const existingTemplate = savedTemplates[existingTemplateIndex];
-        const updatedTemplate: FormTemplate = {
-          ...existingTemplate,
-          name: templateName,
-          type: templateType,
-          fields: allComponents,
-          pages: pages,
-          jsonSchema
-        };
-        console.log('Updating existing template:', {
-          templateId: updatedTemplate.templateId,
-          fields: updatedTemplate.fields.length,
-          pages: updatedTemplate.pages?.length
-        });
-        savedTemplates[existingTemplateIndex] = updatedTemplate;
-        localStorage.setItem('formTemplates', JSON.stringify(savedTemplates));
-        return updatedTemplate;
-      }
-    }
-    
-    // Create new template
+  save: (
+    templateName: string, 
+    components: FormComponentData[], 
+    templateType: FormTemplateType = "assessment", 
+    pages: FormPage[], 
+    existingTemplateId?: string
+  ) => {
     const template: FormTemplate = {
-      templateId: Date.now().toString(),
+      templateId: existingTemplateId || Date.now().toString(),
       name: templateName,
       type: templateType,
-      createdDate: new Date().toISOString(),
-      fields: allComponents,
+      fields: components,
       pages: pages,
-      jsonSchema
+      createdDate: existingTemplateId ? 
+        JSON.parse(localStorage.getItem('formTemplates') || '[]')
+          .find((t: FormTemplate) => t.templateId === existingTemplateId)?.createdDate || new Date().toISOString()
+        : new Date().toISOString(),
+      modifiedDate: new Date().toISOString(),
+      jsonSchema: generateJSONSchema(components, pages)
     };
+
+    const templates = JSON.parse(localStorage.getItem('formTemplates') || '[]');
+    const existingIndex = templates.findIndex((t: FormTemplate) => t.templateId === template.templateId);
     
-    console.log('Creating new template:', {
-      templateId: template.templateId,
-      fields: template.fields.length,
-      pages: template.pages?.length
-    });
+    if (existingIndex >= 0) {
+      templates[existingIndex] = template;
+    } else {
+      templates.push(template);
+    }
     
-    savedTemplates.push(template);
-    localStorage.setItem('formTemplates', JSON.stringify(savedTemplates));
-    
+    localStorage.setItem('formTemplates', JSON.stringify(templates));
     return template;
   },
 
-  exportJSON: (templateName: string, components: FormComponentData[], templateType: FormTemplateType = "assessment", pages?: FormPage[]) => {
-    // If pages are provided, use flattened components from all pages, otherwise use provided components
-    const allComponents = pages && pages.length > 0 
-      ? pages.flatMap(page => page.components)
-      : components;
-    
-    const jsonSchema = SchemaGenerator.generateSchema(templateName, allComponents);
-    
-    const template: FormTemplate = {
-      templateId: Date.now().toString(),
-      name: templateName,
-      type: templateType,
-      createdDate: new Date().toISOString(),
-      fields: allComponents,
-      pages: pages,
-      jsonSchema
-    };
-    
+  exportJSON: (templateName: string, components: FormComponentData[], templateType: FormTemplateType = "assessment", pages: FormPage[]) => {
     const exportData = {
-      template,
-      schema: jsonSchema,
-      exportedAt: new Date().toISOString()
+      template: {
+        name: templateName,
+        type: templateType,
+        exportDate: new Date().toISOString(),
+        version: "1.0.0"
+      },
+      components: components.map(component => ({
+        ...component,
+        layout: {
+          ...component.layout,
+          // Ensure layout properties are properly exported
+          width: component.layout?.width || 'auto',
+          height: component.layout?.height || 'auto',
+          direction: component.layout?.direction || 'vertical',
+          alignment: component.layout?.alignment || 'start'
+        }
+      })),
+      pages: pages.map(page => ({
+        ...page,
+        layout: {
+          direction: page.layout?.direction || 'vertical',
+          gap: page.layout?.gap || 'medium',
+          padding: page.layout?.padding || 'medium'
+        }
+      })),
+      styling: {
+        layout: {
+          horizontalSpacing: 'var(--space-3)',
+          verticalSpacing: 'var(--space-4)',
+          containerPadding: 'var(--space-2)',
+          gridGap: 'var(--space-2)'
+        },
+        responsive: {
+          breakpoints: {
+            mobile: '768px',
+            tablet: '1024px',
+            desktop: '1280px'
+          }
+        }
+      },
+      jsonSchema: generateJSONSchema(components, pages)
     };
-    
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `${templateName || 'form-template'}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${templateName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },
+
+  exportLayoutSchema: (templateName: string, components: FormComponentData[], templateType: FormTemplateType = "assessment", pages: FormPage[]) => {
+    // Convert all pages to the new layout schema format
+    const pageLayouts = pages.map((page, index) => convertToLayoutSchema(
+      page.components, 
+      {
+        id: `page-${index + 1}`,
+        name: page.title,
+        templateType,
+        description: `Page ${index + 1} of ${templateName}`
+      }
+    ));
+
+    // If no pages, create a single page with all components
+    const layoutSchemas = pageLayouts.length > 0 
+      ? pageLayouts 
+      : [convertToLayoutSchema(components, {
+          id: 'single-page',
+          name: templateName,
+          templateType,
+          description: `Complete form layout for ${templateName}`
+        })];
+
+    // Multi-page form schema
+    const multiPageSchema = {
+      $schema: "https://formbuilder.schema.json/v1",
+      version: "1.0.0",
+      metadata: {
+        id: `form-${Date.now()}`,
+        name: templateName,
+        templateType,
+        created: new Date().toISOString(),
+        modified: new Date().toISOString(),
+        version: "1.0.0",
+        multiPage: true,
+        totalPages: layoutSchemas.length
+      },
+      pages: layoutSchemas,
+      globalStyling: {
+        theme: "light",
+        colors: {
+          primary: "#3b82f6",
+          secondary: "#6b7280",
+          success: "#10b981",
+          warning: "#f59e0b", 
+          error: "#ef4444",
+          text: "#374151",
+          background: "#ffffff",
+          border: "#d1d5db"
+        },
+        typography: {
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          fontSize: {
+            xs: "0.75rem",
+            sm: "0.875rem", 
+            base: "1rem",
+            lg: "1.125rem",
+            xl: "1.25rem"
+          }
+        },
+        spacing: {
+          xs: "0.25rem",
+          sm: "0.5rem",
+          md: "1rem", 
+          lg: "1.5rem",
+          xl: "2rem"
+        },
+        layout: {
+          maxWidth: "800px",
+          containerPadding: "2rem",
+          sectionGap: "2rem",
+          fieldGap: "1rem"
+        }
+      }
+    };
+
+    const fileName = `${templateName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_layout_schema.json`;
+    const blob = new Blob([JSON.stringify(multiPageSchema, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    console.log('Exported Layout Schema:', multiPageSchema);
+    return multiPageSchema;
   },
 
   getTemplates: (): FormTemplate[] => {
@@ -123,55 +204,19 @@ export const templateService = {
 
   loadFromJSON: (jsonData: string): { template?: FormTemplate, components?: FormComponentData[], pages?: FormPage[], error?: string } => {
     try {
-      const parsed = JSON.parse(jsonData);
+      const data = JSON.parse(jsonData);
       
-      // Handle different JSON formats
-      let template: FormTemplate | undefined;
-      let components: FormComponentData[] | undefined;
-      let pages: FormPage[] | undefined;
-      
-      // Format 1: Direct FormTemplate
-      if (parsed.templateId && parsed.fields) {
-        template = parsed as FormTemplate;
-        components = parsed.fields;
-        pages = parsed.pages;
-      }
-      // Format 2: Export format with template wrapper
-      else if (parsed.template && parsed.template.templateId && parsed.template.fields) {
-        template = parsed.template;
-        components = parsed.template.fields;
-        pages = parsed.template.pages;
-      }
-      // Format 3: Just components array
-      else if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].id && parsed[0].type) {
-        components = parsed as FormComponentData[];
-      }
-      // Format 4: Schema with components
-      else if (parsed.components && Array.isArray(parsed.components)) {
-        components = parsed.components;
-      }
-      else {
-        return { error: "Invalid JSON format. Expected a form template, components array, or exported template." };
+      if (data.components && Array.isArray(data.components)) {
+        return {
+          components: data.components,
+          template: data.template,
+          pages: data.pages || [{ id: '1', title: 'Page 1', components: data.components }]
+        };
       }
       
-      // Validate components if found
-      if (components) {
-        const validComponents = components.filter(comp => 
-          comp.id && comp.type && 
-          ['text_input', 'number_input', 'textarea', 'rich_text', 'select', 'multi_select', 'checkbox', 'radio_group', 'date_picker', 'file_upload', 'section_divider', 'signature', 'horizontal_layout', 'vertical_layout'].includes(comp.type)
-        );
-        
-        if (validComponents.length === 0) {
-          return { error: "No valid components found in JSON." };
-        }
-        
-        return { template, components: validComponents, pages };
-      }
-      
-      return { error: "No components found in the uploaded JSON." };
-      
-    } catch (e) {
-      return { error: "Invalid JSON format. Please check your file and try again." };
+      return { error: 'Invalid JSON format' };
+    } catch (error) {
+      return { error: 'Failed to parse JSON' };
     }
   },
 
@@ -262,3 +307,72 @@ export const templateService = {
     }
   },
 };
+
+function generateJSONSchema(components: FormComponentData[], pages: FormPage[]) {
+  const properties: Record<string, any> = {};
+  const required: string[] = [];
+
+  const processComponents = (comps: FormComponentData[]) => {
+    comps.forEach(component => {
+      if (component.type !== 'section_divider' && component.type !== 'horizontal_layout' && component.type !== 'vertical_layout') {
+        properties[component.fieldId] = getSchemaForComponent(component);
+        if (component.required) {
+          required.push(component.fieldId);
+        }
+      }
+      
+      if (component.children) {
+        processComponents(component.children);
+      }
+    });
+  };
+
+  pages.forEach(page => processComponents(page.components));
+
+  return {
+    type: 'object',
+    properties,
+    required
+  };
+}
+
+function getSchemaForComponent(component: FormComponentData) {
+  switch (component.type) {
+    case 'text_input':
+    case 'textarea':
+      return { type: 'string' };
+    case 'number_input':
+      return { 
+        type: 'number',
+        minimum: component.min,
+        maximum: component.max
+      };
+    case 'select':
+    case 'radio_group':
+      return {
+        type: 'string',
+        enum: component.options
+      };
+    case 'multi_select':
+    case 'checkbox':
+      return {
+        type: 'array',
+        items: {
+          type: 'string',
+          enum: component.options
+        }
+      };
+    case 'date_picker':
+      return {
+        type: 'string',
+        format: 'date'
+      };
+    case 'file_upload':
+      return {
+        type: 'string',
+        format: 'binary'
+      };
+    default:
+      return { type: 'string' };
+  }
+}

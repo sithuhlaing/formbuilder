@@ -1,8 +1,47 @@
 import React from 'react';
-import RichTextEditor from './RichTextEditor';
-import Label from '../forms/Label';
-import ErrorMessage from '../forms/ErrorMessage';
-import HelpText from '../forms/HelpText';
+import RichTextEditor from '../forms/RichTextEditor';
+
+interface LabelProps {
+  htmlFor?: string;
+  required?: boolean;
+  children: React.ReactNode;
+}
+
+const Label: React.FC<LabelProps> = ({ htmlFor, required, children }) => (
+  <label 
+    htmlFor={htmlFor}
+    style={{
+      display: 'block',
+      fontSize: '14px',
+      fontWeight: '500',
+      color: '#374151',
+      marginBottom: '4px'
+    }}
+  >
+    {children}
+    {required && <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>}
+  </label>
+);
+
+const ErrorMessage: React.FC<{ message: string }> = ({ message }) => (
+  <div style={{
+    color: '#ef4444',
+    fontSize: '12px',
+    marginTop: '4px'
+  }}>
+    {message}
+  </div>
+);
+
+const HelpText: React.FC<{ text: string }> = ({ text }) => (
+  <div style={{
+    color: '#6b7280',
+    fontSize: '12px',
+    marginTop: '4px'
+  }}>
+    {text}
+  </div>
+);
 
 interface RichTextFieldProps {
   value: string;

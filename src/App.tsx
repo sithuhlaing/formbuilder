@@ -16,27 +16,8 @@ import type {
   FormTemplateType, 
   FormTemplate, 
   ComponentType
-} from "./components/types";
-
-// A helper function to find and update components recursively
-// const findAndModifyComponent = (
-//   components: FormComponentData[],
-//   targetId: string,
-//   modification: (component: FormComponentData) => FormComponentData
-// ): FormComponentData[] => {
-//   return components.map(component => {
-//     if (component.id === targetId) {
-//       return modification(component);
-//     }
-//     if (component.children) {
-//       return {
-//         ...component,
-//         children: findAndModifyComponent(component.children, targetId, modification),
-//       };
-//     }
-//     return component;
-//   });
-// };
+} from "./types";
+import './styles/layout.css';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'list' | 'builder'>('list');
@@ -71,6 +52,8 @@ const App: React.FC = () => {
     insertComponentWithPosition,
     insertBetweenComponents,
     insertHorizontalToComponent,
+    addComponentToContainerWithPosition,
+    rearrangeWithinContainer,
     pages,
     currentPageId,
     addPage,
@@ -120,6 +103,7 @@ const App: React.FC = () => {
   };
 
   const handleExport = () => templateService.exportJSON(templateName, components, templateType, pages);
+  const handleExportSchema = () => templateService.exportLayoutSchema(templateName, components, templateType, pages);
   const handlePreview = () => {
     console.log('Preview clicked - Components:', components.length, 'Pages:', pages.length);
     setShowPreview(true);
@@ -251,11 +235,17 @@ const App: React.FC = () => {
     item: { type: ComponentType; id?: string },
     containerId: string
   ) => {
-    // Use the addComponent function from useFormBuilder
-    // This will need to be enhanced in useFormBuilder to handle container drops
     console.log('Drop in container:', item, containerId);
-    // For now, just add to main canvas
-    addComponent(item.type);
+    addComponentToContainerWithPosition(item.type, containerId, 'center');
+  };
+
+  const handleDropInContainerWithPosition = (
+    item: { type: ComponentType; id?: string },
+    containerId: string,
+    position: 'left' | 'center' | 'right'
+  ) => {
+    console.log('Drop in container with position:', item, containerId, position);
+    addComponentToContainerWithPosition(item.type, containerId, position);
   };
 
   // Show template list view
@@ -277,7 +267,7 @@ const App: React.FC = () => {
     <DndProvider backend={HTML5Backend}>
       <div className="app">
         {/* Header */}
-        <header className={`header ${currentView === 'builder' ? 'header--form-builder' : ''}`}>
+        <header className="header">
           <div className="header__container">
             <div className="header__brand">
               <h1>Form Builder</h1>
@@ -285,40 +275,43 @@ const App: React.FC = () => {
             <div className="header__actions">
               <button
                 onClick={handleBackToList}
-                className="btn btn--secondary btn--sm header__back-btn"
+                className="btn btn--secondary btn--sm"
                 title="Back to template list"
               >
-                <span className="btn__icon">←</span>
-                <span className="btn__text">Templates</span>
+                ← Back to Templates
               </button>
-              
-              <div className="header__divider" />
-              
+              <button
+                onClick={() => {
+                  console.log('🧹 MANUAL CLEAR - Before clearing, components:', components.length);
+                  clearAllSilent();
+                  console.log('✅ MANUAL CLEAR - Cleared all components');
+                }}
+                className="btn btn--warning btn--sm"
+                title="Clear current form (debug helper)"
+                style={{ backgroundColor: 'var(--color-orange-500)', color: 'white', marginLeft: '8px' }}
+              >
+                🧹 Clear
+              </button>
+              <div style={{ width: '1px', height: '20px', background: 'var(--color-gray-300)', margin: '0 var(--space-2)' }} />
               <button
                 onClick={undo}
                 disabled={!canUndo}
-                className="btn btn--secondary btn--sm header__action-btn"
+                className="btn btn--secondary btn--sm"
                 title="Undo (Ctrl+Z)"
               >
-                <span className="btn__icon">↶</span>
-                <span className="btn__text">Undo</span>
+                ↶ Undo
               </button>
-              
               <button
                 onClick={redo}
                 disabled={!canRedo}
-                className="btn btn--secondary btn--sm header__action-btn"
+                className="btn btn--secondary btn--sm"
                 title="Redo (Ctrl+Y)"
               >
-                <span className="btn__icon">↷</span>
-                <span className="btn__text">Redo</span>
+                ↷ Redo
               </button>
-              
-              <div className="header__divider" />
-              
-              <label className="btn btn--secondary btn--sm header__action-btn" title="Upload JSON template or schema">
-                <span className="btn__icon">📁</span>
-                <span className="btn__text">Load</span>
+              <div style={{ width: '1px', height: '20px', background: 'var(--color-gray-300)', margin: '0 var(--space-2)' }} />
+              <label className="btn btn--secondary btn--sm" title="Upload JSON template or schema">
+                📁 Load JSON
                 <input
                   type="file"
                   accept=".json"
@@ -326,47 +319,41 @@ const App: React.FC = () => {
                   style={{ display: 'none' }}
                 />
               </label>
-              
               <button
                 onClick={clearAll}
                 disabled={components.length === 0}
-                className="btn btn--secondary btn--sm header__action-btn"
-                title="Clear all components"
+                className="btn btn--secondary btn--sm"
               >
-                <span className="btn__icon">🗑️</span>
-                <span className="btn__text">Clear</span>
+                Clear All
               </button>
-              
-              <div className="header__divider" />
-              
               <button
                 onClick={handlePreview}
                 disabled={components.length === 0}
-                className="btn btn--secondary btn--sm header__action-btn"
-                title="Preview form"
+                className="btn btn--secondary btn--sm"
               >
-                <span className="btn__icon">👁️</span>
-                <span className="btn__text">Preview</span>
+                Preview
               </button>
-              
               <button
                 onClick={handleExport}
                 disabled={components.length === 0}
-                className="btn btn--secondary btn--sm header__action-btn"
-                title="Export as JSON"
+                className="btn btn--secondary btn--sm"
               >
-                <span className="btn__icon">📤</span>
-                <span className="btn__text">Export</span>
+                Export JSON
               </button>
-              
+              <button
+                onClick={handleExportSchema}
+                disabled={components.length === 0}
+                className="btn btn--secondary btn--sm"
+                title="Export advanced layout schema"
+              >
+                Export Schema
+              </button>
               <button
                 onClick={handleSave}
                 disabled={components.length === 0}
-                className="btn btn--primary btn--sm header__action-btn"
-                title="Save template"
+                className="btn btn--primary btn--sm"
               >
-                <span className="btn__icon">💾</span>
-                <span className="btn__text">Save</span>
+                Save Template
               </button>
             </div>
           </div>
@@ -435,6 +422,8 @@ const App: React.FC = () => {
                 onInsertBetween={insertBetweenComponents}
                 onInsertHorizontal={insertHorizontalToComponent}
                 onDropInContainer={handleDropInContainer}
+                onDropInContainerWithPosition={handleDropInContainerWithPosition}
+                onRearrangeWithinContainer={rearrangeWithinContainer}
               />
             </div>
           </section>

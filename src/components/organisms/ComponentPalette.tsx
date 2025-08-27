@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDrag } from 'react-dnd';
-import type { ComponentType } from '../types';
+import type { ComponentType } from '../../types';
 
 interface PaletteItemProps {
   type: ComponentType;
@@ -31,36 +31,30 @@ const PaletteItem: React.FC<PaletteItemProps> = ({ type, label, icon }) => {
   );
 };
 
-const ComponentPalette: React.FC = () => {
-  const components: Array<{ type: ComponentType; label: string; icon: string }> = [
-    { type: 'text_input', label: 'Text Input', icon: '📝' },
-    { type: 'number_input', label: 'Number Input', icon: '🔢' },
-    { type: 'textarea', label: 'Text Area', icon: '📄' },
-    { type: 'select', label: 'Dropdown', icon: '📋' },
-    { type: 'multi_select', label: 'Multi Select', icon: '☑️' },
-    { type: 'checkbox', label: 'Checkbox', icon: '✅' },
-    { type: 'radio_group', label: 'Radio Group', icon: '🔘' },
-    { type: 'date_picker', label: 'Date Picker', icon: '📅' },
-    { type: 'file_upload', label: 'File Upload', icon: '📎' },
-    { type: 'signature', label: 'Signature', icon: '✍️' },
-    { type: 'section_divider', label: 'Section Divider', icon: '➖' },
-    { type: 'horizontal_layout', label: 'Horizontal Layout', icon: '↔️' },
-    { type: 'vertical_layout', label: 'Vertical Layout', icon: '↕️' },
-  ];
+const componentList: { type: ComponentType; label: string; icon: string }[] = [
+  { type: 'text_input', label: 'Text Input', icon: 'T' },
+  { type: 'textarea', label: 'Text Area', icon: '¶' },
+  { type: 'number_input', label: 'Number Input', icon: '#' },
+  { type: 'select', label: 'Select', icon: '▼' },
+  { type: 'multi_select', label: 'Multi-Select', icon: 'V' },
+  { type: 'radio_group', label: 'Radio Group', icon: '◉' },
+  { type: 'checkbox', label: 'Checkbox', icon: '☑' },
+  { type: 'date_picker', label: 'Date Picker', icon: '📅' },
+  { type: 'file_upload', label: 'File Upload', icon: '📁' },
+  { type: 'static_text', label: 'Static Text', icon: 'Ab' },
+];
 
+const ComponentPalette: React.FC = () => {
   return (
     <div className="component-palette">
       <h3>Components</h3>
-      {components.map((component) => (
-        <PaletteItem
-          key={component.type}
-          type={component.type}
-          label={component.label}
-          icon={component.icon}
-        />
-      ))}
+      <div className="component-grid">
+        {componentList.map(({ type, label, icon }) => (
+          <PaletteItem key={type} type={type} label={label} icon={icon} />
+        ))}
+      </div>
     </div>
   );
 };
 
-export { ComponentPalette, PaletteItem };
+export default ComponentPalette;

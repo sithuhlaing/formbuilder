@@ -2,7 +2,8 @@
 export type ComponentType = 
   | "text_input"
   | "number_input"
-  | "textarea" 
+  | "textarea"
+  | "rich_text" 
   | "select"
   | "multi_select"
   | "checkbox"
@@ -15,6 +16,7 @@ export type ComponentType =
   | "vertical_layout";
 
 export interface FormComponentData {
+  layout: any;
   id: string;
   type: ComponentType;
   label?: string;

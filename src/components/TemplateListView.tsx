@@ -3,7 +3,7 @@ import { templateService } from '../services/templateService';
 import PreviewModal from './molecules/forms/PreviewModal';
 import ConfirmDialog from './ConfirmDialog';
 import ActionButton from './atoms/controls/ActionButton';
-import type { FormTemplate } from './types';
+import type { FormTemplate } from '../types';
 
 interface TemplateListViewProps {
   onCreateNew: () => void;
@@ -215,7 +215,7 @@ const TemplateListView: React.FC<TemplateListViewProps> = ({
         onConfirm={confirmDeleteTemplate}
         title="Delete Template"
         message={`Are you sure you want to delete the template "${deleteConfirmation.templateName}"?\n\nThis action cannot be undone.`}
-        type="error"
+        type="danger"
         confirmText="Delete"
         cancelText="Cancel"
         icon="🗑️"

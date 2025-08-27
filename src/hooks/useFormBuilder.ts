@@ -1,18 +1,18 @@
 
 import { useUndoRedo } from "./useUndoRedo";
 import { useState, useCallback } from "react";
-import type { FormComponentData, ComponentType, FormPage, FormTemplateType } from "../components/types";
+import type { FormComponentData, ComponentType, FormPage, FormTemplateType, FormTemplate } from "../types";
 
 interface ModalFunctions {
   showConfirmation: (
-    title: string, 
-    message: string, 
-    onConfirm: () => void, 
+    title: string,
+    message: string,
+    onConfirm: () => void,
     type?: 'warning' | 'error' | 'info'
   ) => void;
   showNotification: (
-    title: string, 
-    message: string, 
+    title: string,
+    message: string,
     type: 'success' | 'error' | 'warning' | 'info'
   ) => void;
 }
@@ -111,7 +111,7 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
       case "vertical_layout":
         return {
           ...baseComponent,
-          label: "Vertical Layout", 
+          label: "Vertical Layout",
           layout: {
             direction: "vertical" as const,
             alignment: "start" as const,
@@ -125,8 +125,8 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
   }, []);
 
   const updateCurrentPageComponents = useCallback((newComponents: FormComponentData[]) => {
-    const updatedPages = pages.map(page => 
-      page.id === currentPageId 
+    const updatedPages = pages.map(page =>
+      page.id === currentPageId
         ? { ...page, components: newComponents }
         : page
     );
@@ -145,9 +145,9 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
 
   const updateComponent = useCallback((updates: Partial<FormComponentData>) => {
     if (!selectedComponentId) return;
-    
-    const updatedComponents = components.map(component => 
-      component.id === selectedComponentId 
+
+    const updatedComponents = components.map(component =>
+      component.id === selectedComponentId
         ? { ...component, ...updates }
         : component
     );
@@ -172,17 +172,17 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
 
   const clearAll = useCallback(() => {
     if (pages.length === 1 && components.length === 0) return;
-    
+
     const hasMultiplePages = pages.length > 1;
     const hasComponents = pages.some(page => page.components.length > 0);
-    
+
     if (!hasMultiplePages && !hasComponents) return;
-    
+
     const title = hasMultiplePages ? 'Reset Form' : 'Clear All Components';
-    const message = hasMultiplePages 
+    const message = hasMultiplePages
       ? 'Are you sure you want to reset the form? This will keep only the first page and clear all components.\n\nYou can undo this action with Ctrl+Z.'
       : 'Are you sure you want to clear all components from this page?\n\nYou can undo this action with Ctrl+Z.';
-    
+
     const performClearAll = () => {
       // Reset to single clean first page
       const cleanFirstPage: FormPage = {
@@ -242,10 +242,10 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
       }
       return;
     }
-    
+
     const filteredPages = pages.filter(page => page.id !== pageId);
     updatePages(filteredPages);
-    
+
     if (currentPageId === pageId) {
       setCurrentPageId(filteredPages[0].id);
     }
@@ -267,9 +267,9 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
   const clearPage = useCallback((pageId: string) => {
     const page = pages.find(p => p.id === pageId);
     if (!page || page.components.length === 0) return;
-    
+
     const performClearPage = () => {
-      const updatedPages = pages.map(p => 
+      const updatedPages = pages.map(p =>
         p.id === pageId ? { ...p, components: [] } : p
       );
       updatePages(updatedPages);
@@ -292,46 +292,28 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
   }, [pages, updatePages, modalFunctions]);
 
   const loadFromJSON = useCallback((jsonData: FormComponentData[], templateName?: string, templateType?: FormTemplateType, pagesData?: FormPage[]) => {
-    console.log('useFormBuilder loadFromJSON called:', { 
-      jsonDataLength: jsonData?.length, 
-      templateName, 
-      templateType, 
-      pagesCount: pagesData?.length,
-      firstComponent: jsonData?.[0]
-    });
-    
-    // Ensure we have valid data
-    if (!jsonData && (!pagesData || pagesData.length === 0)) {
-      console.error('No valid data to load');
-      return;
-    }
-    
     if (pagesData && pagesData.length > 0) {
       // Load multi-page structure
-      console.log('Loading multi-page structure:', pagesData.map(p => ({ id: p.id, title: p.title, componentCount: p.components.length })));
-      // Validate pages have components
-      const validPages = pagesData.map(page => ({
-        ...page,
-        components: page.components || []
-      }));
-      updatePages(validPages);
-      setCurrentPageId(validPages[0].id);
+      updatePages(pagesData);
+      setCurrentPageId(pagesData[0]?.id || '1');
     } else if (jsonData && jsonData.length > 0) {
-      // For backward compatibility, load into first page
-      const updatedPages = pages.map((page, index) => 
-        index === 0 ? { ...page, components: jsonData || [] } : page
-      );
-      console.log('Loading into first page, components:', jsonData?.length);
-      updatePages(updatedPages);
+      // Load single-page structure (backward compatibility)
+      const singlePage: FormPage = {
+        id: '1',
+        title: 'Page 1',
+        components: jsonData,
+      };
+      updatePages([singlePage]);
+      setCurrentPageId('1');
     } else {
-      console.warn('No components to load');
+      // No valid data, reset to a clean state
+      clearAllSilent();
+      return;
     }
-    
+
+    setTemplateName(templateName || "Untitled Form");
     setSelectedComponentId(null);
-    if (templateName) {
-      setTemplateName(templateName);
-    }
-  }, [pages, updatePages]);
+  }, [updatePages, clearAllSilent]);
 
   const insertBetweenComponents = useCallback((type: ComponentType, insertIndex: number) => {
     const newComponent = createComponent(type);
@@ -349,14 +331,14 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
     const newComponent = createComponent(type);
     const newComponents = [...components];
     const targetIndex = newComponents.findIndex(c => c.id === targetId);
-    
+
     if (targetIndex === -1) return;
-    
+
     const targetComponent = newComponents[targetIndex];
-    
+
     // Check if target is already in a horizontal container
-    let parentContainer = newComponents.find(comp => 
-      comp.type === 'horizontal_layout' && 
+    let parentContainer = newComponents.find(comp =>
+      comp.type === 'horizontal_layout' &&
       comp.children?.some(child => child.id === targetId)
     );
 
@@ -365,16 +347,16 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
       if (parentContainer.children.length < 12) {
         const targetChildIndex = parentContainer.children.findIndex(child => child.id === targetId);
         const insertIndex = position === 'left' ? targetChildIndex : targetChildIndex + 1;
-        
+
         const updatedChildren = [...parentContainer.children];
         updatedChildren.splice(insertIndex, 0, newComponent);
-        
+
         // Recalculate equal widths
         const columnPercentage = `${(100 / updatedChildren.length).toFixed(2)}%`;
         updatedChildren.forEach(child => {
           child.layout = { ...child.layout, width: columnPercentage };
         });
-        
+
         parentContainer.children = updatedChildren;
       } else {
         if (modalFunctions) {
@@ -392,134 +374,83 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
       // Create new horizontal container
       const containerComponent = createComponent('horizontal_layout');
       containerComponent.label = 'Layout Row';
-      containerComponent.children = position === 'left' 
+      containerComponent.children = position === 'left'
         ? [newComponent, targetComponent]
         : [targetComponent, newComponent];
-      
+
       // Set equal widths (50% each)
       containerComponent.children.forEach(child => {
         child.layout = { ...child.layout, width: '50%' };
       });
-      
+
       newComponents[targetIndex] = containerComponent;
     }
-    
+
     updateCurrentPageComponents(newComponents);
     setSelectedComponentId(newComponent.id);
   }, [components, createComponent, updateCurrentPageComponents]);
 
   const insertComponentWithPosition = useCallback((
-    type: ComponentType, 
-    targetId: string, 
-    position: 'left' | 'right' | 'top' | 'bottom'
+    type: ComponentType,
+    targetId: string,
+    position: 'before' | 'after' | 'inside'
   ) => {
     const newComponent = createComponent(type);
-    const newComponents = [...components];
-    const targetIndex = newComponents.findIndex(c => c.id === targetId);
-    
-    if (targetIndex === -1) return;
-    
-    const targetComponent = newComponents[targetIndex];
-    
-    // Check if target is already in a horizontal container
-    const parentContainer = newComponents.find(comp => 
-      comp.type === 'horizontal_layout' && 
-      comp.children?.some(child => child.id === targetId)
-    );
-    
-    if (position === 'left' || position === 'right') {
-      if (parentContainer && parentContainer.children) {
-        // Add to existing horizontal container if under 12 items
-        if (parentContainer.children.length < 12) {
-          const targetChildIndex = parentContainer.children.findIndex(child => child.id === targetId);
-          const insertIndex = position === 'left' ? targetChildIndex : targetChildIndex + 1;
-          
-          // Insert new component and recalculate widths
-          const updatedChildren = [...parentContainer.children];
-          updatedChildren.splice(insertIndex, 0, newComponent);
-          
-          // Set equal widths for all children in grid
-          const columnWidth = `${Math.floor(12 / updatedChildren.length)}`;
-          const columnPercentage = `${(100 / updatedChildren.length).toFixed(2)}%`;
-          
-          updatedChildren.forEach(child => {
-            child.layout = {
-              ...child.layout,
-              width: columnPercentage
-            };
-          });
-          
-          parentContainer.children = updatedChildren;
-        } else {
-          // Maximum reached - create new row
-          if (modalFunctions) {
-            modalFunctions.showNotification(
-              'Row Limit Reached',
-              'Maximum 12 elements per row. Creating new row below.',
-              'info'
-            );
-          } else {
-            alert('Maximum 12 elements per row. Creating new row below.');
+
+    const insertIntoComponents = (components: FormComponentData[]): FormComponentData[] => {
+      for (let i = 0; i < components.length; i++) {
+        const component = components[i];
+
+        if (component.id === targetId) {
+          const newComponents = [...components];
+
+          if (position === 'before') {
+            newComponents.splice(i, 0, newComponent);
+          } else if (position === 'after') {
+            newComponents.splice(i + 1, 0, newComponent);
+          } else if (position === 'inside') {
+            // Add to layout container
+            if (component.type === 'horizontal_layout' || component.type === 'vertical_layout') {
+              const updatedComponent = {
+                ...component,
+                children: [...(component.children || []), newComponent]
+              };
+              newComponents[i] = updatedComponent;
+            }
           }
-          const containerComponent = createComponent('vertical_layout');
-          containerComponent.label = 'Layout Column';
-          
-          const newRowContainer = createComponent('horizontal_layout');
-          newRowContainer.label = 'Layout Row';
-          newRowContainer.children = [newComponent];
-          newComponent.layout = { ...newComponent.layout, width: '100%' };
-          
-          containerComponent.children = [parentContainer, newRowContainer];
-          
-          // Replace parent container with new vertical container
-          const parentIndex = newComponents.findIndex(c => c.id === parentContainer.id);
-          newComponents[parentIndex] = containerComponent;
+
+          return newComponents;
         }
-      } else {
-        // Create new horizontal container
-        const containerComponent = createComponent('horizontal_layout');
-        containerComponent.label = 'Layout Row';
-        containerComponent.children = position === 'left' 
-          ? [newComponent, targetComponent]
-          : [targetComponent, newComponent];
-        
-        // Set equal widths (50% each for 2 items)
-        containerComponent.children.forEach(child => {
-          child.layout = { ...child.layout, width: '50%' };
-        });
-        
-        newComponents[targetIndex] = containerComponent;
+
+        // Recursively search in children
+        if (component.children && component.children.length > 0) {
+          const updatedChildren = insertIntoComponents(component.children);
+          if (updatedChildren !== component.children) {
+            const newComponents = [...components];
+            newComponents[i] = { ...component, children: updatedChildren };
+            return newComponents;
+          }
+        }
       }
-    } else {
-      // Vertical positioning - unlimited
-      const containerComponent = createComponent('vertical_layout');
-      containerComponent.label = 'Layout Column';
-      containerComponent.children = position === 'top'
-        ? [newComponent, targetComponent] 
-        : [targetComponent, newComponent];
-      
-      // Vertical items take full width
-      containerComponent.children.forEach(child => {
-        child.layout = { ...child.layout, width: '100%' };
-      });
-      
-      newComponents[targetIndex] = containerComponent;
-    }
-    
-    updateCurrentPageComponents(newComponents);
+
+      return components;
+    };
+
+    const updatedComponents = insertIntoComponents(components);
+    updateCurrentPageComponents(updatedComponents);
     setSelectedComponentId(newComponent.id);
   }, [components, createComponent, updateCurrentPageComponents]);
 
   const addComponentToContainer = useCallback((type: ComponentType, containerId: string) => {
     const newComponent = createComponent(type);
-    
+
     const updateComponentRecursively = (components: FormComponentData[]): FormComponentData[] => {
       return components.map(component => {
         if (component.id === containerId) {
           // Found the target container
           if (component.type === 'horizontal_layout' || component.type === 'vertical_layout') {
             const updatedChildren = [...(component.children || []), newComponent];
-            
+
             // For horizontal containers, recalculate widths
             if (component.type === 'horizontal_layout') {
               const columnPercentage = `${(100 / updatedChildren.length).toFixed(2)}%`;
@@ -532,12 +463,187 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
                 child.layout = { ...child.layout, width: '100%' };
               });
             }
-            
+
             return {
               ...component,
               children: updatedChildren
             };
           }
+        }
+
+        // Recursively search in children
+        if (component.children) {
+          return {
+            ...component,
+            children: updateComponentRecursively(component.children)
+          };
+        }
+
+        return component;
+      });
+    };
+
+    const updatedComponents = updateComponentRecursively(components);
+    updateCurrentPageComponents(updatedComponents);
+    setSelectedComponentId(newComponent.id);
+  }, [createComponent, components, updateCurrentPageComponents]);
+
+  // Remove component from container and optionally move to canvas
+  const removeFromContainer = useCallback((componentId: string, containerPath: string[]) => {
+    const removeFromNestedComponents = (components: FormComponentData[]): FormComponentData[] => {
+      return components.map(component => {
+        if (component.id === containerPath[0]) {
+          // Found the container
+          if (containerPath.length === 1) {
+            // Remove from this container's children
+            return {
+              ...component,
+              children: component.children?.filter(child => child.id !== componentId) || []
+            };
+          } else {
+            // Continue down the path
+            return {
+              ...component,
+              children: removeFromNestedComponents(component.children || [])
+            };
+          }
+        }
+        return component;
+      });
+    };
+
+    const updatedComponents = removeFromNestedComponents(components);
+    updateCurrentPageComponents(updatedComponents);
+  }, [components, updateCurrentPageComponents]);
+
+  // Move component from container to canvas
+  const moveFromContainerToCanvas = useCallback((componentId: string, containerPath: string[]) => {
+    let componentToMove: FormComponentData | null = null;
+
+    // Find the component in the nested structure
+    const findInNestedComponents = (components: FormComponentData[]): FormComponentData | null => {
+      for (const component of components) {
+        if (component.children) {
+          for (const child of component.children) {
+            if (child.id === componentId) {
+              return child;
+            }
+          }
+          const found = findInNestedComponents(component.children);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    componentToMove = findInNestedComponents(components);
+
+    if (componentToMove) {
+      // Remove from container
+      removeFromContainer(componentId, containerPath);
+      
+      // Add to canvas (end of components list)
+      setTimeout(() => {
+        const updatedComponents = [...components, componentToMove!];
+        updateCurrentPageComponents(updatedComponents);
+        setSelectedComponentId(componentId);
+      }, 50);
+    }
+  }, [components, removeFromContainer, updateCurrentPageComponents]);
+
+  // Add component to container with position
+  const addComponentToContainerWithPosition = useCallback((type: ComponentType, containerId: string, position: 'left' | 'center' | 'right' = 'center') => {
+    const newComponent = createComponent(type);
+
+    const updateComponentRecursively = (components: FormComponentData[]): FormComponentData[] => {
+      return components.map(component => {
+        if (component.id === containerId) {
+          // Found the target container
+          if (component.type === 'horizontal_layout') {
+            const currentChildren = component.children || [];
+            let insertIndex: number;
+            
+            // Determine insert position based on drop position
+            switch (position) {
+              case 'left':
+                insertIndex = 0;
+                break;
+              case 'right':
+                insertIndex = currentChildren.length;
+                break;
+              case 'center':
+              default:
+                insertIndex = Math.floor(currentChildren.length / 2);
+                break;
+            }
+
+            const updatedChildren = [...currentChildren];
+            updatedChildren.splice(insertIndex, 0, newComponent);
+
+            // Recalculate widths for horizontal container
+            const columnPercentage = `${(100 / updatedChildren.length).toFixed(2)}%`;
+            updatedChildren.forEach(child => {
+              child.layout = { ...child.layout, width: columnPercentage };
+            });
+
+            return {
+              ...component,
+              children: updatedChildren
+            };
+          } else if (component.type === 'vertical_layout') {
+            // For vertical layouts, just add to the end
+            const updatedChildren = [...(component.children || []), newComponent];
+            updatedChildren.forEach(child => {
+              child.layout = { ...child.layout, width: '100%' };
+            });
+
+            return {
+              ...component,
+              children: updatedChildren
+            };
+          }
+        }
+
+        // Recursively search in children
+        if (component.children) {
+          return {
+            ...component,
+            children: updateComponentRecursively(component.children)
+          };
+        }
+
+        return component;
+      });
+    };
+
+    const updatedComponents = updateComponentRecursively(components);
+    updateCurrentPageComponents(updatedComponents);
+    setSelectedComponentId(newComponent.id);
+  }, [createComponent, components, updateCurrentPageComponents]);
+
+  // Rearrange components within the same container
+  const rearrangeWithinContainer = useCallback((containerId: string, dragIndex: number, hoverIndex: number) => {
+    console.log('Rearranging within container:', containerId, 'from', dragIndex, 'to', hoverIndex);
+    
+    const updateComponentRecursively = (components: FormComponentData[]): FormComponentData[] => {
+      return components.map(component => {
+        if (component.id === containerId && component.children) {
+          const updatedChildren = [...component.children];
+          const [draggedItem] = updatedChildren.splice(dragIndex, 1);
+          updatedChildren.splice(hoverIndex, 0, draggedItem);
+          
+          // Recalculate widths for horizontal containers
+          if (component.type === 'horizontal_layout') {
+            const columnPercentage = `${(100 / updatedChildren.length).toFixed(2)}%`;
+            updatedChildren.forEach(child => {
+              child.layout = { ...child.layout, width: columnPercentage };
+            });
+          }
+          
+          return {
+            ...component,
+            children: updatedChildren
+          };
         }
         
         // Recursively search in children
@@ -554,10 +660,102 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
     
     const updatedComponents = updateComponentRecursively(components);
     updateCurrentPageComponents(updatedComponents);
-    setSelectedComponentId(newComponent.id);
-  }, [createComponent, components, updateCurrentPageComponents]);
+  }, [components, updateCurrentPageComponents]);
+
+  // Move component between containers  
+  const moveToContainer = useCallback((componentId: string, fromPath: string[], toPath: string[], position?: 'left' | 'center' | 'right') => {
+    console.log('Move to container:', componentId, fromPath, toPath, position);
+    
+    // First, find and remove the component from its current location
+    let componentToMove: FormComponentData | null = null;
+    
+    // Find the component in the nested structure
+    const findInNestedComponents = (components: FormComponentData[]): FormComponentData | null => {
+      for (const component of components) {
+        if (component.children) {
+          for (const child of component.children) {
+            if (child.id === componentId) {
+              return child;
+            }
+          }
+          const found = findInNestedComponents(component.children);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    componentToMove = findInNestedComponents(components);
+    
+    if (componentToMove) {
+      // Remove from current container
+      removeFromContainer(componentId, fromPath);
+      
+      // Add to new container with position
+      setTimeout(() => {
+        const targetContainerId = toPath[toPath.length - 1];
+        
+        const updateComponentRecursively = (components: FormComponentData[]): FormComponentData[] => {
+          return components.map(component => {
+            if (component.id === targetContainerId) {
+              if (component.type === 'horizontal_layout') {
+                const currentChildren = component.children || [];
+                let insertIndex: number;
+                
+                switch (position) {
+                  case 'left':
+                    insertIndex = 0;
+                    break;
+                  case 'right':
+                    insertIndex = currentChildren.length;
+                    break;
+                  case 'center':
+                  default:
+                    insertIndex = Math.floor(currentChildren.length / 2);
+                    break;
+                }
+
+                const updatedChildren = [...currentChildren];
+                updatedChildren.splice(insertIndex, 0, componentToMove!);
+
+                // Recalculate widths
+                const columnPercentage = `${(100 / updatedChildren.length).toFixed(2)}%`;
+                updatedChildren.forEach(child => {
+                  child.layout = { ...child.layout, width: columnPercentage };
+                });
+
+                return { ...component, children: updatedChildren };
+              } else {
+                // Vertical layout - just add to end
+                return {
+                  ...component,
+                  children: [...(component.children || []), componentToMove!]
+                };
+              }
+            }
+
+            if (component.children) {
+              return {
+                ...component,
+                children: updateComponentRecursively(component.children)
+              };
+            }
+
+            return component;
+          });
+        };
+
+        const updatedComponents = updateComponentRecursively(components);
+        updateCurrentPageComponents(updatedComponents);
+        setSelectedComponentId(componentId);
+      }, 100);
+    }
+  }, [components, removeFromContainer, updateCurrentPageComponents]);
 
   return {
+    pages,
+    currentPage,
+    currentPageId,
     components,
     selectedComponent,
     selectedComponentId,
@@ -571,21 +769,23 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
     clearAll,
     clearAllSilent,
     loadFromJSON,
-    insertComponentWithPosition,
-    insertBetweenComponents,
-    insertHorizontalToComponent,
-    // Page management
-    pages,
-    currentPage,
-    currentPageId,
     addPage,
     deletePage,
     updatePageTitle,
     switchToPage,
     clearPage,
-    // Undo/Redo actions
-    ...undoRedoActions,
-    // New function for adding components to containers
+    insertComponentWithPosition,
+    insertBetweenComponents,
+    insertHorizontalToComponent,
     addComponentToContainer,
+    addComponentToContainerWithPosition,
+    rearrangeWithinContainer,
+    removeFromContainer,
+    moveFromContainerToCanvas,
+    moveToContainer,
+    undo: undoRedoActions.undo,
+    redo: undoRedoActions.redo,
+    canUndo: undoRedoActions.canUndo,
+    canRedo: undoRedoActions.canRedo,
   };
 };

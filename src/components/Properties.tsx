@@ -1,337 +1,324 @@
-import React from "react";
-import type { PropertiesProps } from "./types";
+import React from 'react';
 
-const Properties: React.FC<PropertiesProps> = ({
-  component,
-  onUpdateComponent,
-}) => {
-  if (!component) {
+interface PropertiesProps {
+  selectedComponent: FormComponentData | null;
+  onUpdateComponent: (updates: Partial<FormComponentData>) => void;
+}
+
+const Properties: React.FC<PropertiesProps> = ({ selectedComponent, onUpdateComponent }) => {
+  if (!selectedComponent) {
     return (
-      <div className="empty-state">
-        <div className="empty-state__illustration">⚙️</div>
-        <h3 className="empty-canvas__title">No Component Selected</h3>
-        <p className="empty-canvas__description">
+      <div className="properties-panel properties-panel--empty">
+        <div className="properties-panel__empty-state">
           Select a component to edit its properties
-        </p>
+        </div>
       </div>
     );
   }
 
+  const handleOptionsChange = (value: string) => {
+    const options = value.split('\n').filter(option => option.trim() !== '');
+    onUpdateComponent({ options });
+  };
+
+  const handleFieldIdChange = (value: string) => {
+    // Sanitize field ID to be valid HTML/form field name
+    const sanitized = value.replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase();
+    onUpdateComponent({ fieldId: sanitized });
+  };
+
+  const handleFileTypesChange = (value: string) => {
+    // Validate file extensions format
+    const sanitized = value.split(',').map(type => {
+      const trimmed = type.trim();
+      return trimmed.startsWith('.') ? trimmed : `.${trimmed}`;
+    }).join(',');
+    onUpdateComponent({ acceptedFileTypes: sanitized });
+  };
+
   return (
-    <div>
-      {/* Basic Properties */}
-      <div className="properties-section">
-        <h3 className="properties-section__title">
-          <span className="properties-section__icon">📝</span>
-          Basic Properties
-        </h3>
-        
-        <div className="field-group">
-          <label className="field-group__label">Label</label>
+    <div className="properties-panel">
+      <div className="properties__header">
+        <h2>Properties</h2>
+      </div>
+
+      <div className="properties__content">
+        {/* Component Type - Read Only */}
+        <div className="properties-section">
+          <label className="properties-section__title">
+            Component Type
+          </label>
+          <div className="properties__readonly-field">
+            {selectedComponent.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+          </div>
+        </div>
+
+        {/* Label */}
+        <div className="properties-section">
+          <label className="properties-section__title" htmlFor="prop-label">
+            Label
+          </label>
           <input
+            id="prop-label"
             type="text"
-            value={component.label}
+            value={selectedComponent.label || ''}
             onChange={(e) => onUpdateComponent({ label: e.target.value })}
-            className="input"
+            className="properties__input"
             placeholder="Enter field label"
           />
         </div>
 
-        <div className="field-group">
-          <label className="checkbox">
-            <input
-              type="checkbox"
-              className="checkbox__input"
-              checked={component.required || false}
-              onChange={(e) => onUpdateComponent({ required: e.target.checked })}
-            />
-            <div className="checkbox__box"></div>
-            Required Field
-          </label>
-        </div>
-      </div>
-
-      {/* Field-specific Properties */}
-      {(component.placeholder !== undefined) && (
+        {/* Field ID */}
         <div className="properties-section">
-          <h3 className="properties-section__title">
-            <span className="properties-section__icon">💬</span>
-            Display Options
-          </h3>
-          
-          <div className="field-group">
-            <label className="field-group__label">Placeholder Text</label>
+          <label className="properties-section__title" htmlFor="prop-field-id">
+            Field ID
+          </label>
+          <input
+            id="prop-field-id"
+            type="text"
+            value={selectedComponent.fieldId || ''}
+            onChange={(e) => handleFieldIdChange(e.target.value)}
+            className="properties__input"
+            placeholder="field_name"
+          />
+          <small className="properties__help-text">
+            Used as the form field name. Only letters, numbers, underscores, and hyphens allowed.
+          </small>
+        </div>
+
+        {/* Required Field */}
+        {selectedComponent.type !== 'section_divider' && selectedComponent.type !== 'horizontal_layout' && selectedComponent.type !== 'vertical_layout' && (
+          <div className="properties-section">
+            <label className="properties__checkbox-label">
+              <input
+                type="checkbox"
+                checked={selectedComponent.required || false}
+                onChange={(e) => onUpdateComponent({ required: e.target.checked })}
+                className="properties__checkbox"
+              />
+              <span>Required Field</span>
+            </label>
+          </div>
+        )}
+
+        {/* Help Text */}
+        <div className="properties-section">
+          <label className="properties-section__title" htmlFor="prop-help-text">
+            Help Text
+          </label>
+          <input
+            id="prop-help-text"
+            type="text"
+            value={selectedComponent.helpText || ''}
+            onChange={(e) => onUpdateComponent({ helpText: e.target.value })}
+            className="properties__input"
+            placeholder="Optional help text for users"
+          />
+        </div>
+
+        {/* Placeholder for text inputs */}
+        {(selectedComponent.type === 'text_input' || selectedComponent.type === 'textarea' || selectedComponent.type === 'number_input') && (
+          <div className="properties-section">
+            <label className="properties-section__title" htmlFor="prop-placeholder">
+              Placeholder
+            </label>
             <input
+              id="prop-placeholder"
               type="text"
-              value={component.placeholder}
+              value={selectedComponent.placeholder || ''}
               onChange={(e) => onUpdateComponent({ placeholder: e.target.value })}
-              className="input"
+              className="properties__input"
               placeholder="Enter placeholder text"
             />
           </div>
-        </div>
-      )}
+        )}
 
-      {component.options && (
-        <div className="properties-section">
-          <h3 className="properties-section__title">
-            <span className="properties-section__icon">📋</span>
-            Options
-          </h3>
-          
-          <div className="field-group">
-            <label className="field-group__label">Available Options</label>
+        {/* Options for select/checkbox/radio components */}
+        {(selectedComponent.type === 'select' || selectedComponent.type === 'multi_select' || selectedComponent.type === 'checkbox' || selectedComponent.type === 'radio_group') && (
+          <div className="properties-section">
+            <label className="properties-section__title" htmlFor="prop-options">
+              Options (one per line)
+            </label>
             <textarea
-              value={component.options.join('\n')}
-              onChange={(e) => {
-                // Don't filter immediately - let user type and use Enter for new lines
-                const rawLines = e.target.value.split('\n');
-                onUpdateComponent({ options: rawLines });
-              }}
-              onBlur={(e) => {
-                // Clean up empty lines when user finishes editing
-                const cleanLines = e.target.value.split('\n').map(line => line.trim()).filter(Boolean);
-                if (cleanLines.length > 0) {
-                  onUpdateComponent({ options: cleanLines });
-                }
-              }}
-              onKeyDown={(e) => {
-                // Ensure Enter key works for new lines
-                if (e.key === 'Enter') {
-                  e.stopPropagation();
-                }
-              }}
-              className="textarea"
-              rows={6}
-              placeholder="Enter each option on a new line:&#10;Option 1&#10;Option 2&#10;Option 3"
-              style={{ resize: 'vertical', minHeight: '120px', whiteSpace: 'pre-wrap' }}
+              id="prop-options"
+              value={selectedComponent.options?.join('\n') || ''}
+              onChange={(e) => handleOptionsChange(e.target.value)}
+              rows={5}
+              className="properties__textarea"
+              placeholder="Option 1&#10;Option 2&#10;Option 3"
             />
-            <p className="field-group__description">
-              Enter each option on a separate line
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Layout Properties for individual components */}
-      <div className="properties-section">
-        <h3 className="properties-section__title">
-          <span className="properties-section__icon">📐</span>
-          Layout & Style
-        </h3>
-        
-        <div className="field-group">
-          <label className="field-group__label">Width</label>
-          <select
-            value={component.layout?.width || 'auto'}
-            onChange={(e) => onUpdateComponent({ 
-              layout: { 
-                ...component.layout, 
-                width: e.target.value 
-              } 
-            })}
-            className="select"
-          >
-            <option value="auto">Auto</option>
-            <option value="25%">25% (Quarter)</option>
-            <option value="33.33%">33% (Third)</option>
-            <option value="50%">50% (Half)</option>
-            <option value="66.66%">66% (Two-thirds)</option>
-            <option value="75%">75% (Three-quarters)</option>
-            <option value="100%">100% (Full width)</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Container Layout Properties */}
-      {(component.type === 'horizontal_container' || component.type === 'vertical_container') && (
-        <div className="properties-section">
-          <h3 className="properties-section__title">
-            <span className="properties-section__icon">🗂️</span>
-            Container Settings
-          </h3>
-          
-          <div className="field-group">
-            <label className="field-group__label">Alignment</label>
-            <select
-              value={component.layout?.alignment || 'start'}
-              onChange={(e) => onUpdateComponent({ 
-                layout: { 
-                  ...component.layout, 
-                  alignment: e.target.value as any 
-                } 
-              })}
-              className="select"
-            >
-              <option value="start">Start</option>
-              <option value="center">Center</option>
-              <option value="end">End</option>
-              <option value="stretch">Stretch</option>
-            </select>
-          </div>
-
-          <div className="field-group">
-            <label className="field-group__label">Gap Between Items</label>
-            <select
-              value={component.layout?.gap || 'medium'}
-              onChange={(e) => onUpdateComponent({ 
-                layout: { 
-                  ...component.layout, 
-                  gap: e.target.value as any 
-                } 
-              })}
-              className="select"
-            >
-              <option value="none">None</option>
-              <option value="small">Small</option>
-              <option value="medium">Medium</option>
-              <option value="large">Large</option>
-            </select>
-          </div>
-        </div>
-      )}
-
-      {/* Validation */}
-      <div className="properties-section">
-        <h3 className="properties-section__title">
-          <span className="properties-section__icon">✅</span>
-          Validation
-        </h3>
-        
-        <div className="field-group">
-          <label className="field-group__label">Validation Type</label>
-          <select
-            value={component.validation || 'none'}
-            onChange={(e) => onUpdateComponent({ validation: e.target.value as any })}
-            className="select"
-          >
-            <option value="none">None</option>
-            <option value="email">Email</option>
-            <option value="number">Number</option>
-            <option value="custom">Custom Regex</option>
-          </select>
-        </div>
-
-        {component.validation === 'custom' && (
-          <div className="field-group">
-            <label className="field-group__label">Custom Regex Pattern</label>
-            <input
-              type="text"
-              value={component.customValidation || ''}
-              onChange={(e) => onUpdateComponent({ customValidation: e.target.value })}
-              className="input"
-              placeholder="^[A-Za-z0-9]+$"
-            />
-            <p className="field-group__description">
-              Enter a regular expression pattern for validation
-            </p>
+            <small className="properties__help-text">
+              Enter each option on a new line
+            </small>
           </div>
         )}
-      </div>
 
-      {/* Number Input Properties */}
-      {component.type === 'number_input' && (
-        <div className="properties-section">
-          <h3 className="properties-section__title">
-            <span className="properties-section__icon">🔢</span>
-            Number Settings
-          </h3>
-          
-          <div className="field-group">
-            <label className="field-group__label">Minimum Value</label>
+        {/* Number input specific properties */}
+        {selectedComponent.type === 'number_input' && (
+          <>
+            <div className="properties-section">
+              <label className="properties-section__title" htmlFor="prop-min">
+                Minimum Value
+              </label>
+              <input
+                id="prop-min"
+                type="number"
+                value={selectedComponent.min || ''}
+                onChange={(e) => onUpdateComponent({ min: e.target.value ? Number(e.target.value) : undefined })}
+                className="properties__input"
+                placeholder="No minimum"
+              />
+            </div>
+
+            <div className="properties-section">
+              <label className="properties-section__title" htmlFor="prop-max">
+                Maximum Value
+              </label>
+              <input
+                id="prop-max"
+                type="number"
+                value={selectedComponent.max || ''}
+                onChange={(e) => onUpdateComponent({ max: e.target.value ? Number(e.target.value) : undefined })}
+                className="properties__input"
+                placeholder="No maximum"
+              />
+            </div>
+
+            <div className="properties-section">
+              <label className="properties-section__title" htmlFor="prop-step">
+                Step
+              </label>
+              <input
+                id="prop-step"
+                type="number"
+                value={selectedComponent.step || ''}
+                onChange={(e) => onUpdateComponent({ step: e.target.value ? Number(e.target.value) : undefined })}
+                className="properties__input"
+                step="0.01"
+                placeholder="1"
+              />
+            </div>
+          </>
+        )}
+
+        {/* File upload specific properties */}
+        {selectedComponent.type === 'file_upload' && (
+          <div className="properties-section">
+            <label className="properties-section__title" htmlFor="prop-file-types">
+              Accepted File Types
+            </label>
             <input
-              type="number"
-              value={component.min || ''}
-              onChange={(e) => onUpdateComponent({ min: Number(e.target.value) || undefined })}
-              className="input"
-              placeholder="0"
+              id="prop-file-types"
+              type="text"
+              value={selectedComponent.acceptedFileTypes || ''}
+              onChange={(e) => handleFileTypesChange(e.target.value)}
+              className="properties__input"
+              placeholder=".pdf,.doc,.docx,.jpg,.png"
             />
+            <small className="properties__help-text">
+              Comma-separated file extensions (e.g., .pdf,.doc,.jpg)
+            </small>
           </div>
+        )}
 
-          <div className="field-group">
-            <label className="field-group__label">Maximum Value</label>
-            <input
-              type="number"
-              value={component.max || ''}
-              onChange={(e) => onUpdateComponent({ max: Number(e.target.value) || undefined })}
-              className="input"
-              placeholder="100"
-            />
-          </div>
-
-          <div className="field-group">
-            <label className="field-group__label">Step</label>
-            <input
-              type="number"
-              value={component.step || 1}
-              onChange={(e) => onUpdateComponent({ step: Number(e.target.value) || 1 })}
-              className="input"
-              placeholder="1"
-            />
-            <p className="field-group__description">
-              Step increment for numeric input (e.g., 0.1 for decimals)
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Section Divider Properties */}
-      {component.type === 'section_divider' && (
-        <div className="properties-section">
-          <h3 className="properties-section__title">
-            <span className="properties-section__icon">📊</span>
-            Section Settings
-          </h3>
-          
-          <div className="field-group">
-            <label className="field-group__label">Description</label>
+        {/* Section divider specific properties */}
+        {selectedComponent.type === 'section_divider' && (
+          <div className="properties-section">
+            <label className="properties-section__title" htmlFor="prop-description">
+              Description
+            </label>
             <textarea
-              value={component.description || ''}
+              id="prop-description"
+              value={selectedComponent.description || ''}
               onChange={(e) => onUpdateComponent({ description: e.target.value })}
-              className="textarea"
-              placeholder="Optional section description..."
               rows={3}
+              className="properties__textarea"
+              placeholder="Optional description for this section"
             />
-            <p className="field-group__description">
-              Additional text to explain this section
-            </p>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Field ID */}
-      <div className="properties-section">
-        <h3 className="properties-section__title">
-          <span className="properties-section__icon">🔗</span>
-          Technical
-        </h3>
-        
-        <div className="field-group">
-          <label className="field-group__label">Field ID</label>
-          <input
-            type="text"
-            value={component.fieldId || ''}
-            onChange={(e) => onUpdateComponent({ fieldId: e.target.value })}
-            className="input"
-            placeholder="field_id"
-          />
-          <p className="field-group__description">
-            Unique identifier for this field in form submissions
-          </p>
-        </div>
+        {/* Layout container specific properties */}
+        {(selectedComponent.type === 'horizontal_layout' || selectedComponent.type === 'vertical_layout') && (
+          <>
+            <div className="properties-section">
+              <label className="properties-section__title" htmlFor="prop-alignment">
+                Alignment
+              </label>
+              <select
+                id="prop-alignment"
+                value={selectedComponent.layout?.alignment || 'start'}
+                onChange={(e) => onUpdateComponent({ 
+                  layout: { 
+                    ...selectedComponent.layout, 
+                    alignment: e.target.value as 'start' | 'center' | 'end' 
+                  } 
+                })}
+                className="properties__select"
+              >
+                <option value="start">Start</option>
+                <option value="center">Center</option>
+                <option value="end">End</option>
+              </select>
+            </div>
 
-        <div className="field-group">
-          <label className="field-group__label">Help Text</label>
-          <input
-            type="text"
-            value={component.helpText || ''}
-            onChange={(e) => onUpdateComponent({ helpText: e.target.value })}
-            className="input"
-            placeholder="Additional help text for users"
-          />
-          <p className="field-group__description">
-            Optional help text displayed with the field
-          </p>
+            <div className="properties-section">
+              <label className="properties-section__title" htmlFor="prop-gap">
+                Gap
+              </label>
+              <select
+                id="prop-gap"
+                value={selectedComponent.layout?.gap || 'medium'}
+                onChange={(e) => onUpdateComponent({ 
+                  layout: { 
+                    ...selectedComponent.layout, 
+                    gap: e.target.value as 'none' | 'small' | 'medium' | 'large' 
+                  } 
+                })}
+                className="properties__select"
+              >
+                <option value="none">None</option>
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
+
+            {/* Show child components if any */}
+            {selectedComponent.children && selectedComponent.children.length > 0 && (
+              <div className="properties-section">
+                <div className="properties-section__title">
+                  Child Components ({selectedComponent.children.length})
+                </div>
+                <div className="properties__child-list">
+                  {selectedComponent.children.map((child, index) => (
+                    <div key={child.id} className="properties__child-item">
+                      <span className="properties__child-index">{index + 1}.</span>
+                      <span className="properties__child-label">{child.label}</span>
+                      <span className="properties__child-type">({child.type})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Component Info */}
+        <div className="properties-section properties-section--info">
+          <div className="properties-section__title">
+            Component Info
+          </div>
+          <div className="properties__info-grid">
+            <div className="properties__info-item">
+              <span className="properties__info-label">ID:</span>
+              <span className="properties__info-value">{selectedComponent.id}</span>
+            </div>
+            <div className="properties__info-item">
+              <span className="properties__info-label">Type:</span>
+              <span className="properties__info-value">{selectedComponent.type}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

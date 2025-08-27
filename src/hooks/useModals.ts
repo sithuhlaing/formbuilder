@@ -1,18 +1,18 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
-export interface NotificationState {
+interface NotificationState {
   isOpen: boolean;
   title: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
+  type: 'success' | 'error' | 'warning' | 'info';
 }
 
-export interface ConfirmationState {
+interface ConfirmationState {
   isOpen: boolean;
   title: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
   onConfirm: () => void;
+  type: 'info' | 'success' | 'warning' | 'error' | 'danger';
 }
 
 export const useModals = () => {
@@ -27,36 +27,45 @@ export const useModals = () => {
     isOpen: false,
     title: '',
     message: '',
-    type: 'info',
-    onConfirm: () => {}
+    onConfirm: () => {},
+    type: 'warning'
   });
 
-  const showNotification = (
-    title: string,
-    message: string,
-    type: 'info' | 'success' | 'warning' | 'error' = 'info'
+  const showNotification = useCallback((
+    title: string, 
+    message: string, 
+    type: 'success' | 'error' | 'warning' | 'info' = 'info'
   ) => {
-    setNotification({ isOpen: true, title, message, type });
-  };
+    setNotification({
+      isOpen: true,
+      title,
+      message,
+      type
+    });
+  }, []);
 
-  const showConfirmation = (
+  const closeNotification = useCallback(() => {
+    setNotification(prev => ({ ...prev, isOpen: false }));
+  }, []);
+
+  const showConfirmation = useCallback((
     title: string,
     message: string,
     onConfirm: () => void,
-    type: 'info' | 'success' | 'warning' | 'error' = 'warning'
+    type: 'info' | 'success' | 'warning' | 'error' | 'danger' = 'warning'
   ) => {
-    console.log('📢 SHOWING CONFIRMATION DIALOG:', { title, type, isOpen: true });
-    setConfirmation({ isOpen: true, title, message, type, onConfirm });
-  };
+    setConfirmation({
+      isOpen: true,
+      title,
+      message,
+      onConfirm,
+      type
+    });
+  }, []);
 
-  const closeNotification = () => {
-    setNotification(prev => ({ ...prev, isOpen: false }));
-  };
-
-  const closeConfirmation = () => {
-    console.log('❌ CLOSING CONFIRMATION DIALOG');
+  const closeConfirmation = useCallback(() => {
     setConfirmation(prev => ({ ...prev, isOpen: false }));
-  };
+  }, []);
 
   return {
     notification,

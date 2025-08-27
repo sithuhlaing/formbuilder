@@ -1,47 +1,84 @@
 import React from 'react';
-import Modal from './Modal';
 
 interface NotificationDialogProps {
   isOpen: boolean;
-  onClose: () => void;
   title: string;
   message: string;
-  type?: 'info' | 'success' | 'warning' | 'error';
-  buttonText?: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  onClose: () => void;
 }
 
 const NotificationDialog: React.FC<NotificationDialogProps> = ({
   isOpen,
-  onClose,
   title,
   message,
-  type = 'info',
-  buttonText = 'OK'
+  type,
+  onClose
 }) => {
-  const footer = (
-    <button onClick={onClose} className="btn btn--primary">
-      {buttonText}
-    </button>
-  );
+  if (!isOpen) return null;
+
+  const getTypeStyles = () => {
+    switch (type) {
+      case 'success':
+        return { backgroundColor: '#10b981', color: 'white' };
+      case 'error':
+        return { backgroundColor: '#ef4444', color: 'white' };
+      case 'warning':
+        return { backgroundColor: '#f59e0b', color: 'white' };
+      default:
+        return { backgroundColor: '#3b82f6', color: 'white' };
+    }
+  };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={title}
-      type={type}
-      size="small"
-      footer={footer}
-    >
-      <p style={{ 
-        color: 'var(--color-gray-600)', 
-        whiteSpace: 'pre-line',
-        lineHeight: 'var(--line-height-relaxed)',
-        margin: 0
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '8px',
+        padding: '24px',
+        maxWidth: '400px',
+        width: '90%',
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)'
       }}>
-        {message}
-      </p>
-    </Modal>
+        <div style={{
+          ...getTypeStyles(),
+          padding: '8px 12px',
+          borderRadius: '4px',
+          marginBottom: '16px',
+          fontWeight: '600'
+        }}>
+          {title}
+        </div>
+        <p style={{ margin: '0 0 20px 0', lineHeight: '1.5' }}>
+          {message}
+        </p>
+        <button
+          onClick={onClose}
+          style={{
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            float: 'right'
+          }}
+        >
+          OK
+        </button>
+      </div>
+    </div>
   );
 };
 

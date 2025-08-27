@@ -1,8 +1,9 @@
+import type { ComponentType, FormComponentData } from './components/types';
 
 // Re-export all component types for easier imports
 export * from './components/types';
 
-// Additional app-level types can be added here
+// Additional app-level types
 export interface AppState {
   components: FormComponentData[];
   selectedComponentId: string | null;
@@ -16,5 +17,38 @@ export interface FormBuilderConfig {
   gridColumns?: number;
 }
 
-// Import the main types we're re-exporting
-import type { FormComponentData, ComponentType } from './components/types';
+// Template and template types (enhanced)
+export type FormTemplateType = "assessment" | "survey" | "application" | "feedback" | "registration" | "other";
+
+export interface FormPage {
+  id: string;
+  title: string;
+  components: FormComponentData[];
+  description?: string;
+}
+
+export interface FormTemplate {
+  templateId: string;
+  name: string;
+  type: FormTemplateType;
+  fields: FormComponentData[]; // For backward compatibility
+  pages: FormPage[];
+  createdDate: string;
+  modifiedDate: string;
+  jsonSchema: any;
+}
+
+// Modal functions interface
+export interface ModalFunctions {
+  showConfirmation: (
+    title: string, 
+    message: string, 
+    onConfirm: () => void, 
+    type?: 'warning' | 'error' | 'info'
+  ) => void;
+  showNotification: (
+    title: string, 
+    message: string, 
+    type: 'success' | 'error' | 'warning' | 'info'
+  ) => void;
+}

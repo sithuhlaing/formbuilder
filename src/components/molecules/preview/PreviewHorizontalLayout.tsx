@@ -1,6 +1,7 @@
 import React from 'react';
 import type { FormComponentData } from '../../types';
 import { PreviewContainerHeader, PreviewContainerPlaceholder, PreviewField } from '../../atoms';
+import { getDefaultLabel } from '../../../utils/componentDefaults';
 
 interface PreviewHorizontalLayoutProps {
   component: FormComponentData;
@@ -12,27 +13,38 @@ const PreviewHorizontalLayout: React.FC<PreviewHorizontalLayoutProps> = ({
   renderChild
 }) => {
   const childrenCount = component.children?.length || 0;
-  const info = `${childrenCount}/12 columns - Drag fields here to arrange horizontally`;
+  const info = `${childrenCount} columns - Side by side layout`;
+  const displayLabel = component.label || getDefaultLabel(component.type);
 
   return (
-    <PreviewField label={component.label}>
+    <PreviewField label={displayLabel}>
       <div className="container-preview horizontal-container">
         <PreviewContainerHeader
           icon="↔️"
-          label={component.label}
+          label={displayLabel}
           info={info}
         />
         <div className="container-drop-zone">
           {component.children && component.children.length > 0 ? (
-            <div className="container-items horizontal grid-row">
+            <div 
+              className="container-items horizontal grid-row"
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: 'var(--space-3)',
+                width: '100%',
+                alignItems: 'flex-start'
+              }}
+            >
               {component.children.map((child) => (
                 <div 
                   key={child.id} 
                   className="container-item grid-column"
                   style={{ 
-                    width: child.layout?.width || `${(100 / component.children!.length).toFixed(2)}%`,
-                    minWidth: '100px',
-                    flexShrink: 0
+                    flex: child.layout?.width ? 'none' : '1',
+                    width: child.layout?.width || 'auto',
+                    minWidth: '150px',
+                    maxWidth: '100%'
                   }}
                 >
                   {renderChild(child)}
@@ -40,7 +52,7 @@ const PreviewHorizontalLayout: React.FC<PreviewHorizontalLayoutProps> = ({
               ))}
             </div>
           ) : (
-            <PreviewContainerPlaceholder message="Drag fields here to arrange horizontally" />
+            <PreviewContainerPlaceholder message="Drag fields here to arrange side by side" />
           )}
         </div>
       </div>
