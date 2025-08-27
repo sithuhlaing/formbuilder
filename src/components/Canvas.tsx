@@ -8,18 +8,16 @@ interface CanvasProps {
   selectedComponentId: string | null;
   onSelectComponent: (id: string | null) => void;
   onDeleteComponent: (id: string) => void;
-  onUpdateComponent?: (updates: Partial<FormComponentData>) => void;
+  onUpdateComponent: (updates: Partial<FormComponentData>) => void;
   onAddComponent: (type: ComponentType) => void;
   onMoveComponent: (dragIndex: number, hoverIndex: number) => void;
-  onInsertWithPosition?: (type: ComponentType, targetId: string, position: 'before' | 'after' | 'inside') => void;
   onInsertBetween?: (type: ComponentType, insertIndex: number) => void;
-  onInsertHorizontal?: (type: ComponentType, targetId: string) => void;
+  onInsertHorizontal?: (type: ComponentType, targetId: string, position?: 'left' | 'right') => void;
   onDropInContainer?: (item: { type: ComponentType; id?: string }, containerId: string) => void;
   onDropInContainerWithPosition?: (item: { type: ComponentType; id?: string }, containerId: string, position: 'left' | 'center' | 'right') => void;
   onRearrangeWithinContainer?: (containerId: string, dragIndex: number, hoverIndex: number) => void;
   onRemoveFromContainer?: (componentId: string, containerPath: string[]) => void;
   onMoveFromContainerToCanvas?: (componentId: string, containerPath: string[]) => void;
-  onMoveToContainer?: (componentId: string, fromPath: string[], toPath: string[], position?: number) => void;
 }
 
 const Canvas: React.FC<CanvasProps> = ({
@@ -30,16 +28,15 @@ const Canvas: React.FC<CanvasProps> = ({
   onUpdateComponent,
   onAddComponent,
   onMoveComponent,
-  onInsertWithPosition,
   onInsertBetween,
   onInsertHorizontal,
   onDropInContainer,
   onDropInContainerWithPosition,
   onRearrangeWithinContainer,
   onRemoveFromContainer,
-  onMoveFromContainerToCanvas,
-  onMoveToContainer
+  onMoveFromContainerToCanvas
 }) => {
+  const dropRef = useRef<HTMLDivElement>(null);
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ['component', 'nested-component'],
     drop: (item: any, monitor) => {
@@ -64,6 +61,9 @@ const Canvas: React.FC<CanvasProps> = ({
     })
   }));
 
+  // Connect the drop target to the ref
+  drop(dropRef);
+
   const handleMoveFromContainerToCanvas = (componentId: string, containerPath: string[]) => {
     console.log('Moving component from container to canvas:', componentId, containerPath);
     if (onMoveFromContainerToCanvas) {
@@ -87,6 +87,7 @@ const Canvas: React.FC<CanvasProps> = ({
   };
 
   const DropZone: React.FC<{ index: number }> = ({ index }) => {
+    const dropZoneRef = useRef<HTMLDivElement>(null);
     const [{ isOver: isDropZoneOver }, dropZone] = useDrop(() => ({
       accept: 'component',
       drop: (item: { type: ComponentType }) => {
@@ -101,9 +102,12 @@ const Canvas: React.FC<CanvasProps> = ({
       })
     }));
 
+    // Connect the drop zone to the ref
+    dropZone(dropZoneRef);
+
     return (
       <div
-        ref={dropZone}
+        ref={dropZoneRef}
         style={{
           height: isDropZoneOver ? '40px' : '4px',
           backgroundColor: isDropZoneOver ? '#dbeafe' : 'transparent',
@@ -127,7 +131,7 @@ const Canvas: React.FC<CanvasProps> = ({
     component: FormComponentData; 
     index: number;
   }> = ({ component, index }) => {
-    const ref = useRef<HTMLDivElement>(null);
+    const itemRef = useRef<HTMLDivElement>(null);
 
     const [{ isDragging }, drag] = useDrag(() => ({
       type: 'existing-component',
@@ -140,7 +144,7 @@ const Canvas: React.FC<CanvasProps> = ({
     const [{ isOver, canDrop }, drop] = useDrop(() => ({
       accept: ['existing-component', 'component', 'nested-component'],
       hover: (item: any, monitor) => {
-        if (!ref.current) return;
+        if (!itemRef.current) return;
         
         const dragIndex = item.index;
         const hoverIndex = index;
@@ -149,7 +153,7 @@ const Canvas: React.FC<CanvasProps> = ({
         if (item.id === component.id) return;
         
         // Determine rectangle on screen
-        const hoverBoundingRect = ref.current.getBoundingClientRect();
+        const hoverBoundingRect = itemRef.current.getBoundingClientRect();
         const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
         const hoverMiddleX = (hoverBoundingRect.right - hoverBoundingRect.left) / 2;
         
@@ -165,7 +169,7 @@ const Canvas: React.FC<CanvasProps> = ({
         const isTopHalf = hoverClientY < hoverMiddleY;
         
         // Store drop position for visual feedback
-        (ref.current as any).dropPosition = {
+        (itemRef.current as any).dropPosition = {
           isLeftHalf,
           isTopHalf,
           dragIndex,
@@ -175,7 +179,7 @@ const Canvas: React.FC<CanvasProps> = ({
       drop: (item: any, monitor) => {
         if (item.type && typeof item.type === 'string' && !item.id && !item.isFromContainer) {
           // New component from sidebar
-          const dropPos = (ref.current as any)?.dropPosition;
+          const dropPos = (itemRef.current as any)?.dropPosition;
           if (dropPos) {
             const { isLeftHalf, isTopHalf } = dropPos;
             
@@ -213,12 +217,13 @@ const Canvas: React.FC<CanvasProps> = ({
       })
     }));
 
-    drag(drop(ref));
+    // Connect drag and drop to the ref
+    drag(drop(itemRef));
 
     const getDropIndicatorStyle = () => {
       if (!isOver || !canDrop) return {};
       
-      const dropPos = (ref.current as any)?.dropPosition;
+      const dropPos = (itemRef.current as any)?.dropPosition;
       if (dropPos) {
         const { isLeftHalf, isTopHalf } = dropPos;
         return {
@@ -241,7 +246,7 @@ const Canvas: React.FC<CanvasProps> = ({
       <>
         <DropZone index={index} />
         <div
-          ref={ref}
+          ref={itemRef}
           style={{
             marginBottom: '16px',
             padding: '12px',
@@ -336,6 +341,7 @@ const Canvas: React.FC<CanvasProps> = ({
               component={component}
               selectedComponentId={selectedComponentId}
               onSelectComponent={onSelectComponent}
+              onUpdateComponent={onUpdateComponent}
               onRemoveFromContainer={handleRemoveFromContainer}
               onMoveToCanvas={handleMoveFromContainerToCanvas}
               onDropInContainer={onDropInContainer}
@@ -350,7 +356,7 @@ const Canvas: React.FC<CanvasProps> = ({
 
   return (
     <div
-      ref={drop}
+      ref={dropRef}
       style={{
         flex: 1,
         padding: '24px',

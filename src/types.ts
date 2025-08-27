@@ -1,7 +1,6 @@
-import type { ComponentType, FormComponentData } from './components/types';
-
-// Re-export all component types for easier imports
-export * from './components/types';
+// Re-export component types from their proper location
+export type { IDropZoneStrategy } from './components/Canvas/strategies/DropZoneStrategy';
+export type { ComponentType, FormComponentData } from './components/types/component';
 
 // Additional app-level types
 export interface AppState {
@@ -21,6 +20,7 @@ export interface FormBuilderConfig {
 export type FormTemplateType = "assessment" | "survey" | "application" | "feedback" | "registration" | "other";
 
 export interface FormPage {
+  layout: any;
   id: string;
   title: string;
   components: FormComponentData[];

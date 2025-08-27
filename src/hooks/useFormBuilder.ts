@@ -21,15 +21,32 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
   const [pages, updatePages, undoRedoActions] = useUndoRedo<FormPage[]>([
     { id: '1', title: 'Page 1', components: [] }
   ]);
+  
+  // Defensive check for pages array
+  const safePagesArray = pages || [{ id: '1', title: 'Page 1', components: [] }];
   const [currentPageId, setCurrentPageId] = useState<string>('1');
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const [templateName, setTemplateName] = useState<string>("Untitled Form");
 
-  const currentPage = pages.find(p => p.id === currentPageId) || pages[0];
+  // Utility function for safe component operations (defined early)
+  const safelyFindComponent = (components: FormComponentData[], componentId: string | null): FormComponentData | null => {
+    if (!componentId || !components || !Array.isArray(components)) {
+      return null;
+    }
+    return components.find(c => c && c.id === componentId) || null;
+  };
+
+  const currentPage = safePagesArray.find(p => p && p.id === currentPageId) || safePagesArray[0];
   const components = currentPage?.components || [];
-  const selectedComponent = components.find(c => c.id === selectedComponentId) || null;
+  const selectedComponent = safelyFindComponent(components, selectedComponentId);
 
   const generateId = () => Date.now().toString();
+
+  // Note: Layout helper functions removed as they're not needed with simplified layout objects
+
+  const selectComponent = useCallback((id: string | null) => {
+    setSelectedComponentId(id);
+  }, []);
 
   const createComponent = useCallback((type: ComponentType): FormComponentData => {
     const id = generateId();
@@ -100,22 +117,22 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
       case "horizontal_layout":
         return {
           ...baseComponent,
-          label: "Horizontal Layout",
+          label: "Row Layout",
           layout: {
-            direction: "horizontal" as const,
-            alignment: "start" as const,
-            gap: "medium" as const,
+            display: 'flex',
+            flexDirection: 'row',
+            gap: '16px',
           },
           children: [],
         };
       case "vertical_layout":
         return {
           ...baseComponent,
-          label: "Vertical Layout",
+          label: "Column Layout",
           layout: {
-            direction: "vertical" as const,
-            alignment: "start" as const,
-            gap: "medium" as const,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
           },
           children: [],
         };
@@ -125,50 +142,66 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
   }, []);
 
   const updateCurrentPageComponents = useCallback((newComponents: FormComponentData[]) => {
-    const updatedPages = pages.map(page =>
-      page.id === currentPageId
-        ? { ...page, components: newComponents }
+    if (!newComponents || !Array.isArray(newComponents)) {
+      console.warn('updateCurrentPageComponents: Invalid components array provided');
+      return;
+    }
+    
+    const updatedPages = safePagesArray.map(page =>
+      page && page.id === currentPageId
+        ? { ...page, components: newComponents.filter(c => c && c.id) }
         : page
     );
     updatePages(updatedPages);
-  }, [pages, currentPageId, updatePages]);
+  }, [safePagesArray, currentPageId, updatePages]);
 
   const addComponent = useCallback((type: ComponentType) => {
     const newComponent = createComponent(type);
-    updateCurrentPageComponents([...components, newComponent]);
+    // Get fresh current page to avoid stale closure
+    const freshCurrentPage = safePagesArray.find(p => p && p.id === currentPageId) || safePagesArray[0];
+    const freshComponents = freshCurrentPage?.components || [];
+    updateCurrentPageComponents([...freshComponents, newComponent]);
     setSelectedComponentId(newComponent.id);
-  }, [createComponent, components, updateCurrentPageComponents]);
-
-  const selectComponent = useCallback((id: string) => {
-    setSelectedComponentId(id);
-  }, []);
+  }, [createComponent, safePagesArray, currentPageId, updateCurrentPageComponents]);
 
   const updateComponent = useCallback((updates: Partial<FormComponentData>) => {
     if (!selectedComponentId) return;
 
-    const updatedComponents = components.map(component =>
+    // Get fresh current page to avoid stale closure
+    const freshCurrentPage = safePagesArray.find(p => p && p.id === currentPageId) || safePagesArray[0];
+    const freshComponents = freshCurrentPage?.components || [];
+    
+    const updatedComponents = freshComponents.map(component =>
       component.id === selectedComponentId
         ? { ...component, ...updates }
         : component
     );
     updateCurrentPageComponents(updatedComponents);
-  }, [selectedComponentId, components, updateCurrentPageComponents]);
+  }, [selectedComponentId, safePagesArray, currentPageId, updateCurrentPageComponents]);
 
   const deleteComponent = useCallback((id: string) => {
-    const filteredComponents = components.filter(component => component.id !== id);
+    // Get fresh current page to avoid stale closure
+    const freshCurrentPage = safePagesArray.find(p => p && p.id === currentPageId) || safePagesArray[0];
+    const freshComponents = freshCurrentPage?.components || [];
+    
+    const filteredComponents = freshComponents.filter(component => component.id !== id);
     updateCurrentPageComponents(filteredComponents);
     if (selectedComponentId === id) {
       setSelectedComponentId(null);
     }
-  }, [selectedComponentId, components, updateCurrentPageComponents]);
+  }, [safePagesArray, currentPageId, updateCurrentPageComponents, selectedComponentId]);
 
   const moveComponent = useCallback((dragIndex: number, hoverIndex: number) => {
-    const newComponents = [...components];
+    // Get fresh current page to avoid stale closure
+    const freshCurrentPage = safePagesArray.find(p => p && p.id === currentPageId) || safePagesArray[0];
+    const freshComponents = freshCurrentPage?.components || [];
+    
+    const newComponents = [...freshComponents];
     const draggedComponent = newComponents[dragIndex];
     newComponents.splice(dragIndex, 1);
     newComponents.splice(hoverIndex, 0, draggedComponent);
     updateCurrentPageComponents(newComponents);
-  }, [components, updateCurrentPageComponents]);
+  }, [safePagesArray, currentPageId, updateCurrentPageComponents]);
 
   const clearAll = useCallback(() => {
     if (pages.length === 1 && components.length === 0) return;
@@ -544,12 +577,15 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
       
       // Add to canvas (end of components list)
       setTimeout(() => {
-        const updatedComponents = [...components, componentToMove!];
+        // Get fresh current page to avoid stale closure
+        const freshCurrentPage = safePagesArray.find(p => p && p.id === currentPageId) || safePagesArray[0];
+        const freshComponents = freshCurrentPage?.components || [];
+        const updatedComponents = [...freshComponents, componentToMove!];
         updateCurrentPageComponents(updatedComponents);
         setSelectedComponentId(componentId);
       }, 50);
     }
-  }, [components, removeFromContainer, updateCurrentPageComponents]);
+  }, [safePagesArray, currentPageId, removeFromContainer, updateCurrentPageComponents]);
 
   // Add component to container with position
   const addComponentToContainerWithPosition = useCallback((type: ComponentType, containerId: string, position: 'left' | 'center' | 'right' = 'center') => {
@@ -753,7 +789,7 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
   }, [components, removeFromContainer, updateCurrentPageComponents]);
 
   return {
-    pages,
+    pages: safePagesArray,
     currentPage,
     currentPageId,
     components,
@@ -766,6 +802,7 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
     updateComponent,
     deleteComponent,
     moveComponent,
+    createComponent,
     clearAll,
     clearAllSilent,
     loadFromJSON,
@@ -787,5 +824,6 @@ export const useFormBuilder = (modalFunctions?: ModalFunctions) => {
     redo: undoRedoActions.redo,
     canUndo: undoRedoActions.canUndo,
     canRedo: undoRedoActions.canRedo,
+    updateCurrentPageComponents,
   };
 };

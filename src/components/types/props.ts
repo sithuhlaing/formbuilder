@@ -1,5 +1,5 @@
 
-import type { ComponentType, FormComponentData } from './component';
+import type { ComponentType } from './component';
 import type { DropPosition } from './layout';
 
 export interface ComponentIconProps {

@@ -16,7 +16,7 @@ export type ComponentType =
   | "vertical_layout";
 
 export interface FormComponentData {
-  layout: any;
+  layout?: any; // Keep as any for backwards compatibility
   id: string;
   type: ComponentType;
   label?: string;

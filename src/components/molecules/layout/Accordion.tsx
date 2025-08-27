@@ -20,7 +20,7 @@ const Accordion: React.FC<AccordionProps> = ({
       <button
         className="accordion__header"
         onClick={() => setIsExpanded(!isExpanded)}
-        aria-expanded={isExpanded}
+        aria-expanded={isExpanded} 
         aria-controls={`accordion-content-${title}`}
       >
         <div className="accordion__header-content">

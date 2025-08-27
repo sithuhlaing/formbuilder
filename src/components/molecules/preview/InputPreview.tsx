@@ -1,5 +1,5 @@
 import React from 'react';
-import type { FormComponentData } from '../../types';
+import type { FormComponentData } from '../../../types';
 import { PreviewField, PreviewInput } from '../../atoms';
 import { getDefaultLabel, getDefaultPlaceholder } from '../../../utils/componentDefaults';
 

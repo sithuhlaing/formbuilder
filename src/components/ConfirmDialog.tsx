@@ -6,7 +6,10 @@ interface ConfirmDialogProps {
   message: string;
   type: 'info' | 'success' | 'warning' | 'error' | 'danger';
   onConfirm: () => void;
-  onCancel: () => void;
+  onClose: () => void;
+  confirmText?: string;
+  cancelText?: string;
+  icon?: string;
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -15,13 +18,16 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   message,
   type,
   onConfirm,
-  onCancel
+  onClose,
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+  icon
 }) => {
   if (!isOpen) return null;
 
   const handleConfirm = () => {
     onConfirm();
-    onCancel();
+    onClose();
   };
 
   return (
@@ -67,7 +73,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           gap: '12px' 
         }}>
           <button 
-            onClick={onCancel}
+            onClick={onClose}
             style={{
               padding: '8px 16px',
               border: '1px solid #ccc',
@@ -76,7 +82,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               cursor: 'pointer'
             }}
           >
-            Cancel
+            {cancelText}
           </button>
           <button 
             onClick={handleConfirm}
@@ -89,7 +95,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               cursor: 'pointer'
             }}
           >
-            Confirm
+            {confirmText}
           </button>
         </div>
       </div>

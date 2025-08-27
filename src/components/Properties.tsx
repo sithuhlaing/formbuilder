@@ -1,4 +1,5 @@
 import React from 'react';
+import type { FormComponentData } from '../types';
 
 interface PropertiesProps {
   selectedComponent: FormComponentData | null;

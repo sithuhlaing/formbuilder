@@ -5,6 +5,7 @@ interface NotificationDialogProps {
   title: string;
   message: string;
   type: 'success' | 'error' | 'warning' | 'info';
+  buttonText?: string;
   onClose: () => void;
 }
 
@@ -13,6 +14,7 @@ const NotificationDialog: React.FC<NotificationDialogProps> = ({
   title,
   message,
   type,
+  buttonText,
   onClose
 }) => {
   if (!isOpen) return null;
@@ -75,7 +77,7 @@ const NotificationDialog: React.FC<NotificationDialogProps> = ({
             float: 'right'
           }}
         >
-          OK
+          {buttonText || 'OK'}
         </button>
       </div>
     </div>

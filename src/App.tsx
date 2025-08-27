@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import Sidebar from './components/Sidebar';
-import Canvas from './components/Canvas';
+import ComponentPalette from './components/ComponentPalette/ComponentPalette';
+import Canvas from './components/Canvas/components/SimpleReorderingCanvas';
 import Properties from './components/Properties';
 import PreviewModal from './components/molecules/forms/PreviewModal';
 import PageNavigation from './components/molecules/navigation/PageNavigation';
@@ -18,6 +18,8 @@ import type {
   ComponentType
 } from "./types";
 import './styles/layout.css';
+import './styles/component-palette.css';
+import './styles/smart-canvas.css';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'list' | 'builder'>('list');
@@ -46,14 +48,16 @@ const App: React.FC = () => {
     updateComponent,
     deleteComponent,
     moveComponent,
+    createComponent,
     clearAll,
     clearAllSilent,
     loadFromJSON,
-    insertComponentWithPosition,
     insertBetweenComponents,
     insertHorizontalToComponent,
     addComponentToContainerWithPosition,
     rearrangeWithinContainer,
+    removeFromContainer,
+    moveFromContainerToCanvas,
     pages,
     currentPageId,
     addPage,
@@ -65,6 +69,7 @@ const App: React.FC = () => {
     canRedo,
     undo,
     redo,
+    updateCurrentPageComponents,
   } = useFormBuilder({ showConfirmation, showNotification });
 
   // Debug currentView changes
@@ -361,14 +366,9 @@ const App: React.FC = () => {
 
         {/* Main Content */}
         <main className="main">
-          {/* Sidebar */}
+          {/* Component Palette */}
           <aside className="sidebar">
-            <div className="sidebar__header">
-              <h2>Components</h2>
-            </div>
-            <div className="sidebar__content">
-              <Sidebar onAddComponent={addComponent} />
-            </div>
+            <ComponentPalette onAddComponent={addComponent} />
           </aside>
 
           {/* Canvas */}
@@ -416,14 +416,13 @@ const App: React.FC = () => {
                 selectedComponentId={selectedComponentId}
                 onSelectComponent={selectComponent}
                 onDeleteComponent={deleteComponent}
+                onUpdateComponent={updateComponent}
                 onMoveComponent={moveComponent}
                 onAddComponent={addComponent}
-                onInsertWithPosition={insertComponentWithPosition}
-                onInsertBetween={insertBetweenComponents}
-                onInsertHorizontal={insertHorizontalToComponent}
-                onDropInContainer={handleDropInContainer}
-                onDropInContainerWithPosition={handleDropInContainerWithPosition}
-                onRearrangeWithinContainer={rearrangeWithinContainer}
+                onUpdateComponents={updateCurrentPageComponents}
+                onRemoveFromContainer={removeFromContainer}
+                onMoveFromContainerToCanvas={moveFromContainerToCanvas}
+                createComponent={createComponent}
               />
             </div>
           </section>
@@ -435,7 +434,7 @@ const App: React.FC = () => {
             </div>
             <div className="properties__content">
               <Properties
-                component={selectedComponent}
+                selectedComponent={selectedComponent}
                 onUpdateComponent={updateComponent}
               />
             </div>
