@@ -1,4 +1,5 @@
-import type { ComponentType } from '../components/types';
+
+import type { ComponentType } from '../types';
 
 export const getDefaultLabel = (componentType: ComponentType): string => {
   switch (componentType) {
@@ -6,6 +7,10 @@ export const getDefaultLabel = (componentType: ComponentType): string => {
       return 'Text Input';
     case 'number_input':
       return 'Number Input';
+    case 'email_input':
+      return 'Email Input';
+    case 'password_input':
+      return 'Password Input';
     case 'textarea':
       return 'Text Area';
     case 'rich_text':
@@ -41,8 +46,14 @@ export const getDefaultPlaceholder = (componentType: ComponentType): string => {
       return 'Enter text...';
     case 'number_input':
       return 'Enter a number...';
+    case 'email_input':
+      return 'Enter email address...';
+    case 'password_input':
+      return 'Enter password...';
     case 'textarea':
       return 'Enter your message...';
+    case 'rich_text':
+      return 'Enter rich text content...';
     case 'select':
       return 'Choose an option...';
     case 'multi_select':

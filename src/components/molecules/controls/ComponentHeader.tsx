@@ -1,6 +1,6 @@
 
 import React from "react";
-import ComponentIcon from "../../atoms/icons/ComponentIcon";
+import ComponentIcon from "../../ComponentIcon";
 import DeleteButton from "../../atoms/controls/DeleteButton";
 import DragHandle from "../../atoms/controls/DragHandle";
 import type { ComponentType } from "../../types";

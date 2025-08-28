@@ -25,7 +25,7 @@ describe('ComponentGroup', () => {
     title: 'Test Group',
     components: [
       { type: 'text_input', name: 'Text Input', icon: '📝', description: 'Single line text input' },
-      { type: 'email', name: 'Email', icon: '📧', description: 'Email address input' }
+      { type: 'email_input', name: 'Email', icon: '📧', description: 'Email address input' }
     ]
   };
 

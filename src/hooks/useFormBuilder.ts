@@ -240,13 +240,13 @@ const createNewComponent = (type: ComponentType): FormComponentData => {
         min: 0,
         max: 100
       };
-    case 'email':
+    case 'email_input':
       return {
         ...baseComponent,
         placeholder: 'Enter email address...',
         value: ''
       };
-    case 'password':
+    case 'password_input':
       return {
         ...baseComponent,
         placeholder: 'Enter password...',

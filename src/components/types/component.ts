@@ -1,44 +1,36 @@
 
 export type ComponentType = 
-  | "text_input"
-  | "email"
-  | "password"
-  | "number_input"
-  | "textarea"
-  | "rich_text" 
-  | "select"
-  | "multi_select"
-  | "checkbox"
-  | "radio_group"
-  | "date_picker"
-  | "file_upload"
-  | "section_divider"
-  | "signature"
-  | "horizontal_layout"
-  | "vertical_layout";
+  | 'text_input'
+  | 'number_input'
+  | 'email_input'
+  | 'textarea'
+  | 'rich_text'
+  | 'select'
+  | 'multi_select'
+  | 'checkbox'
+  | 'radio_group'
+  | 'date_picker'
+  | 'file_upload'
+  | 'section_divider'
+  | 'signature'
+  | 'horizontal_layout'
+  | 'vertical_layout';
 
 export interface FormComponentData {
-  layout?: any; // Keep as any for backwards compatibility
   id: string;
   type: ComponentType;
-  label?: string;
-  placeholder?: string;
+  label: string;
+  fieldId: string;
   required?: boolean;
-  fieldId?: string;
+  placeholder?: string;
   options?: string[];
-  min?: number;
-  max?: number;
-  step?: number;
-  acceptedFileTypes?: string;
-  description?: string;
-  helpText?: string;
+  validation?: ValidationRule;
+  layout?: {
+    width?: string;
+    height?: string;
+  };
   children?: FormComponentData[];
-  rows?: number;
-  content?: string;
-  maxSize?: number;
+  // ... other properties
 }
 
-interface RichTextComponent extends FormComponentData {
-  type: 'rich_text';
-  height?: string;
-}
+// ... other interfaces

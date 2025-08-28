@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import ComponentIcon from '../../../components/atoms/icons/ComponentIcon';
+import ComponentIcon from '../../../components/ComponentIcon';
 import type { ComponentType } from '../../../components/types/component';
 
 describe('ComponentIcon', () => {

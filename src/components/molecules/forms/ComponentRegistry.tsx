@@ -53,7 +53,7 @@ export const componentRegistry: Record<string, ComponentRenderer> = {
     );
   },
 
-  email: ({ component, isSelected, onSelect, onUpdate, onDelete, mode }) => {
+  email_input: ({ component, isSelected, onSelect, onUpdate, onDelete, mode }) => {
     if (mode === 'preview') {
       return <PreviewInput component={component} />;
     }
@@ -69,7 +69,7 @@ export const componentRegistry: Record<string, ComponentRenderer> = {
     );
   },
 
-  password: ({ component, isSelected, onSelect, onUpdate, onDelete, mode }) => {
+  password_input: ({ component, isSelected, onSelect, onUpdate, onDelete, mode }) => {
     if (mode === 'preview') {
       return <PreviewInput component={component} />;
     }

@@ -28,8 +28,8 @@ interface ComponentIconProps {
 
 const iconMap: Record<ComponentType | 'unknown', React.ElementType> = {
   text_input: FaRegKeyboard,
-  email: FaRegEnvelope,
-  password: FaLock,
+  email_input: FaRegEnvelope,
+  password_input: FaLock,
   number_input: FaHashtag,
   textarea: FaParagraph,
   select: FaRegListAlt,

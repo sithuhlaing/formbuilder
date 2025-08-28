@@ -1,8 +1,8 @@
 // Component type definitions
 export type ComponentType = 
   | "text_input"
-  | "email"
-  | "password"
+  | "email_input"
+  | "password_input"
   | "number_input"
   | "textarea"
   | "rich_text" 

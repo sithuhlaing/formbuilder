@@ -20,8 +20,8 @@ export type PropertyEditor = React.FC<PropertyEditorProps>;
 // Registry mapping component types to their property editors
 export const propertyEditorRegistry: Record<string, PropertyEditor> = {
   text_input: TextInputPropertyEditor,
-  email: TextInputPropertyEditor,
-  password: TextInputPropertyEditor,
+  email_input: TextInputPropertyEditor,
+  password_input: TextInputPropertyEditor,
   number: TextInputPropertyEditor,
   textarea: TextInputPropertyEditor,
   select: SelectPropertyEditor,

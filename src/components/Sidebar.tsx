@@ -50,7 +50,7 @@ const ComponentItem: React.FC<ComponentItemProps> = ({
 const Sidebar: React.FC<{ onAddComponent: (type: ComponentType) => void }> = ({ onAddComponent }) => {
   const componentTypes = [
     { type: "text_input" as ComponentType, label: "Text Input", description: "Single line text field", icon: "📝" },
-    { type: "email" as ComponentType, label: "Email", description: "Email input with validation", icon: "📧" },
+    { type: "email_input" as ComponentType, label: "Email", description: "Email input with validation", icon: "📧" },
     { type: "number_input" as ComponentType, label: "Number Input", description: "Numeric input with validation", icon: "🔢" },
     { type: "textarea" as ComponentType, label: "Textarea", description: "Multi-line text field", icon: "📄" },
     { type: "rich_text" as ComponentType, label: "Rich Text", description: "Rich text editor with formatting", icon: "📋" },
@@ -67,7 +67,7 @@ const Sidebar: React.FC<{ onAddComponent: (type: ComponentType) => void }> = ({ 
   ];
 
   const inputComponents = componentTypes.filter(c => 
-    ["text_input", "email", "number_input", "textarea", "rich_text", "date_picker", "file_upload", "signature"].includes(c.type)
+    ["text_input", "email_input", "number_input", "textarea", "rich_text", "date_picker", "file_upload", "signature"].includes(c.type)
   );
   
   const selectionComponents = componentTypes.filter(c => 

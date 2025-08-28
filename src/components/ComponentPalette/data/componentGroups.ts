@@ -17,8 +17,8 @@ export const componentGroups: ComponentGroup[] = [
     title: "Input Fields",
     components: [
       { type: "text_input", name: "Text Input", icon: "📝", description: "Single line text input" },
-      { type: "email", name: "Email", icon: "📧", description: "Email address input" },
-      { type: "password", name: "Password", icon: "🔒", description: "Password input field" },
+      { type: "email_input", name: "Email", icon: "📧", description: "Email address input" },
+      { type: "password_input", name: "Password", icon: "🔒", description: "Password input field" },
       { type: "number_input", name: "Number", icon: "🔢", description: "Numeric input field" },
       { type: "textarea", name: "Textarea", icon: "📄", description: "Multi-line text input" }
     ]

@@ -5,7 +5,7 @@ const VALID_COMPONENT_TYPES = [
   'text_input', 'number_input', 'textarea', 'select', 'multi_select',
   'checkbox', 'radio_group', 'date_picker', 'file_upload',
   'section_divider', 'signature', 'horizontal_layout', 'vertical_layout',
-  'email', 'password', 'rich_text'
+  'email_input', 'password_input', 'rich_text'
 ];
 
 function isValidComponent(component: any): component is FormComponentData {

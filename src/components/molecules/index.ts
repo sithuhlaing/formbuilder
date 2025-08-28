@@ -21,7 +21,6 @@ export { default as SimplePageNavigation } from './navigation/SimplePageNavigati
 // Layout Components
 export { default as Accordion } from './layout/Accordion';
 export { default as CanvasContent } from './layout/CanvasContent';
-export { default as EmptyCanvas } from './layout/EmptyCanvas';
 export { default as FieldContainer } from './layout/FieldContainer';
 
 // Form Components
@@ -30,15 +29,13 @@ export { default as PreviewForm } from './forms/PreviewForm';
 export { default as PreviewModal } from './forms/PreviewModal';
 
 // Control Components
-export { default as ButtonGroup } from './controls/ButtonGroup';
 export { default as ComponentGroup } from './controls/ComponentGroup';
 export { default as ComponentHeader } from './controls/ComponentHeader';
 export { default as ComponentItem } from './controls/ComponentItem';
 export { default as SidebarSection } from './controls/SidebarSection';
 
-// Drop Zone Components
+// Drop Zone Components  
 export { default as SmartDropZone } from './dropzones/SmartDropZone';
-export { default as SurveyDropZone } from './dropzones/SurveyDropZone';
 
 // Utility Components
 export { default as ComponentMetadata } from './utils/ComponentMetadata';

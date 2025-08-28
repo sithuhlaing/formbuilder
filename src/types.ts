@@ -2,6 +2,9 @@
 export type {
   ComponentType,
   FormComponentData,
+  ValidationRule,
+  ValidationType,
+  SidebarProps,
 } from './components/types/component';
 
 // Re-export strategy types
@@ -181,10 +184,23 @@ type FormComponentData =
 
 export type ComponentType =
   | 'text_input'
-  | 'textarea'
   | 'email_input'
   | 'password_input'
   | 'number_input'
+  | 'textarea'
+  | 'rich_text'
   | 'select'
-  | 'checkbox_group'
+  | 'multi_select'
+  | 'checkbox'
   | 'radio_group'
+  | 'date_picker'
+  | 'file_upload'
+  | 'section_divider'
+  | 'signature'
+  | 'horizontal_layout'
+  | 'vertical_layout';
+
+export type {
+  ValidationRule,
+  ValidationType,
+} from './components/types/validation';

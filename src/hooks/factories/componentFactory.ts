@@ -20,7 +20,7 @@ export function useComponentFactory() {
           ...baseComponent,
           placeholder: "Enter text...",
         };
-      case "email":
+      case "email_input":
         return {
           ...baseComponent,
           placeholder: "Enter email...",

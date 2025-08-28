@@ -39,6 +39,4 @@ export { default as CanvasEmptyState } from './layout/CanvasEmptyState';
 export { default as EditableTitle } from './layout/EditableTitle';
 export { default as SimpleDropZone } from './layout/SimpleDropZone';
 
-// Icons
-export { default as ComponentIcon } from './icons/ComponentIcon';
 

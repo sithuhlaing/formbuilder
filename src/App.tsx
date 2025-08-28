@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import ComponentPalette from './components/ComponentPalette/ComponentPalette';
-import Canvas from './components/Canvas/components/SimpleReorderingCanvas';
+import Canvas from './components/Canvas/components/DragDropReorderingCanvas';
 import Properties from './components/Properties';
 import PreviewModal from './components/molecules/forms/PreviewModal';
 import PageNavigation from './components/molecules/navigation/PageNavigation';
@@ -19,7 +19,6 @@ import type {
 } from "./types";
 import './styles/layout.css';
 import './styles/component-palette.css';
-import './styles/smart-canvas.css';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'list' | 'builder'>('list');
