@@ -14,6 +14,7 @@ interface SimpleReorderingCanvasProps {
   onRemoveFromContainer?: (componentId: string, containerPath: string[]) => void;
   onMoveFromContainerToCanvas?: (componentId: string, containerPath: string[]) => void;
   createComponent?: (type: ComponentType) => FormComponentData;
+  onInsertBetween?: (type: ComponentType, insertIndex: number) => void;
 }
 
 const SimpleReorderingCanvas: React.FC<SimpleReorderingCanvasProps> = ({
@@ -28,6 +29,7 @@ const SimpleReorderingCanvas: React.FC<SimpleReorderingCanvasProps> = ({
   onRemoveFromContainer,
   onMoveFromContainerToCanvas,
   createComponent,
+  onInsertBetween,
 }) => {
   // Enhanced move handler that works with array indices
   const handleMoveComponent = useCallback((dragIndex: number, hoverIndex: number) => {
@@ -51,30 +53,27 @@ const SimpleReorderingCanvas: React.FC<SimpleReorderingCanvasProps> = ({
     onUpdateComponents(newComponents);
   }, [components, onMoveComponent, onUpdateComponents]);
 
+  const handleInsertAtPosition = useCallback((componentType: ComponentType, insertIndex: number) => {
+    console.log('🎯 Canvas handleInsertAtPosition:', { componentType, insertIndex });
+    
+    // Call the prop function passed from useFormBuilder
+    onInsertBetween(componentType, insertIndex);
+  }, [onInsertBetween]);
+
   return (
-    <div
-      data-testid="canvas"
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
-    >
-      <DragDropReorderingCanvas
-        components={components}
-        selectedComponentId={selectedComponentId}
-        onSelectComponent={onSelectComponent}
-        onUpdateComponent={onUpdateComponent}
-        onDeleteComponent={onDeleteComponent}
-        onMoveComponent={handleMoveComponent}
-        onAddComponent={onAddComponent}
-        onUpdateComponents={onUpdateComponents}
-        onRemoveFromContainer={onRemoveFromContainer}
-        onMoveFromContainerToCanvas={onMoveFromContainerToCanvas}
-        createComponent={createComponent}
-      />
-    </div>
+    <DragDropReorderingCanvas
+      components={components}
+      selectedComponentId={selectedComponentId}
+      onSelectComponent={onSelectComponent}
+      onUpdateComponent={onUpdateComponent}
+      onDeleteComponent={onDeleteComponent}
+      onMoveComponent={handleMoveComponent}
+      onAddComponent={onAddComponent}
+      onUpdateComponents={onUpdateComponents}
+      onRemoveFromContainer={onRemoveFromContainer}
+      onMoveFromContainerToCanvas={onMoveFromContainerToCanvas}
+      createComponent={createComponent}
+    />
   );
 };
 

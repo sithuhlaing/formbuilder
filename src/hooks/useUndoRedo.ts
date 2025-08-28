@@ -6,7 +6,7 @@ interface UndoRedoState<T> {
   future: T[];
 }
 
-interface UndoRedoActions {
+interface UndoRedoActions<T> {
   canUndo: boolean;
   canRedo: boolean;
   undo: () => void;
@@ -15,7 +15,7 @@ interface UndoRedoActions {
   clear: () => void;
 }
 
-export function useUndoRedo<T>(initialState: T, maxHistorySize = 50): [T, (newState: T) => void, UndoRedoActions] {
+export function useUndoRedo<T>(initialState: T, maxHistorySize = 50): [T, (newState: T) => void, UndoRedoActions<T>] {
   const [state, setState] = useState<UndoRedoState<T>>({
     past: [],
     present: initialState,
@@ -124,7 +124,7 @@ export function useUndoRedo<T>(initialState: T, maxHistorySize = 50): [T, (newSt
     };
   }, [handleKeyDown]);
 
-  const actions: UndoRedoActions = {
+  const actions: UndoRedoActions<T> = {
     canUndo,
     canRedo,
     undo,

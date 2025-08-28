@@ -140,8 +140,8 @@ const App: React.FC = () => {
       createdDate: template.createdDate
     });
     const loadTemplate = () => {
-      console.log('✅ Loading template:', template.name, 'Fields:', template.fields.length, 'Pages:', template.pages?.length);
-      loadFromJSON(template.fields, template.name, template.type, template.pages);
+      console.log('✅ Loading template:', template.name, 'Fields:', template.fields?.length || 0, 'Pages:', template.pages?.length);
+      loadFromJSON(template.fields || [], template.name, template.type, template.pages);
       setTemplateType(template.type);
       setCurrentTemplateId(template.templateId); // Set template ID for editing
       console.log('🔄 Setting currentView to builder...');
@@ -171,7 +171,7 @@ const App: React.FC = () => {
     console.log('🔄 About to force load template:', {
       templateName: template.name,
       templateId: template.templateId,
-      fieldsCount: template.fields.length,
+      fieldsCount: template.fields?.length || 0,
       pagesCount: template.pages?.length || 0,
       currentComponents: totalComponents
     });

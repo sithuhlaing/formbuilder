@@ -21,10 +21,16 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: '/vite.svg',
-            sizes: '192x192',
+            src: 'vite.svg',
+            sizes: 'any',
             type: 'image/svg+xml',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: 'vite.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'maskable'
           }
         ]
       },

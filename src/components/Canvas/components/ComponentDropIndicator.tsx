@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { useDrop } from 'react-dnd';
-import type { IDropZoneStrategy, DragItem } from '../types';
+import type { DragItem } from '../types';
+import type { IDropZoneStrategy } from '../strategies/DropZoneStrategy';
 
 interface ComponentDropIndicatorProps {
   strategy: IDropZoneStrategy;

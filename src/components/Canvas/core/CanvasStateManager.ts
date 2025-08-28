@@ -9,7 +9,7 @@
  */
 
 import type { FormComponentData, ComponentType } from '../../../types';
-import type { CanvasNode, CanvasState } from './types';
+import type { CanvasState, CanvasNode } from './types';
 
 export class CanvasStateManager {
   private state: CanvasState;
@@ -78,7 +78,7 @@ export class CanvasStateManager {
     const targetNode = this.state.nodes[targetIndex];
     const draggedNode = typeof draggedItem === 'string' 
       ? this.createNewItem(draggedItem)
-      : draggedNode;
+      : draggedItem;
 
     // rowlayout_rules: max_one_row = true
     if (!this.hasRowLayout()) {

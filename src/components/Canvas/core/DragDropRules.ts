@@ -3,7 +3,9 @@
  * Based on the specified hard rules for canvas interactions
  */
 
-import type { Intent, DropZoneCalculator } from './types';
+import type { DropZoneCalculator } from './types';
+export type { Intent } from './types';
+import { type Intent } from './types';
 
 export class SimpleDragDropRules implements DropZoneCalculator {
   private static readonly LEFT_THRESHOLD = 0.35;

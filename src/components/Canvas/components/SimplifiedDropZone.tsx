@@ -5,8 +5,12 @@
 
 import React, { useState, useRef } from 'react';
 import { useDrop } from 'react-dnd';
-import { SimpleDragDropRules, Intent } from '../core/DragDropRules';
-import type { FormComponentData, ComponentType } from '../../../types';
+import { COMPONENT_TYPE } from '../../../dnd/types';
+import type { Page, FormComponentData, ComponentType } from '../../../types';
+import SmartCanvasItem from './SmartCanvasItem';
+import { getDropIntent, type Intent } from '../core/drop-intent';
+import { DropIndicators } from './DropIndicators';
+import type { Intent } from '../core/types';
 
 interface SimplifiedDropZoneProps {
   component: FormComponentData;
@@ -23,7 +27,6 @@ const SimplifiedDropZone: React.FC<SimplifiedDropZoneProps> = ({
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [currentIntent, setCurrentIntent] = useState<Intent | null>(null);
-  const dropRules = new SimpleDragDropRules();
 
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: ['component', 'canvas-item'],
@@ -41,7 +44,7 @@ const SimplifiedDropZone: React.FC<SimplifiedDropZoneProps> = ({
       }
 
       const targetRect = ref.current.getBoundingClientRect();
-      const intent = dropRules.calculateIntent(clientOffset, targetRect);
+      const intent = getDropIntent(clientOffset, targetRect);
       setCurrentIntent(intent);
     },
     drop: (item: any, monitor) => {
@@ -63,65 +66,6 @@ const SimplifiedDropZone: React.FC<SimplifiedDropZoneProps> = ({
       {children}
     </div>
   );
-};
-
-interface DropIndicatorsProps {
-  intent: Intent;
-}
-
-const DropIndicators: React.FC<DropIndicatorsProps> = ({ intent }) => {
-  const getIndicatorStyles = () => {
-    const baseStyles = {
-      position: 'absolute' as const,
-      zIndex: 1000,
-      pointerEvents: 'none' as const,
-      backgroundColor: 'rgba(59, 130, 246, 0.8)',
-      borderRadius: '2px'
-    };
-
-    switch (intent) {
-      case 'LEFT':
-        return {
-          ...baseStyles,
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: '4px',
-          backgroundColor: 'rgba(245, 158, 11, 0.8)' // Orange for horizontal
-        };
-      case 'RIGHT':
-        return {
-          ...baseStyles,
-          right: 0,
-          top: 0,
-          bottom: 0,
-          width: '4px',
-          backgroundColor: 'rgba(245, 158, 11, 0.8)' // Orange for horizontal
-        };
-      case 'BEFORE':
-        return {
-          ...baseStyles,
-          left: 0,
-          right: 0,
-          top: 0,
-          height: '4px',
-          backgroundColor: 'rgba(59, 130, 246, 0.8)' // Blue for vertical
-        };
-      case 'AFTER':
-        return {
-          ...baseStyles,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: '4px',
-          backgroundColor: 'rgba(59, 130, 246, 0.8)' // Blue for vertical
-        };
-      default:
-        return { ...baseStyles, display: 'none' };
-    }
-  };
-
-  return <div style={getIndicatorStyles()} />;
 };
 
 export default SimplifiedDropZone;

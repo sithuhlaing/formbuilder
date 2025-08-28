@@ -5,6 +5,8 @@
  * including horizontal/vertical containers, positioning, and styling.
  */
 
+import type { FormComponentData } from "../types";
+
 export interface FormLayoutSchema {
   $schema: string;
   version: string;

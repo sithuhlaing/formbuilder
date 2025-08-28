@@ -5,7 +5,7 @@
 
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { useDrop } from 'react-dnd';
-import { SimpleDragDropRules, Intent } from '../core/DragDropRules';
+import { SimpleDragDropRules, type Intent } from '../core/DragDropRules';
 import { CanvasStateManager } from '../core/CanvasStateManager';
 import SimplifiedDropZone from './SimplifiedDropZone';
 import AutoSizingRowLayout from './AutoSizingRowLayout';

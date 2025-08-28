@@ -180,7 +180,7 @@ const AutoSizingRowLayout: React.FC<AutoSizingRowLayoutProps> = ({
               borderRadius: '3px',
               fontFamily: 'monospace'
             }}>
-              {index + 1}/{component.children.length}
+              {index + 1}/{component.children?.length}
             </div>
 
             {/* Component Content */}
@@ -195,7 +195,7 @@ const AutoSizingRowLayout: React.FC<AutoSizingRowLayoutProps> = ({
                 onSelect={() => onSelectComponent(child.id)}
                 onUpdate={(updates) => {
                   // Update child in parent's children array
-                  const updatedChildren = component.children!.map(c => 
+                  const updatedChildren = component.children?.map(c => 
                     c.id === child.id ? { ...c, ...updates } : c
                   );
                   onUpdateComponent({
@@ -205,7 +205,7 @@ const AutoSizingRowLayout: React.FC<AutoSizingRowLayoutProps> = ({
                 }}
                 onDelete={() => {
                   // Remove child from parent's children array
-                  const updatedChildren = component.children!.filter(c => c.id !== child.id);
+                  const updatedChildren = component.children?.filter(c => c.id !== child.id);
                   onUpdateComponent({
                     ...component,
                     children: updatedChildren
@@ -225,7 +225,7 @@ const AutoSizingRowLayout: React.FC<AutoSizingRowLayoutProps> = ({
               borderTop: '1px solid #f3f4f6',
               paddingTop: '4px'
             }}>
-              Width: {Math.round(100 / component.children.length)}%
+              Width: {Math.round(100 / (component.children?.length || 1))}%
             </div>
           </div>
         ))}

@@ -11,6 +11,7 @@ interface CanvasProps {
   onUpdateComponent: (updates: Partial<FormComponentData>) => void;
   onAddComponent: (type: ComponentType) => void;
   onMoveComponent: (dragIndex: number, hoverIndex: number) => void;
+  onInsertComponent?: (type: ComponentType, insertIndex: number) => void;
   onInsertBetween?: (type: ComponentType, insertIndex: number) => void;
   onInsertHorizontal?: (type: ComponentType, targetId: string, position?: 'left' | 'right') => void;
   onDropInContainer?: (item: { type: ComponentType; id?: string }, containerId: string) => void;
@@ -28,6 +29,7 @@ const Canvas: React.FC<CanvasProps> = ({
   onUpdateComponent,
   onAddComponent,
   onMoveComponent,
+  onInsertComponent,
   onInsertBetween,
   onInsertHorizontal,
   onDropInContainer,
@@ -42,15 +44,17 @@ const Canvas: React.FC<CanvasProps> = ({
     drop: (item: any, monitor) => {
       console.log('Canvas drop:', { item, didDrop: monitor.didDrop() });
       
-      if (!monitor.didDrop()) {
-        if (item.type && typeof item.type === 'string' && !item.isFromContainer) {
-          // New component from sidebar
-          onAddComponent(item.type);
-        } else if (item.isFromContainer) {
-          // Component being moved from container to canvas
-          console.log('Moving component from container to canvas:', item.id);
-          handleMoveFromContainerToCanvas(item.id, item.containerPath);
-        }
+      if (monitor.didDrop()) {
+        return;
+      }
+
+      if (item.type && typeof item.type === 'string' && !item.isFromContainer) {
+        // New component from sidebar
+        onAddComponent(item.type);
+      } else if (item.isFromContainer) {
+        // Component being moved from container to canvas
+        console.log('Moving component from container to canvas:', item.id);
+        handleMoveFromContainerToCanvas(item.id, item.containerPath);
       }
       
       // Always return a drop result so nested components know they were dropped successfully
@@ -91,7 +95,9 @@ const Canvas: React.FC<CanvasProps> = ({
     const [{ isOver: isDropZoneOver }, dropZone] = useDrop(() => ({
       accept: 'component',
       drop: (item: { type: ComponentType }) => {
-        if (onInsertBetween) {
+        if (onInsertComponent) {
+          onInsertComponent(item.type, index);
+        } else if (onInsertBetween) {
           onInsertBetween(item.type, index);
         } else {
           onAddComponent(item.type);
@@ -187,13 +193,17 @@ const Canvas: React.FC<CanvasProps> = ({
               // For now, insert horizontally next to this component
               if (onInsertHorizontal) {
                 onInsertHorizontal(item.type, component.id);
+              } else if (onInsertComponent) {
+                onInsertComponent(item.type, isTopHalf ? index : index + 1);
               } else if (onInsertBetween) {
                 onInsertBetween(item.type, isTopHalf ? index : index + 1);
               }
             }
           } else {
             // Default behavior
-            if (onInsertBetween) {
+            if (onInsertComponent) {
+              onInsertComponent(item.type, index + 1);
+            } else if (onInsertBetween) {
               onInsertBetween(item.type, index + 1);
             }
           }
@@ -204,7 +214,7 @@ const Canvas: React.FC<CanvasProps> = ({
           }
         } else if (item.isFromContainer) {
           // Component moved from container - insert at position
-          if (onInsertBetween) {
+          if (onInsertComponent) {
             // First remove from container, then add to canvas
             handleMoveFromContainerToCanvas(item.id, item.containerPath);
             // Note: This would need more sophisticated logic to actually move the component
@@ -295,7 +305,7 @@ const Canvas: React.FC<CanvasProps> = ({
                   }
                 }}
                 style={{
-                  background: '#10b981',
+                  background: '#3b82f6',
                   color: 'white',
                   border: 'none',
                   borderRadius: '3px',
@@ -307,9 +317,9 @@ const Canvas: React.FC<CanvasProps> = ({
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}
-                title="Add component to the right"
+                title="Insert component to the right"
               >
-                →
+                +
               </button>
               <button
                 onClick={(e) => {
@@ -358,77 +368,48 @@ const Canvas: React.FC<CanvasProps> = ({
     <div
       ref={dropRef}
       style={{
-        flex: 1,
         padding: '24px',
-        backgroundColor: isOver ? '#eff6ff' : '#f9fafb',
-        border: '2px dashed #d1d5db',
-        borderColor: isOver ? '#3b82f6' : '#d1d5db',
+        minHeight: '100vh',
+        backgroundColor: isOver ? '#f0f9ff' : '#f9fafb',
+        border: isOver ? '2px dashed #3b82f6' : '2px dashed #e5e7eb',
         borderRadius: '8px',
-        minHeight: '400px',
-        transition: 'all 0.2s ease'
+        transition: 'background-color 0.2s ease, border-color 0.2s ease'
       }}
     >
       {components.length === 0 ? (
-        <div style={{ textAlign: 'center' }}>
-          <div style={{
+        <div
+          style={{
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            height: '200px',
-            color: '#6b7280',
-            fontSize: '16px',
-            marginBottom: '24px'
-          }}>
-            Drop components here to build your form
-          </div>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '16px' }}>
-            <button
-              onClick={handleAddHorizontalLayout}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#3b82f6',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '14px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              ↔ Add Row Layout
+            minHeight: 'calc(100vh - 48px)',
+            textAlign: 'center',
+            color: '#6b7280'
+          }}
+        >
+          <p style={{ fontSize: '16px', marginBottom: '16px' }}>
+            Drag and drop components from the left panel to start building your form.
+          </p>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button onClick={handleAddHorizontalLayout} style={{ padding: '8px 12px', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}>
+              Add Horizontal Layout
             </button>
-            <button
-              onClick={handleAddVerticalLayout}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#10b981',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '14px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              ↕ Add Column Layout
+            <button onClick={handleAddVerticalLayout} style={{ padding: '8px 12px', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}>
+              Add Vertical Layout
             </button>
-          </div>
-          <div style={{ fontSize: '14px', color: '#9ca3af' }}>
-            Or drag components from the sidebar
           </div>
         </div>
       ) : (
-        <div>
-          {components.map((component, index) => (
-            <DraggableComponentItem key={component.id} component={component} index={index} />
-          ))}
-          <DropZone index={components.length} />
-        </div>
+        components.map((component, index) => (
+          <DraggableComponentItem
+            key={component.id}
+            component={component}
+            index={index}
+          />
+        ))
       )}
+      {components.length > 0 && <DropZone index={components.length} />}
     </div>
   );
 };

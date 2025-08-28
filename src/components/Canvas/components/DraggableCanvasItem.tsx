@@ -156,6 +156,7 @@ const DraggableCanvasItem: React.FC<DraggableCanvasItemProps> = ({
           onDropInContainer={actions.onDropInContainer}
           onDropInContainerWithPosition={actions.onDropInContainerWithPosition}
           onRearrangeWithinContainer={actions.onRearrangeWithinContainer}
+          onUnwrapRowLayout={actions.onUnwrapRowLayout}
         />
       </div>
     </div>

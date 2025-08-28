@@ -1,38 +1,25 @@
-import type { FormComponentData, ComponentType } from '../../../types';
-import type { PositionDetectionResult } from '../types/positioning';
-
-export interface LayoutOperation {
-  type: 'insert' | 'convert_to_row' | 'add_to_row' | 'remove_from_row' | 'cleanup_row';
-  targetIndex?: number;
-  targetComponentId?: string;
-  newComponent?: FormComponentData;
-  position?: 'left' | 'right';
-}
+import type { FormComponentData, ComponentType, RowLayout } from '../../../types';
+import { createNewComponent } from './componentFactory';
 
 export class LayoutManager {
-  /**
-   * Processes a drop result and determines the layout operation needed
-   */
-  processDropResult(
-    dropResult: PositionDetectionResult,
-    newComponentType: ComponentType,
-    currentComponents: FormComponentData[]
-  ): LayoutOperation {
-    const { position, targetIndex, shouldCreateRow, targetComponentId } = dropResult;
+  private components: FormComponentData[];
 
-    if (shouldCreateRow && (position === 'left' || position === 'right')) {
-      return this.createRowConversionOperation(targetIndex, targetComponentId!, newComponentType, position);
-    }
-
-    if (position === 'left' || position === 'right') {
-      return this.createAddToRowOperation(targetComponentId!, newComponentType, position);
-    }
-
-    return this.createInsertOperation(targetIndex, newComponentType);
+  constructor(components: FormComponentData[]) {
+    this.components = components;
   }
 
   /**
-   * Converts a single component into a row layout with the new component
+   * Inserts a new component into the layout.
+   * This is the corrected logic that appends instead of replaces.
+   */
+  insertNewComponent(componentType: ComponentType): FormComponentData[] {
+    const newComponent = createNewComponent(componentType);
+    // The FIX: Return a new array with the existing components plus the new one.
+    return [...this.components, newComponent];
+  }
+
+  /**
+   * Converts a component to a row layout
    */
   convertToRowLayout(
     components: FormComponentData[],
@@ -52,7 +39,7 @@ export class LayoutManager {
       type: 'horizontal_layout',
       label: 'Row Layout',
       required: false,
-      children: position === 'left' 
+      children: position === 'left'
         ? [newComponent, targetComponent]
         : [targetComponent, newComponent],
       layout: {
@@ -75,7 +62,7 @@ export class LayoutManager {
     // Replace target component with row layout
     const newComponents = [...components];
     newComponents[targetIndex] = rowLayout;
-    
+
     return newComponents;
   }
 
@@ -89,10 +76,10 @@ export class LayoutManager {
     position: 'left' | 'right'
   ): FormComponentData[] {
     const newComponent = this.createComponent(newComponentType);
-    
+
     return this.updateComponentRecursively(components, targetComponentId, (component) => {
       if (component.type === 'horizontal_layout' && component.children) {
-        const newChildren = position === 'left' 
+        const newChildren = position === 'left'
           ? [newComponent, ...component.children]
           : [...component.children, newComponent];
 
@@ -126,11 +113,11 @@ export class LayoutManager {
     if (containerPath.length === 0) return components;
 
     const parentId = containerPath[containerPath.length - 1];
-    
+
     return this.updateComponentRecursively(components, parentId, (component) => {
       if (component.type === 'horizontal_layout' && component.children) {
         const filteredChildren = component.children.filter(child => child.id !== componentId);
-        
+
         // If only one child left, unwrap the row layout
         if (filteredChildren.length === 1) {
           const singleChild = filteredChildren[0];
@@ -175,6 +162,27 @@ export class LayoutManager {
     const newComponents = [...components];
     newComponents.splice(index, 0, newComponent);
     return newComponents;
+  }
+
+  /**
+   * Processes a drop result and determines the layout operation needed
+   */
+  processDropResult(
+    dropResult: PositionDetectionResult,
+    newComponentType: ComponentType,
+    currentComponents: FormComponentData[]
+  ): LayoutOperation {
+    const { position, targetIndex, shouldCreateRow, targetComponentId } = dropResult;
+
+    if (shouldCreateRow && (position === 'left' || position === 'right')) {
+      return this.createRowConversionOperation(targetIndex, targetComponentId!, newComponentType, position);
+    }
+
+    if (position === 'left' || position === 'right') {
+      return this.createAddToRowOperation(targetComponentId!, newComponentType, position);
+    }
+
+    return this.createInsertOperation(targetIndex, newComponentType);
   }
 
   private createRowConversionOperation(
@@ -235,14 +243,14 @@ export class LayoutManager {
       if (component.id === targetId) {
         return updater(component);
       }
-      
+
       if (component.children) {
         return {
           ...component,
           children: this.updateComponentRecursively(component.children, targetId, updater)
         };
       }
-      
+
       return component;
     });
   }
@@ -293,4 +301,4 @@ export class LayoutManager {
 }
 
 // Singleton instance
-export const layoutManager = new LayoutManager();
+export const layoutManager = new LayoutManager([]);

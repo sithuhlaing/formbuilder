@@ -13,26 +13,21 @@ const Accordion: React.FC<AccordionProps> = ({
   defaultExpanded = []
 }) => {
   const [expandedItems, setExpandedItems] = useState<string[]>(() => {
-    console.log('Accordion initial defaultExpanded:', defaultExpanded);
     return [...defaultExpanded];
   });
   
   const [, forceUpdate] = useReducer(x => x + 1, 0);
 
   const handleToggle = (id: string) => {
-    console.log(`Accordion handleToggle called for ${id}`, 'Current expanded items:', expandedItems);
     setExpandedItems(prev => {
       const isCurrentlyExpanded = prev.includes(id);
-      console.log(`${id} is currently expanded:`, isCurrentlyExpanded);
       
       let newItems;
       if (isCurrentlyExpanded) {
         // Collapse the item
-        console.log(`Collapsing ${id}`);
         newItems = prev.filter(itemId => itemId !== id);
       } else {
         // Expand the item
-        console.log(`Expanding ${id}`);
         if (!allowMultiple) {
           // If only single expansion allowed, return only this item
           newItems = [id];
@@ -42,7 +37,6 @@ const Accordion: React.FC<AccordionProps> = ({
         }
       }
       
-      console.log(`Setting new expanded items:`, newItems);
       forceUpdate(); // Force a re-render
       return newItems;
     });
@@ -59,14 +53,24 @@ const Accordion: React.FC<AccordionProps> = ({
       }}
     >
       {React.Children.map(children, (child) => {
-        if (React.isValidElement(child) && child.props && child.props.id) {
-          const id = child.props.id;
-          const isExpanded = expandedItems.includes(id);
-          console.log(`Accordion rendering child ${id}, isExpanded:`, isExpanded, 'expandedItems:', expandedItems);
-          return React.cloneElement(child, {
-            isExpanded: isExpanded,
-            onToggle: handleToggle
-          });
+        if (React.isValidElement(child)) {
+          // Try to get the id from various possible locations
+          let id = child.props?.id;
+          if (!id && child.props?.category?.id) {
+            id = child.props.category.id;
+          }
+          
+          if (id) {
+            const isExpanded = expandedItems.includes(id);
+              // Create new props with accordion overrides
+            const newProps = {
+              ...child.props,
+              id: id,
+              isExpanded: isExpanded,
+              onToggle: handleToggle
+            };
+            return React.cloneElement(child, newProps);
+          }
         }
         return child;
       })}

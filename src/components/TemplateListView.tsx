@@ -160,7 +160,7 @@ const TemplateListView: React.FC<TemplateListViewProps> = ({
                   <div className="template-card__info">
                     <div className="template-card__stat">
                       <span className="template-card__stat-label">Fields:</span>
-                      <span className="template-card__stat-value">{template.fields.length}</span>
+                      <span className="template-card__stat-value">{template.fields?.length || 0}</span>
                     </div>
                     <div className="template-card__stat">
                       <span className="template-card__stat-label">Pages:</span>
@@ -173,8 +173,8 @@ const TemplateListView: React.FC<TemplateListViewProps> = ({
                   </div>
 
                   <div className="template-card__preview">
-                    {template.fields.slice(0, 3).map((field, index) => (
-                      <div key={index} className="template-card__field">
+                    {(template.fields || []).slice(0, 3).map((field, index) => (
+                      <div key={field.id ? `field-${field.id}` : `${template.templateId}-field-${index}-${field.type}-${field.label || 'unlabeled'}`} className="template-card__field">
                         <span className="template-card__field-type">
                           {field.type.replace('_', ' ')}
                         </span>
@@ -183,9 +183,9 @@ const TemplateListView: React.FC<TemplateListViewProps> = ({
                         </span>
                       </div>
                     ))}
-                    {template.fields.length > 3 && (
+                    {(template.fields?.length || 0) > 3 && (
                       <div className="template-card__field-more">
-                        +{template.fields.length - 3} more fields
+                        +{(template.fields?.length || 0) - 3} more fields
                       </div>
                     )}
                   </div>

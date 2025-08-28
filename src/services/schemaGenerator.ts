@@ -23,6 +23,12 @@ interface JsonSchema {
   description?: string;
 }
 
+// Extended interface for components with validation
+interface FormComponentWithValidation extends FormComponentData {
+  validation?: "none" | "email" | "number" | "custom";
+  customValidation?: string;
+}
+
 export class SchemaGenerator {
   static generateSchema(
     formName: string, 
@@ -37,15 +43,16 @@ export class SchemaGenerator {
     };
 
     components.forEach(component => {
-      if (component.fieldId) {
+      const fieldId = component.fieldId || component.id;
+      if (fieldId) {
         const propertySchema = this.generatePropertySchema(component);
         
         // Skip null properties (like section dividers)
         if (propertySchema) {
-          schema.properties[component.fieldId] = propertySchema;
+          schema.properties[fieldId] = propertySchema;
           
           if (component.required) {
-            schema.required.push(component.fieldId);
+            schema.required.push(fieldId);
           }
         }
       }
@@ -54,7 +61,7 @@ export class SchemaGenerator {
     return schema;
   }
 
-  private static generatePropertySchema(component: FormComponentData): JsonSchemaProperty {
+  private static generatePropertySchema(component: FormComponentData): JsonSchemaProperty | null {
     const baseProperty: JsonSchemaProperty = {
       type: this.getBaseType(component.type),
       title: component.label,
@@ -116,6 +123,14 @@ export class SchemaGenerator {
         }
         break;
 
+      case "email":
+        baseProperty.format = "email";
+        break;
+
+      case "password":
+        baseProperty.format = "password";
+        break;
+
       case "signature":
         baseProperty.format = "data-url";
         baseProperty.description = "Base64 encoded signature image";
@@ -123,12 +138,13 @@ export class SchemaGenerator {
 
       case "section_divider":
         // Section dividers don't generate form fields in JSON schema
-        return null as any; // Skip this component
+        return null;
     }
 
-    // Add validation
-    if (component.validation && component.validation !== "none") {
-      switch (component.validation) {
+    // Add validation for extended components
+    const extendedComponent = component as FormComponentWithValidation;
+    if (extendedComponent.validation && extendedComponent.validation !== "none") {
+      switch (extendedComponent.validation) {
         case "email":
           baseProperty.format = "email";
           break;
@@ -138,8 +154,8 @@ export class SchemaGenerator {
           break;
         
         case "custom":
-          if (component.customValidation) {
-            baseProperty.pattern = component.customValidation;
+          if (extendedComponent.customValidation) {
+            baseProperty.pattern = extendedComponent.customValidation;
           }
           break;
       }
@@ -193,10 +209,18 @@ export class SchemaGenerator {
           return `${component.label} must be an array of selections`;
         }
         break;
+
+      case "email":
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+          return `${component.label} must be a valid email address`;
+        }
+        break;
     }
 
-    // General validation rules
-    switch (component.validation) {
+    // General validation rules for extended components
+    const extendedComponent = component as FormComponentWithValidation;
+    switch (extendedComponent.validation) {
       case "email":
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(value)) {
@@ -211,8 +235,8 @@ export class SchemaGenerator {
         break;
 
       case "custom":
-        if (component.customValidation) {
-          const customRegex = new RegExp(component.customValidation);
+        if (extendedComponent.customValidation) {
+          const customRegex = new RegExp(extendedComponent.customValidation);
           if (!customRegex.test(value)) {
             return `${component.label} does not match the required format`;
           }

@@ -378,6 +378,7 @@ const DragDropReorderingCanvas: React.FC<DragDropReorderingCanvasProps> = ({
   return (
     <div
       ref={drop}
+      data-testid="canvas"
       style={{
         flex: 1,
         padding: '24px',

@@ -6,12 +6,8 @@
 
 import React, { useCallback, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
-import { SimpleDragDropRules } from '../Canvas/core/DragDropRules';
+import { COMPONENT_TYPE } from '../../dnd/types';
 import type { Intent } from '../Canvas/core/types';
-import { CanvasStateManager } from '../Canvas/core/CanvasStateManager';
-import FixedBoundaryDropZone from './FixedBoundaryDropZone';
-import FixedWidthRowLayout from './FixedWidthRowLayout';
-import { SimplifiedFormComponentRenderer } from '../molecules/forms';
 import type { FormComponentData, ComponentType } from '../../types';
 
 interface FixedViewportCanvasProps {
@@ -48,36 +44,30 @@ const FixedViewportCanvas: React.FC<FixedViewportCanvasProps> = ({
   );
 
   // Fixed viewport canvas drop zone - boundary never changes size
-  const [{ isOver, canDrop }, drop] = useDrop({
-    accept: ['component'],
+  const [{ isOver, canDrop }, drop] = useDrop(() => ({
+    accept: COMPONENT_TYPE,
+    drop: (item: { type: ComponentType }) => handleDrop(item),
     collect: (monitor) => ({
-      isOver: monitor.isOver({ shallow: true }),
+      isOver: monitor.isOver(),
       canDrop: monitor.canDrop(),
     }),
-    drop: (item: any, monitor) => {
-      if (!monitor.didDrop()) {
-        handleCanvasDrop(item);
-      }
-    }
-  });
+  }));
 
-  drop(canvasRef);
+  const dropRef = useRef<HTMLDivElement>(null);
+  drop(dropRef);
 
   /**
    * source_left_panel drop handler
    * action: "create_new_item", result: "increase canvas collection by 1"
    */
-  const handleCanvasDrop = useCallback((item: any) => {
-    if (item.type && typeof item.type === 'string') {
-      console.log('📋 Left Panel → Canvas:', {
-        action: 'create_new_item',
-        type: item.type,
-        result: 'increase canvas collection by 1',
-        boundary: 'fixed (content scrolls)'
-      });
-      onAddComponent(item.type);
-    }
-  }, [onAddComponent]);
+  const handleDrop = useCallback(
+    (item: { type: ComponentType }) => {
+      if (item) {
+        onAddComponent(item.type);
+      }
+    },
+    [onAddComponent]
+  );
 
   /**
    * source_canvas drop handler

@@ -1,25 +1,25 @@
 import React, { useRef, useState } from 'react';
-import { useDrag, useDrop } from 'react-dnd';
 import SimplifiedFormComponentRenderer from '../../molecules/forms/SimplifiedFormComponentRenderer';
-import type { FormComponentData } from '../../../types';
+import { useDrag, useDrop } from 'react-dnd';
+import type { FormComponentData, ComponentType } from '../../../types';
 
 interface DragDropReorderingItemProps {
   component: FormComponentData;
   index: number;
   selectedComponentId: string | null;
-  onSelectComponent: (id: string | null) => void;
+  onSelectComponent: (id: string) => void;
   onUpdateComponent: (updates: Partial<FormComponentData>) => void;
-  onDeleteComponent: (id: string) => void;
+  onDeleteComponent: (id:string) => void;
   onMoveComponent: (dragIndex: number, hoverIndex: number) => void;
-  onCreateRowLayout?: (draggedComponent: FormComponentData, targetComponent: FormComponentData, position: 'left' | 'right') => void;
-  onAddToRowLayout?: (draggedComponent: FormComponentData, targetRowLayout: FormComponentData, position: 'left' | 'right') => void;
-  onUpdateComponents?: (components: FormComponentData[]) => void;
-  allComponents: FormComponentData[]; // Need access to all components to find parent row layouts
-  createComponent?: (type: string) => FormComponentData; // For creating new components locally
+  onCreateRowLayout: (draggedComponent: FormComponentData, targetComponent: FormComponentData, position: 'left' | 'right') => void;
+  onAddToRowLayout: (draggedComponent: FormComponentData, targetRowLayout: FormComponentData, position: 'left' | 'right') => void;
+  onUpdateComponents: (components: FormComponentData[]) => void;
+  allComponents: FormComponentData[];
+  createComponent?: (type: string) => FormComponentData;
 }
 
 interface DragItem {
-  type: string;
+  type: 'reorder-component';
   id: string;
   index: number;
   component: FormComponentData;

@@ -72,6 +72,13 @@
   font-size: var(--text-base);
 }
 
+.btn--icon {
+  padding: var(--space-2);
+  min-width: 32px;
+  width: 32px;
+  height: 32px;
+}
+
 /* Input Component */
 .input {
   width: 100%;

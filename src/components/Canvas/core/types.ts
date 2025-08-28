@@ -2,7 +2,7 @@
  * Canvas and Drag-Drop Type Definitions
  */
 
-export type Intent = 'LEFT' | 'RIGHT' | 'BEFORE' | 'AFTER' | 'APPEND_TO_CANVAS_END';
+export type Intent = 'BEFORE' | 'AFTER' | 'LEFT' | 'RIGHT' | 'APPEND_TO_CANVAS_END';
 
 export interface CanvasNode {
   id: string;

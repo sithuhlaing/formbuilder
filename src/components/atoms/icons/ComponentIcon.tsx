@@ -4,8 +4,11 @@ import type { ComponentIconProps } from '../../types/props';
 
 const COMPONENT_ICONS = {
   text_input: '📝',
+  email: '📧',
+  password: '🔒',
   number_input: '🔢',
   textarea: '📄',
+  rich_text: '✏️',
   select: '📋',
   multi_select: '☑️',
   checkbox: '✅',
@@ -29,3 +32,4 @@ const ComponentIcon: React.FC<ComponentIconProps> = ({ type, className = '' }) =
 };
 
 export default ComponentIcon;
+export { ComponentIcon };

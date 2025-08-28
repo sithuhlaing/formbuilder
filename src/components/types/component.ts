@@ -33,4 +33,12 @@ export interface FormComponentData {
   description?: string;
   helpText?: string;
   children?: FormComponentData[];
+  rows?: number;
+  content?: string;
+  maxSize?: number;
+}
+
+interface RichTextComponent extends FormComponentData {
+  type: 'rich_text';
+  height?: string;
 }

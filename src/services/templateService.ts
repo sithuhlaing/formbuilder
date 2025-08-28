@@ -315,9 +315,11 @@ function generateJSONSchema(components: FormComponentData[], pages: FormPage[]) 
   const processComponents = (comps: FormComponentData[]) => {
     comps.forEach(component => {
       if (component.type !== 'section_divider' && component.type !== 'horizontal_layout' && component.type !== 'vertical_layout') {
-        properties[component.fieldId] = getSchemaForComponent(component);
+        // Ensure fieldId exists before using it as a key
+        const fieldId = component.fieldId || component.id;
+        properties[fieldId] = getSchemaForComponent(component);
         if (component.required) {
-          required.push(component.fieldId);
+          required.push(fieldId);
         }
       }
       

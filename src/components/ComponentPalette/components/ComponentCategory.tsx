@@ -7,19 +7,26 @@ import type { ComponentType } from '../../../types';
 interface ComponentCategoryProps {
   category: ComponentCategoryType;
   onAddComponent: (type: ComponentType) => void;
+  // Props that may be passed by Accordion
+  id?: string;
+  isExpanded?: boolean;
+  onToggle?: (id: string) => void;
 }
 
 const ComponentCategory: React.FC<ComponentCategoryProps> = ({
   category,
-  onAddComponent
+  onAddComponent,
+  id,
+  isExpanded = false,
+  onToggle = () => {}
 }) => {
   return (
     <AccordionItem
-      id={category.id}
+      id={id || category.id}
       title={category.name}
       icon={category.icon}
-      isExpanded={false} // Will be controlled by parent Accordion
-      onToggle={() => {}} // Will be overridden by parent Accordion
+      isExpanded={isExpanded}
+      onToggle={onToggle}
     >
       <div style={{ padding: '0 8px 8px 8px' }}>
         {category.description && (

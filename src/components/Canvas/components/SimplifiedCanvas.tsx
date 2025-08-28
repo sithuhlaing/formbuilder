@@ -5,12 +5,14 @@
 
 import React, { useCallback, useRef } from 'react';
 import { useDrop } from 'react-dnd';
-import { SimpleDragDropRules, Intent } from '../core/DragDropRules';
-import { CanvasStateManager, CanvasNode } from '../core/CanvasStateManager';
+import { SimpleDragDropRules } from '../core/DragDropRules';
+import { CanvasStateManager } from '../core/CanvasStateManager';
+import type { CanvasNode, Intent } from '../core/types';
 import SimplifiedDropZone from './SimplifiedDropZone';
 import SimplifiedRowLayout from './SimplifiedRowLayout';
 import FormComponentRenderer from '../../molecules/forms/FormComponentRenderer';
 import type { FormComponentData, ComponentType } from '../../../types';
+import ComponentSelect from '../../atoms/interaction/ComponentSelect';
 
 interface SimplifiedCanvasProps {
   components: FormComponentData[];
@@ -215,14 +217,18 @@ const SimplifiedCanvas: React.FC<SimplifiedCanvasProps> = ({
               index={index}
               onDrop={handleComponentDrop}
             >
-              <FormComponentRenderer
-                component={component}
+              <ComponentSelect
                 isSelected={selectedComponentId === component.id}
                 onSelect={() => onSelectComponent(component.id)}
-                onUpdate={onUpdateComponent}
                 onDelete={() => onDeleteComponent(component.id)}
-                mode="builder"
-              />
+              >
+                <FormComponentRenderer
+                  component={component}
+                  selectedComponentId={selectedComponentId}
+                  onSelectComponent={onSelectComponent}
+                  onUpdateComponent={onUpdateComponent}
+                />
+              </ComponentSelect>
             </SimplifiedDropZone>
           </div>
         );

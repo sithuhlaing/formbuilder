@@ -21,14 +21,14 @@ export interface DragSourceConfig {
 }
 
 export interface DropZoneResult {
-  dropRef: React.RefObject<HTMLElement>;
-  connect: (ref: React.RefObject<HTMLElement>) => void;
+  dropRef: React.RefObject<HTMLElement | null>;
+  connect: (ref: React.RefObject<HTMLElement | null>) => void;
   monitor: any;
 }
 
 export interface DragSourceResult {
-  dragRef: React.RefObject<HTMLElement>;
-  connect: (ref: React.RefObject<HTMLElement>) => void;
+  dragRef: React.RefObject<HTMLElement | null>;
+  connect: (ref: React.RefObject<HTMLElement | null>) => void;
   monitor: any;
 }
 
@@ -38,7 +38,7 @@ import { useRef } from 'react';
 
 export class ReactDndProvider implements IDragDropProvider {
   createDropZone(config: DropZoneConfig): DropZoneResult {
-    const dropRef = useRef<HTMLElement>(null);
+    const dropRef = useRef<HTMLElement | null>(null);
     
     const [monitor, drop] = useDrop(() => ({
       accept: config.accept,
@@ -56,7 +56,7 @@ export class ReactDndProvider implements IDragDropProvider {
   }
 
   createDragSource(config: DragSourceConfig): DragSourceResult {
-    const dragRef = useRef<HTMLElement>(null);
+    const dragRef = useRef<HTMLElement | null>(null);
     
     const [monitor, drag] = useDrag(() => ({
       type: config.type,

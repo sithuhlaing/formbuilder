@@ -85,7 +85,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   );
 
   return (
-    <div className={className}>
+    <div className={className} style={{ position: 'relative' }}>
       {/* Toolbar */}
       <div style={{
         display: 'flex',
@@ -171,7 +171,6 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           cursor: disabled ? 'not-allowed' : 'text',
           overflow: 'auto'
         }}
-        placeholder={!content && !disabled ? placeholder : undefined}
       />
 
       {!content && !disabled && (

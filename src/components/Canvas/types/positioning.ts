@@ -1,4 +1,6 @@
-export type DropPosition = 'top' | 'right' | 'bottom' | 'left' | 'center';
+import type { DragItem } from '../types';
+
+export type DropPosition = 'top' | 'bottom' | 'left' | 'right' | 'center';
 
 export interface DropZone {
   position: DropPosition;
@@ -11,6 +13,7 @@ export interface PositionDetectionResult {
   targetIndex: number;
   shouldCreateRow: boolean;
   targetComponentId?: string;
+  source?: DragItem;
 }
 
 export interface CrossSectionRegions {
@@ -24,7 +27,7 @@ export interface CrossSectionRegions {
 export interface SmartDropZoneProps {
   componentId: string;
   componentIndex: number;
-  elementRef: React.RefObject<HTMLElement>;
+  elementRef: React.RefObject<HTMLElement | null>;
   onDrop: (result: PositionDetectionResult) => void;
   children: React.ReactNode;
 }

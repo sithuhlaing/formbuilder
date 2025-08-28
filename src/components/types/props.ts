@@ -16,9 +16,9 @@ export interface ActionButtonProps {
 }
 
 export interface ComponentSelectProps {
-  componentId: string;
-  onSelect: (id: string) => void;
+  onSelect: () => void;
   isSelected: boolean;
+  onDelete?: () => void;
 }
 
 export interface ComponentDeleteProps {

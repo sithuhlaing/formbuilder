@@ -6,8 +6,7 @@
 // Core logic
 export { SimpleDragDropRules } from './core/DragDropRules';
 export { CanvasStateManager } from './core/CanvasStateManager';
-export type { Intent } from './core/DragDropRules';
-export type { CanvasNode, CanvasState } from './core/CanvasStateManager';
+export type { Intent, CanvasNode, CanvasState } from './core/types';
 
 // Components
 export { default as SimplifiedCanvas } from './components/SimplifiedCanvas';

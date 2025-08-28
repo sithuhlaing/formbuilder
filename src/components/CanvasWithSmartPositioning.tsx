@@ -1,12 +1,13 @@
 import React, { useCallback } from 'react';
+import CanvasEmptyState from './Canvas/components/CanvasEmptyState';
+import { SmartCanvasHandler } from './Canvas/handlers/SmartCanvasHandler';
 import CanvasDropZone from './Canvas/components/CanvasDropZone';
 import SmartCanvasItem from './Canvas/components/SmartCanvasItem';
-import CanvasEmptyState from './Canvas/components/CanvasEmptyState';
-import { CanvasMainDropStrategy } from './Canvas/strategies/DropZoneStrategy';
-import { SmartCanvasHandler } from './Canvas/handlers/SmartCanvasHandler';
 import type { FormComponentData, ComponentType } from '../types';
 import type { CanvasActions } from './Canvas/types';
 import type { PositionDetectionResult } from './Canvas/types/positioning';
+import { COMPONENT_TYPE } from '../../../dnd/types';
+import { getDropIntent, type Intent } from '../core/drop-intent';
 
 interface CanvasProps {
   components: FormComponentData[];

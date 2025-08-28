@@ -1,31 +1,48 @@
-import type { DragItem, CanvasActions, IDragDropHandler, DropPosition } from '../types';
+import type { RefObject } from 'react';
+import type { XYCoord } from 'react-dnd';
 import type { FormComponentData } from '../../../types';
+import type { CanvasActions, DragItem } from '../types';
 
-export class ComponentDragDropHandler implements IDragDropHandler {
-  private dropPosition: DropPosition | null = null;
+export class ComponentDragDropHandler {
+  private actions: CanvasActions;
+  private component: FormComponentData;
+  private index: number;
+  private itemRef: RefObject<HTMLDivElement>;
+  private dropIndicatorStyle: React.CSSProperties = {};
 
   constructor(
-    private actions: CanvasActions,
-    private component: FormComponentData,
-    private index: number,
-    private elementRef: React.RefObject<HTMLDivElement>
-  ) {}
+    actions: CanvasActions,
+    component: FormComponentData,
+    index: number,
+    itemRef: RefObject<HTMLDivElement>
+  ) {
+    this.actions = actions;
+    this.component = component;
+    this.index = index;
+    this.itemRef = itemRef;
+  }
 
-  handleHover(item: DragItem, monitor: any): void {
-    if (!this.elementRef.current) return;
-    if (item.id === this.component.id) return;
+  public handleHover(item: DragItem, monitor: any): void {
+    if (!this.itemRef.current) {
+      return;
+    }
+    if (item.id === this.component.id) {
+      return;
+    }
     
     const dragIndex = item.index;
     const hoverIndex = this.index;
     
     // Determine rectangle on screen
-    const hoverBoundingRect = this.elementRef.current.getBoundingClientRect();
+    const hoverBoundingRect = this.itemRef.current.getBoundingClientRect();
     const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
     const hoverMiddleX = (hoverBoundingRect.right - hoverBoundingRect.left) / 2;
     
     // Determine mouse position
     const clientOffset = monitor.getClientOffset();
-    if (!clientOffset) return;
+    if (!clientOffset) {
+      return;
+    }
     
     const hoverClientY = clientOffset.y - hoverBoundingRect.top;
     const hoverClientX = clientOffset.x - hoverBoundingRect.left;
@@ -35,17 +52,19 @@ export class ComponentDragDropHandler implements IDragDropHandler {
     const isTopHalf = hoverClientY < hoverMiddleY;
     
     // Store drop position for visual feedback
-    this.dropPosition = {
+    const dropPosition = {
       isLeftHalf,
       isTopHalf,
       dragIndex: dragIndex ?? -1,
       hoverIndex
     };
 
-    (this.elementRef.current as any).dropPosition = this.dropPosition;
+    this.dropIndicatorStyle = this.getDropIndicatorStyle(dropPosition);
+
+    (this.itemRef.current as any).dropPosition = dropPosition;
   }
 
-  handleDrop(item: DragItem, monitor: any): void {
+  public handleDrop(item: DragItem, monitor: any): void {
     if (item.type && typeof item.type === 'string' && !item.id && !item.isFromContainer) {
       // New component from sidebar
       this.handleNewComponentDrop(item);
@@ -59,8 +78,8 @@ export class ComponentDragDropHandler implements IDragDropHandler {
   }
 
   private handleNewComponentDrop(item: DragItem): void {
-    if (this.dropPosition) {
-      const { isLeftHalf } = this.dropPosition;
+    if (this.dropIndicatorStyle && this.dropIndicatorStyle['&::before']) {
+      const isLeftHalf = this.dropIndicatorStyle['&::before'].left === '-2px';
       
       if (this.actions.onInsertHorizontal) {
         this.actions.onInsertHorizontal(item.type, this.component.id);
@@ -84,10 +103,10 @@ export class ComponentDragDropHandler implements IDragDropHandler {
     }
   }
 
-  getDropIndicatorStyle(): Record<string, any> {
-    if (!this.dropPosition) return {};
+  private getDropIndicatorStyle(dropPosition: any): Record<string, any> {
+    if (!dropPosition) return {};
     
-    const { isLeftHalf } = this.dropPosition;
+    const { isLeftHalf } = dropPosition;
     return {
       '&::before': {
         content: '""',
@@ -102,7 +121,7 @@ export class ComponentDragDropHandler implements IDragDropHandler {
     };
   }
 
-  canDrop(item: DragItem): boolean {
+  public canDrop(item: DragItem): boolean {
     return ['existing-component', 'component', 'nested-component'].includes(item.type);
   }
 }

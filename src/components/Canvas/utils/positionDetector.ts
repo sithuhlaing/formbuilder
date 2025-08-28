@@ -1,3 +1,4 @@
+import type { XYCoord } from 'react-dnd';
 import type { DropPosition, CrossSectionRegions, PositionDetectionResult } from '../types/positioning';
 
 export class PositionDetector {
@@ -162,6 +163,40 @@ export class PositionDetector {
            point.x <= rect.right && 
            point.y >= rect.top && 
            point.y <= rect.bottom;
+  }
+
+  static detect(
+    monitor: { getClientOffset: () => XYCoord | null },
+    ref: React.RefObject<HTMLElement>,
+    index: number,
+    id: string
+  ): PositionDetectionResult | null {
+    if (!ref.current) {
+      return null;
+    }
+
+    const hoverBoundingRect = ref.current.getBoundingClientRect();
+    const clientOffset = monitor.getClientOffset();
+
+    if (!clientOffset) {
+      return null;
+    }
+
+    const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+    const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+
+    const hoverMiddleX = (hoverBoundingRect.right - hoverBoundingRect.left) / 2;
+    const hoverClientX = clientOffset.x - hoverBoundingRect.left;
+
+    const isTopHalf = hoverClientY < hoverMiddleY;
+    const isLeftHalf = hoverClientX < hoverMiddleX;
+
+    // Simple vertical detection for now
+    if (isTopHalf) {
+      return { position: 'top', targetId: id, targetIndex: index };
+    } else {
+      return { position: 'bottom', targetId: id, targetIndex: index };
+    }
   }
 }
 

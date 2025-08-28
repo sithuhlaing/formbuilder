@@ -5,7 +5,7 @@
 
 import React, { useRef } from 'react';
 import { useDrop } from 'react-dnd';
-import FormComponentRenderer from '../../molecules/forms/FormComponentRenderer';
+import SimplifiedFormComponentRenderer from '../../molecules/forms/SimplifiedFormComponentRenderer';
 import type { FormComponentData } from '../../../types';
 
 interface SimplifiedRowLayoutProps {
@@ -143,7 +143,7 @@ const SimplifiedRowLayout: React.FC<SimplifiedRowLayoutProps> = ({
             </div>
 
             {/* Component Renderer */}
-            <FormComponentRenderer
+            <SimplifiedFormComponentRenderer
               component={child}
               isSelected={selectedComponentId === child.id}
               onSelect={() => onSelectComponent(child.id)}

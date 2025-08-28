@@ -4,8 +4,9 @@
  */
 
 import { useCallback } from 'react';
-import { CanvasStateManager, CanvasNode } from '../components/Canvas/core/CanvasStateManager';
-import { Intent } from '../components/Canvas/core/DragDropRules';
+import { CanvasStateManager } from '../components/Canvas/core/CanvasStateManager';
+import type { CanvasNode } from '../components/Canvas/core/types';
+import type { Intent } from '../components/Canvas/core/types';
 import type { FormComponentData, ComponentType } from '../types';
 
 interface UseSimplifiedCanvasProps {

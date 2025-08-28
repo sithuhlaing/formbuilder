@@ -1,3 +1,4 @@
+
 /**
  * TDD Test Suite for Drag & Drop Behaviors
  * 
@@ -26,25 +27,45 @@ const renderAppWithDragDrop = async (backend = TestBackend) => {
     </DndProvider>
   );
   
-  // Navigate to form builder by clicking "Create New Form"
-  const createNewButton = screen.getByText('+ Create New Form');
+  // Navigate to form builder by clicking "Create Your First Form" (welcome screen)
+  const createNewButton = screen.getByRole('button', { name: /create your first form/i });
   await userEvent.click(createNewButton);
   
   return {
     ...result,
     // Helper to get current canvas element count
-    getCanvasElementCount: () => {
+    getCanvasElementCount: (): number => {
       const canvas = screen.getByTestId('canvas') || screen.getByRole('main');
       return canvas.querySelectorAll('[data-testid^="canvas-item"]').length;
     },
     // Helper to get canvas elements in order
-    getCanvasElements: () => {
+    getCanvasElements: (): Element[] => {
       const canvas = screen.getByTestId('canvas') || screen.getByRole('main');
       return Array.from(canvas.querySelectorAll('[data-testid^="canvas-item"]'));
     },
+    // Helper to get specific canvas element by index
+    getCanvasElement: (index: number): Element => {
+      const canvas = screen.getByTestId('canvas') || screen.getByRole('main');
+      const elements = canvas.querySelectorAll('[data-testid^="canvas-item"]');
+      const element = elements[index];
+      if (!element) {
+        throw new Error(`Canvas element at index ${index} not found. Available elements: ${elements.length}`);
+      }
+      return element;
+    },
     // Helper to simulate drag from palette
-    dragFromPalette: async (componentType: string, dropTarget: string) => {
-      // Components are already expanded by default, no need to expand accordion
+    dragFromPalette: async (componentType: string, dropTarget: string): Promise<void> => {
+      // First try to expand the "Input Fields" accordion if it's collapsed
+      try {
+        const inputsAccordion = screen.getByText('Input Fields');
+        if (inputsAccordion.getAttribute('aria-expanded') === 'false') {
+          await userEvent.click(inputsAccordion);
+          await new Promise<void>(resolve => setTimeout(resolve, 100));
+        }
+      } catch (e) {
+        console.log('Could not find Input Fields accordion button, continuing...');
+      }
+      
       // Look for the component by name
       const paletteItem = screen.getByText(componentType);
       
@@ -52,7 +73,17 @@ const renderAppWithDragDrop = async (backend = TestBackend) => {
       await userEvent.click(paletteItem);
       
       // Add small delay to avoid throttling protection in rapid succession
-      await new Promise(resolve => setTimeout(resolve, 600));
+      await new Promise<void>(resolve => setTimeout(resolve, 600));
+    },
+    // Helper for drag and drop operations
+    dnd: {
+      dragAndDrop: async (source: Element, target: Element): Promise<void> => {
+        await userEvent.pointer([
+          { target: source, keys: '[MouseLeft>]' },
+          { target: target, coords: { x: 50, y: 50 } },
+          { keys: '[/MouseLeft]' }
+        ]);
+      }
     }
   };
 };
@@ -147,6 +178,36 @@ describe('🧪 TDD: Drag & Drop Core Behaviors', () => {
       // Verify we have both distinct elements
       expect(screen.getByText('Text Input Field')).toBeInTheDocument();
       expect(screen.getByText('Textarea Field')).toBeInTheDocument();
+    });
+    
+    it('✅ A5: Reordering components on the canvas works correctly', async () => {
+      const { dragFromPalette, getCanvasElement, getCanvasElementCount, dnd } = await renderAppWithDragDrop();
+
+      // 1. Add two components to the canvas
+      await dragFromPalette('Text Input', 'canvas');
+      await dragFromPalette('Email Input', 'canvas');
+      expect(getCanvasElementCount()).toBe(2);
+
+      // 2. Verify initial order
+      let firstElement = getCanvasElement(0);
+      let secondElement = getCanvasElement(1);
+      
+      // Verify elements exist and have expected content
+      expect(firstElement).toBeInTheDocument();
+      expect(secondElement).toBeInTheDocument();
+      expect(firstElement).toHaveTextContent('Text Input');
+      expect(secondElement).toHaveTextContent('Email Input');
+
+      // 3. Drag the first component and drop it onto the second to reorder
+      await dnd.dragAndDrop(firstElement, secondElement);
+
+      // 4. Verify the new order
+      firstElement = getCanvasElement(0);
+      secondElement = getCanvasElement(1);
+      expect(firstElement).toBeInTheDocument();
+      expect(secondElement).toBeInTheDocument();
+      expect(firstElement).toHaveTextContent('Email Input');
+      expect(secondElement).toHaveTextContent('Text Input');
     });
   });
   
@@ -316,7 +377,7 @@ describe('🧪 TDD: Drag & Drop Core Behaviors', () => {
       ]);
       
       // RowLayout should be dissolved, remaining item promoted to main canvas
-      expect(screen.queryByTestId('row-layout')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('row-layout')).toBeNull();
       expect(getCanvasElementCount()).toBe(2); // Both items still exist, just not in row
     });
   });
@@ -760,7 +821,7 @@ describe('🧪 TDD: Drag & Drop Core Behaviors', () => {
       expect(elements).toHaveLength(2); // Row + moved element
       
       // Row should be dissolved since it has only 1 element left
-      expect(screen.queryByTestId('row-layout')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('row-layout')).toBeNull();
     });
   });
 

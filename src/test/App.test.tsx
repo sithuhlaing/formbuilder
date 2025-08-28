@@ -40,6 +40,6 @@ describe('App Integration Test', () => {
     expect(updatedComponent).toBeInTheDocument();
 
     // And verify the old label is gone from the canvas
-    expect(screen.queryByText('Text Input', { selector: '.form-component *' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Text Input', { selector: '.form-component *' })).toBeNull();
   });
 });

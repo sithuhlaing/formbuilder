@@ -1,8 +1,13 @@
 // Re-export component types from their proper location
-export type { IDropZoneStrategy } from './components/Canvas/strategies/DropZoneStrategy';
-export type { ComponentType, FormComponentData } from './components/types/component';
+export type {
+  ComponentType,
+  FormComponentData,
+} from './components/types/component';
 
-// Additional app-level types
+// Re-export strategy types
+export type { IDropZoneStrategy } from './components/Canvas/strategies/DropZoneStrategy';
+
+// App-level types
 export interface AppState {
   components: FormComponentData[];
   selectedComponentId: string | null;
@@ -16,14 +21,65 @@ export interface FormBuilderConfig {
   gridColumns?: number;
 }
 
-// Template and template types (enhanced)
-export type FormTemplateType = "assessment" | "survey" | "application" | "feedback" | "registration" | "other";
-
-export interface FormPage {
-  layout: any;
+// Template and Page structure
+export interface Page {
   id: string;
   title: string;
   components: FormComponentData[];
+}
+
+export interface Template {
+  id: string;
+  name: string;
+  pages: Page[];
+  currentView: 'desktop' | 'tablet' | 'mobile';
+  fields?: FormComponentData[]; // For migrating legacy templates
+}
+
+// Modal and Notification types
+export interface ModalFunctions {
+  showConfirmation: (
+    title: string,
+    message: string,
+    onConfirm: () => void,
+    type?: 'warning' | 'error' | 'info' | 'danger'
+  ) => void;
+  showNotification: (
+    title: string,
+    message: string,
+    type: 'success' | 'error' | 'warning' | 'info'
+  ) => void;
+}
+
+export interface NotificationState {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+}
+
+export interface ConfirmationState {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  onConfirm: () => void;
+  type: 'info' | 'success' | 'warning' | 'error' | 'danger';
+}
+
+// Legacy types for migration - you may want to remove these later
+export type FormTemplateType =
+  | 'assessment'
+  | 'survey'
+  | 'application'
+  | 'feedback'
+  | 'registration'
+  | 'other';
+
+export interface FormPage {
+  id: string;
+  title: string;
+  components: FormComponentData[];
+  layout: any;
   description?: string;
 }
 
@@ -38,17 +94,97 @@ export interface FormTemplate {
   jsonSchema: any;
 }
 
-// Modal functions interface
-export interface ModalFunctions {
-  showConfirmation: (
-    title: string, 
-    message: string, 
-    onConfirm: () => void, 
-    type?: 'warning' | 'error' | 'info'
-  ) => void;
-  showNotification: (
-    title: string, 
-    message: string, 
-    type: 'success' | 'error' | 'warning' | 'info'
-  ) => void;
+interface BaseComponent {
+  id: string;
+  type: string;
+  label: string;
+  fieldId?: string;
+  required?: boolean;
+  placeholder?: string;
+  description?: string;
+  children?: FormComponentData[];
+  layout?: 'horizontal' | 'vertical';
+  container?: boolean;
+  path?: string[];
 }
+
+interface TextInputComponent extends BaseComponent {
+  type: 'text_input';
+}
+
+interface NumberInputComponent extends BaseComponent {
+  type: 'number_input';
+  min?: number;
+  max?: number;
+  step?: number;
+}
+
+interface TextareaComponent extends BaseComponent {
+  type: 'textarea';
+}
+
+interface RichTextComponent extends BaseComponent {
+  type: 'rich_text';
+  height?: string;
+}
+
+interface SelectComponent extends BaseComponent {
+  type: 'select';
+  options?: string[];
+}
+
+interface DatePickerComponent extends BaseComponent {
+  type: 'date_picker';
+}
+
+interface FileUploadComponent extends BaseComponent {
+  type: 'file_upload';
+  acceptedFileTypes?: string;
+}
+
+interface SectionDividerComponent extends BaseComponent {
+  type: 'section_divider';
+}
+
+interface SignatureComponent extends BaseComponent {
+  type: 'signature';
+}
+
+interface HorizontalLayoutComponent extends BaseComponent {
+  type: 'horizontal_layout';
+  children: FormComponentData[];
+}
+
+interface VerticalLayoutComponent extends BaseComponent {
+  type: 'vertical_layout';
+  children: FormComponentData[];
+}
+
+export interface FormComponentData {
+  id: string;
+  type: string;
+  [key: string]: any;
+}
+
+type FormComponentData =
+  | TextInputComponent
+  | NumberInputComponent
+  | TextareaComponent
+  | RichTextComponent
+  | SelectComponent
+  | DatePickerComponent
+  | FileUploadComponent
+  | SectionDividerComponent
+  | SignatureComponent
+  | HorizontalLayoutComponent
+  | VerticalLayoutComponent;
+
+export type ComponentType =
+  | 'text_input'
+  | 'textarea'
+  | 'email_input'
+  | 'password_input'
+  | 'number_input'
+  | 'select'
+  | 'checkbox_group'
+  | 'radio_group'

@@ -7,6 +7,7 @@ export interface DragItem {
   isFromContainer?: boolean;
   containerPath?: string[];
   containerIndex?: number;
+  containerId?: string;
 }
 
 export interface DropPosition {

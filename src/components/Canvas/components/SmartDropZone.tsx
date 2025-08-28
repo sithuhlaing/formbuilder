@@ -1,122 +1,48 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React from 'react';
 import { useDrop } from 'react-dnd';
-import DropIndicator from './DropIndicator';
-import { positionDetector } from '../utils/positionDetector';
-import type { SmartDropZoneProps } from '../types/positioning';
-import type { DragItem } from '../types';
+import { PositionDetector } from '../utils/PositionDetector';
+import type { ComponentType } from '../../../types';
+import type { PositionDetectionResult } from '../types/positioning';
 
-const SmartDropZone: React.FC<SmartDropZoneProps> = ({
-  componentId,
-  componentIndex,
-  elementRef,
-  onDrop,
-  children
-}) => {
-  const [activePosition, setActivePosition] = useState<'top' | 'right' | 'bottom' | 'left' | 'center' | null>(null);
-  const [indicatorBounds, setIndicatorBounds] = useState<DOMRect | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+interface SmartDropZoneProps {
+  onSmartDrop: (result: PositionDetectionResult & { componentType: ComponentType }) => void;
+  targetId: string;
+  targetIndex: number;
+  position: 'top' | 'bottom';
+}
 
-  const handleHover = useCallback((item: DragItem, monitor: any) => {
-    if (!elementRef.current) return;
-
-    const clientOffset = monitor.getClientOffset();
-    if (!clientOffset) {
-      setActivePosition(null);
-      setIndicatorBounds(null);
-      return;
-    }
-
-    const regions = positionDetector.calculateCrossSectionRegions(elementRef.current);
-    const position = positionDetector.detectDropPosition(clientOffset.x, clientOffset.y, regions);
-    
-    setActivePosition(position);
-    setIndicatorBounds(
-      positionDetector.getIndicatorBounds(position, elementRef.current.getBoundingClientRect())
-    );
-  }, [elementRef]);
-
-  const handleDrop = useCallback((item: DragItem, monitor: any) => {
-    console.log('SmartDropZone handleDrop:', { item, activePosition, componentId, componentIndex });
-    if (!elementRef.current || !activePosition) {
-      console.log('SmartDropZone: No element or position');
-      return;
-    }
-
-    // Handle both new components from palette AND existing component rearrangement
-    let componentType: string;
-    
-    if (item.id) {
-      // This is an existing component being rearranged
-      componentType = item.type; // For existing components, type is the component type
-      console.log('SmartDropZone: Handling existing component rearrangement:', item);
-    } else {
-      // This is a new component from palette
-      componentType = item.type;
-      console.log('SmartDropZone: Handling new component from palette:', item);
-    }
-
-    // Validate that we have a valid component type
-    if (!componentType || typeof componentType !== 'string') {
-      console.log('SmartDropZone: Invalid component type:', item);
-      return;
-    }
-
-    // Determine if target component is in a row layout
-    const isTargetInRow = false; // This would be determined by checking parent component type
-
-    const result = positionDetector.calculatePositioningResult(
-      activePosition,
-      componentIndex,
-      componentId,
-      isTargetInRow
-    );
-
-    // Add the component type to the result
-    (result as any).componentType = componentType;
-    
-    // Only add source info for rearrangement (existing components with id)
-    if (item.id) {
-      (result as any).sourceComponentId = item.id; // For rearrangement, this will be the component being moved
-      (result as any).sourceIndex = item.index; // For rearrangement, this will be the original position
-      console.log('SmartDropZone: Adding rearrangement data to result');
-    } else {
-      console.log('SmartDropZone: New component from palette - no source data added');
-    }
-
-    console.log('SmartDropZone: Calling onDrop with result:', result);
-    onDrop(result);
-    
-    // Reset indicators
-    setActivePosition(null);
-    setIndicatorBounds(null);
-  }, [activePosition, componentIndex, componentId, elementRef, onDrop]);
-
-  const [{ isOver, canDrop }, drop] = useDrop(() => ({
-    accept: ['component', 'existing-component', 'nested-component'],
-    hover: handleHover,
-    drop: handleDrop,
+const SmartDropZone: React.FC<SmartDropZoneProps> = ({ onSmartDrop, targetId, targetIndex, position }) => {
+  const [{ isOver, canDrop }, drop] = useDrop({
+    accept: ['component', 'nested-component'],
+    drop: (item: { type: ComponentType }, monitor) => {
+      if (monitor.didDrop()) {
+        return;
+      }
+      onSmartDrop({
+        position,
+        targetId,
+        targetIndex,
+        componentType: item.type,
+      });
+    },
     collect: (monitor) => ({
-      isOver: monitor.isOver({ shallow: true }),
-      canDrop: monitor.canDrop()
-    })
-  }));
-
-  drop(containerRef);
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+  });
 
   return (
-    <div ref={containerRef} style={{ position: 'relative' }}>
-      {children}
-      
-      {/* Drop Indicators */}
-      {isOver && canDrop && activePosition && indicatorBounds && (
-        <DropIndicator
-          position={activePosition}
-          isVisible={true}
-          bounds={indicatorBounds}
-          containerRef={containerRef}
-        />
-      )}
-    </div>
+    <div
+      ref={drop}
+      className="smart-drop-zone"
+      style={{
+        height: '10px',
+        backgroundColor: isOver && canDrop ? 'rgba(59, 130, 246, 0.5)' : 'transparent',
+        transition: 'background-color 150ms ease-in-out',
+        margin: '-5px 0',
+        zIndex: 10,
+      }}
+    />
   );
 };
 

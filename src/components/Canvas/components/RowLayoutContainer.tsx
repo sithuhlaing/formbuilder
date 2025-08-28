@@ -13,6 +13,7 @@ interface RowLayoutContainerProps {
   onRemoveFromContainer?: (componentId: string, containerPath: string[]) => void;
   onMoveFromContainerToCanvas?: (componentId: string, containerPath: string[]) => void;
   onAddComponentToRow?: (componentType: string, rowId: string, position: 'left' | 'right', targetIndex: number) => void;
+  onUnwrapRowLayout?: (rowComponentId: string, childComponent: FormComponentData) => void;
 }
 
 const RowLayoutContainer: React.FC<RowLayoutContainerProps> = ({
@@ -25,6 +26,7 @@ const RowLayoutContainer: React.FC<RowLayoutContainerProps> = ({
   onRemoveFromContainer,
   onMoveFromContainerToCanvas,
   onAddComponentToRow,
+  onUnwrapRowLayout,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [isOver, setIsOver] = useState(false);
@@ -67,14 +69,14 @@ const RowLayoutContainer: React.FC<RowLayoutContainerProps> = ({
       console.log('Row has only one child left, unwrapping row layout...');
       const remainingChild = newChildren[0];
       
-      // Replace the entire row layout with the single remaining child
-      // This requires updating the parent components array
-      if (onUpdateComponents) {
-        // We need to find this row in the parent array and replace it with the single child
-        // This is tricky because we need access to the parent components array
-        // For now, we'll handle this in the parent component
+      // Signal the parent to replace this row layout with the remaining child.
+      if (onUnwrapRowLayout) {
+        onUnwrapRowLayout(component.id, remainingChild);
+      } else {
+        // Fallback if the unwrap handler is not provided, though it's not ideal.
+        // This might happen if the component is used in a context where unwrapping isn't supported.
+        console.warn('onUnwrapRowLayout is not implemented. Deleting row and losing last child.');
         onDeleteComponent(component.id);
-        // The remaining child should be handled by the parent
       }
     } else if (newChildren.length === 0) {
       // If no children left, delete the entire row
@@ -88,7 +90,7 @@ const RowLayoutContainer: React.FC<RowLayoutContainerProps> = ({
       };
       onUpdateComponent(updatedRowComponent);
     }
-  }, [component, onUpdateComponent, onDeleteComponent, onUpdateComponents]);
+  }, [component, onUpdateComponent, onDeleteComponent, onUpdateComponents, onUnwrapRowLayout]);
 
   // Handle moving component from row to main canvas
   const handleMoveToCanvas = useCallback((childId: string) => {

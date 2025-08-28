@@ -9,10 +9,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
   onToggle,
   children
 }) => {
-  const [testState, setTestState] = useState(id === 'inputs'); // Start with inputs expanded
-  
   const handleToggle = () => {
-    setTestState(prev => !prev); // Toggle local test state for show/hide
     onToggle(id);
   };
 
@@ -61,11 +58,11 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
             color: '#6b7280'
           }}
         >
-{testState ? '▼' : '►'}
+{isExpanded ? '▼' : '►'}
         </span>
       </button>
       
-{testState && (
+{isExpanded && (
         <div
           id={`accordion-content-${id}`}
           style={{
