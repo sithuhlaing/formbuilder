@@ -1,5 +1,34 @@
 /* Drag & Drop Styles - Form Builder Specific */
 
+/* Canvas Item Drop Zones */
+.canvas-item-wrapper {
+  position: relative;
+}
+
+.canvas-item__drop-zone {
+  height: 8px;
+  margin: 4px 0;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.canvas-item__drop-zone--active {
+  opacity: 1;
+  background: #dbeafe;
+  border: 2px dashed #3b82f6;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drop-indicator {
+  font-size: 0.875rem;
+  color: #3b82f6;
+  font-weight: 500;
+}
+
 /* Draggable Items in Sidebar */
 .draggable-item {
   position: relative;
@@ -234,6 +263,139 @@
 .form-component__hover-action--delete {
   font-size: 18px;
   line-height: 1;
+}
+
+/* Smart Component Wrapper Hover States */
+.smart-drop-zone {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.smart-drop-zone.hover-left {
+  border-left: 3px dashed var(--color-primary-400);
+  background: linear-gradient(to right, var(--color-primary-50) 0%, transparent 20%);
+}
+
+.smart-drop-zone.hover-right {
+  border-right: 3px dashed var(--color-primary-400);
+  background: linear-gradient(to left, var(--color-primary-50) 0%, transparent 20%);
+}
+
+.smart-drop-zone.hover-top {
+  border-top: 3px dashed var(--color-primary-400);
+  background: linear-gradient(to bottom, var(--color-primary-50) 0%, transparent 20%);
+}
+
+.smart-drop-zone.hover-bottom {
+  border-bottom: 3px dashed var(--color-primary-400);
+  background: linear-gradient(to top, var(--color-primary-50) 0%, transparent 20%);
+}
+
+.smart-drop-zone.hover-center {
+  border: 2px dashed var(--color-primary-400);
+  background: var(--color-primary-25);
+  transform: scale(1.02);
+}
+
+/* Enhanced visual feedback when dragging from palette */
+.smart-drop-zone.is-drop-target {
+  box-shadow: 0 0 20px var(--color-primary-200);
+}
+
+.smart-drop-zone.hover-left.is-drop-target,
+.smart-drop-zone.hover-right.is-drop-target {
+  /* Show that this will create a horizontal layout */
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 10px,
+    var(--color-primary-100) 10px,
+    var(--color-primary-100) 20px
+  );
+}
+
+/* Row Layout Container Styles */
+.row-layout-container {
+  padding: 12px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.row-layout-container.is-selected {
+  border: 2px solid var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.row-layout-container.is-over {
+  background-color: var(--color-primary-50);
+  border: 2px dashed var(--color-primary-400);
+  box-shadow: inset 0 0 20px var(--color-primary-100);
+}
+
+.row-layout-container__empty {
+  padding: 16px;
+  border: 2px dashed var(--color-gray-400);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gray-500);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 80px;
+}
+
+.row-layout-container__empty:hover,
+.row-layout-container__empty.is-over {
+  border-color: var(--color-primary-400);
+  background-color: var(--color-primary-25);
+  color: var(--color-primary-600);
+}
+
+.row-layout-container__header {
+  font-size: 12px;
+  color: var(--color-gray-500);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.row-layout-container__content {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  min-height: 60px;
+}
+
+.row-layout-container__delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--color-error);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.row-layout-container__delete:hover {
+  background-color: var(--color-error-600);
+  transform: scale(1.1);
 }
 
 /* Legacy styles for backward compatibility - hiding them */

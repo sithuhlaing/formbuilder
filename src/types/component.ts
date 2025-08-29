@@ -36,6 +36,7 @@ export interface FormComponentData {
   rows?: number;
   content?: string;
   maxSize?: number;
+  height?: string;
 }
 
 // Specific component interfaces for type safety

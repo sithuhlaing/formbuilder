@@ -8,6 +8,3 @@ export type { Template, Page, FormPage, FormTemplate, FormTemplateType } from '.
 
 // Re-export app types
 export type { AppState, FormBuilderConfig, ModalFunctions } from './app';
-
-// Re-export canvas types
-export type { IDropZoneStrategy } from '../components/Canvas/strategies/DropZoneStrategy';
