@@ -185,8 +185,36 @@ export const useFormBuilder = () => {
   }, [formState, saveToHistory]);
 
   const handleFormSubmit = useCallback(() => {
-    // TO DO: implement form submission logic
-  }, []);
+    // Validate all pages before submission
+    const hasEmptyPages = formState.pages.some(page => page.components.length === 0);
+    
+    if (hasEmptyPages) {
+      console.warn('Some pages are empty. Please add components to all pages before submitting.');
+      return false;
+    }
+
+    // Create submission data
+    const submissionData = {
+      templateName: formState.templateName,
+      pages: formState.pages,
+      submittedAt: new Date().toISOString(),
+      totalPages: formState.pages.length,
+      totalComponents: formState.pages.reduce((total, page) => total + page.components.length, 0)
+    };
+
+    console.log('Form submitted:', submissionData);
+    
+    // Here you would typically send to an API
+    // For now, we'll just log and return success
+    return true;
+  }, [formState]);
+
+  const updatePageTitle = useCallback((pageId: string, title: string) => {
+    executeAction({
+      type: 'UPDATE_PAGE_TITLE',
+      payload: { pageId, title }
+    });
+  }, [executeAction]);
 
   const loadFromJSON = useCallback((jsonData: string) => {
     try {
@@ -282,6 +310,7 @@ export const useFormBuilder = () => {
     clearAll,
     loadFromJSON,
     loadTemplate,
+    updatePageTitle,
     // Page navigation
     getCurrentPageIndex,
     navigateToNextPage,

@@ -47,6 +47,9 @@ export class FormStateEngine {
       case 'SWITCH_PAGE':
         return { ...currentState, currentPageId: action.payload.pageId };
       
+      case 'UPDATE_PAGE_TITLE':
+        return this.updatePageTitle(currentState, action.payload);
+      
       case 'INSERT_COMPONENT_AT_INDEX':
         return this.insertComponentAtIndex(currentState, action.payload);
       
@@ -257,6 +260,17 @@ export class FormStateEngine {
     };
   }
 
+  private static updatePageTitle(state: any, payload: { pageId: string; title: string }) {
+    const updatedPages = state.pages.map((page: FormPage) => {
+      if (page.id === payload.pageId) {
+        return { ...page, title: payload.title };
+      }
+      return page;
+    });
+    
+    return { ...state, pages: updatedPages };
+  }
+
   private static insertComponentAtIndex(state: any, payload: { componentType: string; insertIndex: number }) {
     const currentPage = state.pages.find((page: FormPage) => page.id === state.currentPageId);
     if (!currentPage) return state;
@@ -356,6 +370,7 @@ export type FormStateAction =
   | { type: 'ADD_PAGE'; payload: { title: string } }
   | { type: 'DELETE_PAGE'; payload: { pageId: string } }
   | { type: 'SWITCH_PAGE'; payload: { pageId: string } }
+  | { type: 'UPDATE_PAGE_TITLE'; payload: { pageId: string; title: string } }
   | { type: 'INSERT_COMPONENT_AT_INDEX'; payload: { componentType: string; insertIndex: number } }
   | { type: 'INSERT_COMPONENT_WITH_POSITION'; payload: { componentType: string; targetId: string; position: string } }
   | { type: 'INSERT_HORIZONTAL_LAYOUT'; payload: { componentType: string; targetId: string; side?: 'left' | 'right' } };

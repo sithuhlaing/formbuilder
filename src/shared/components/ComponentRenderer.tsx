@@ -21,7 +21,8 @@ import {
   HeadingPreview,
   CardPreview,
   DatePicker,
-  UnknownComponent
+  UnknownComponent,
+  RichTextEditor
 } from './SpecializedFormComponents';
 import type { FormComponentData } from '../../types';
 
@@ -218,11 +219,11 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
           
           case 'rich_text':
             return (
-              <Textarea
-                placeholder={component.placeholder || 'Rich text content...'}
-                required={component.required}
-                readOnly={readOnly}
-                rows={6}
+              <RichTextEditor
+                value={component.defaultValue || ''}
+                placeholder={component.placeholder || 'Enter rich text content...'}
+                readOnly={false}
+                height={component.height || '200px'}
               />
             );
           

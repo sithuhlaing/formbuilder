@@ -15,8 +15,8 @@ interface PaletteItemProps {
 
 const PaletteItem: React.FC<PaletteItemProps> = ({ componentType, onAddComponent }) => {
   const [{ isDragging }, drag, preview] = useDrag({
-    type: 'component',
-    item: { type: componentType },
+    type: 'new-item',
+    item: { type: 'new-item', itemType: componentType },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),

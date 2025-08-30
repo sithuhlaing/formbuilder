@@ -6,7 +6,7 @@
 import type { FormComponentData, ComponentType } from '../../../types/component';
 
 export interface DropPosition {
-  type: 'before' | 'after' | 'inside' | 'left' | 'right';
+  type: 'before' | 'after' | 'inside' | 'left' | 'right' | 'center';
   targetId: string;
   componentType: ComponentType;
 }
@@ -37,6 +37,15 @@ export class DragDropService {
       case 'left':
       case 'right':
         return this.insertHorizontal(components, position.targetId, newComponent, position.type);
+      
+      case 'center':
+        // Handle center drops - for empty canvas, just add the component
+        if (components.length === 0) {
+          return [newComponent];
+        } else {
+          // For populated canvas, append to end
+          return [...components, newComponent];
+        }
       
       default:
         console.error('❌ Unknown drop position:', position.type);

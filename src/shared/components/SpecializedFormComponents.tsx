@@ -164,3 +164,5 @@ export const UnknownComponent: React.FC<{
     </div>
   );
 };
+
+export { RichTextEditor } from './RichTextEditor';

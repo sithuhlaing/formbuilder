@@ -1,0 +1,206 @@
+{
+  "component_palette": {
+    "name": "Component Palette (Left Panel)",
+    "purpose": "Provide draggable form components organized by category for form building",
+    "location": "src/features/form-builder/components/ComponentPalette.tsx",
+    
+    "business_logic": {
+      "core_functionality": {
+        "component_display": {
+          "description": "Shows available form components in categorized groups",
+          "implementation": "Renders PaletteItem components within ComponentCategory accordions",
+          "data_source": "ComponentRenderer.getComponentInfo() for metadata"
+        },
+        "drag_and_drop": {
+          "description": "Enables dragging components to canvas",
+          "implementation": "Uses react-dnd useDrag hook with 'new-item' type",
+          "drag_data": "{ type: 'new-item', itemType: componentType }",
+          "visual_feedback": "isDragging state changes styling"
+        },
+        "click_to_add": {
+          "description": "Alternative to drag-drop for adding components",
+          "implementation": "onClick handler calls onAddComponent(componentType)",
+          "fallback": "For accessibility and mobile users"
+        }
+      },
+      
+      "categorization": {
+        "input_fields": {
+          "icon": "📝",
+          "components": [
+            "text_input", "email_input", "password_input", "number_input",
+            "textarea", "date_picker", "file_upload", "signature"
+          ],
+          "default_state": "expanded",
+          "purpose": "Basic form input elements"
+        },
+        "selection_controls": {
+          "icon": "⚙️", 
+          "components": [
+            "select", "multi_select", "checkbox", "radio_group"
+          ],
+          "default_state": "collapsed",
+          "purpose": "User choice and selection elements"
+        },
+        "layout_components": {
+          "icon": "🏗️",
+          "components": [
+            "section_divider"
+          ],
+          "default_state": "collapsed", 
+          "purpose": "Form structure and organization"
+        }
+      },
+      
+      "search_functionality": {
+        "description": "Filter components by name or description",
+        "implementation": "Real-time filtering using searchTerm state",
+        "search_fields": ["component.description", "component.type"],
+        "case_sensitivity": false,
+        "no_results_handling": "Shows 'No components found' message"
+      },
+      
+      "accordion_behavior": {
+        "description": "Collapsible categories for better organization",
+        "state_management": "expandedCategories Set tracks open/closed state",
+        "default_expanded": ["input-fields"],
+        "toggle_mechanism": "Click header to expand/collapse",
+        "visual_indicator": "Chevron rotation shows state"
+      }
+    },
+    
+    "component_metadata": {
+      "data_structure": {
+        "type": "ComponentType enum value",
+        "category": "Logical grouping (Input Fields, Selection, Layout, etc.)",
+        "description": "Human-readable explanation",
+        "label": "Display name in UI",
+        "icon": "Emoji or symbol for visual identification"
+      },
+      "source": "ComponentRenderer.getComponentInfo()",
+      "examples": {
+        "text_input": {
+          "category": "Input Fields",
+          "description": "Single line text input", 
+          "label": "Text Input",
+          "icon": "📝"
+        },
+        "select": {
+          "category": "Selection",
+          "description": "Dropdown selection",
+          "label": "Select", 
+          "icon": "⬇️"
+        }
+      }
+    },
+    
+    "user_interactions": {
+      "drag_component": {
+        "trigger": "Mouse down + drag on component",
+        "visual_feedback": "Component becomes semi-transparent with dashed border",
+        "data_transfer": "Component type information",
+        "target": "Canvas drop zones"
+      },
+      "click_component": {
+        "trigger": "Click on component",
+        "action": "Immediately adds component to canvas",
+        "position": "End of current page components"
+      },
+      "search_components": {
+        "trigger": "Type in search input",
+        "behavior": "Real-time filtering of visible components",
+        "scope": "All categories simultaneously"
+      },
+      "toggle_category": {
+        "trigger": "Click category header",
+        "behavior": "Expand/collapse category content",
+        "persistence": "State maintained during session"
+      }
+    },
+    
+    "integration_points": {
+      "with_canvas": {
+        "method": "onAddComponent callback",
+        "data_flow": "ComponentType → FormBuilder → useFormBuilder → Canvas",
+        "result": "New component added to current page"
+      },
+      "with_form_state": {
+        "connection": "Via FormBuilder parent component",
+        "state_management": "useFormBuilder hook handles component creation",
+        "persistence": "Components saved in form pages array"
+      }
+    },
+    
+    "styling_and_layout": {
+      "container": "component-palette-container class",
+      "search_section": "Fixed at top with search input",
+      "categories": "Accordion-style collapsible sections",
+      "palette_items": "Grid layout within categories",
+      "responsive": "Adapts to sidebar width constraints"
+    },
+    
+    "accessibility": {
+      "keyboard_navigation": "Tab through components and categories",
+      "screen_readers": "Proper ARIA labels and descriptions",
+      "focus_management": "Visible focus indicators",
+      "alternative_interaction": "Click-to-add for drag-drop alternative"
+    },
+    
+    "error_handling": {
+      "unknown_components": "Graceful fallback with '❓' icon",
+      "empty_search": "Clear 'no results' messaging",
+      "missing_metadata": "Default values prevent crashes"
+    },
+    
+    "performance_considerations": {
+      "component_filtering": "Efficient array filtering on search",
+      "state_updates": "Minimal re-renders with proper state structure",
+      "drag_optimization": "React DnD handles drag performance"
+    }
+  },
+  
+  "workflow": {
+    "user_journey": [
+      {
+        "step": 1,
+        "action": "User opens form builder",
+        "result": "Left panel shows component palette with Input Fields expanded"
+      },
+      {
+        "step": 2, 
+        "action": "User searches for specific component (optional)",
+        "result": "Components filtered in real-time across all categories"
+      },
+      {
+        "step": 3,
+        "action": "User expands/collapses categories as needed",
+        "result": "Better organization and focus on relevant components"
+      },
+      {
+        "step": 4,
+        "action": "User drags component to canvas OR clicks component",
+        "result": "Component added to current form page"
+      },
+      {
+        "step": 5,
+        "action": "User repeats process to build complete form",
+        "result": "Form structure built incrementally"
+      }
+    ]
+  },
+  
+  "technical_implementation": {
+    "dependencies": [
+      "react-dnd (drag and drop)",
+      "ComponentRenderer (component metadata)",
+      "FormBuilder parent (state management)"
+    ],
+    "key_hooks": [
+      "useState (search term, expanded categories)",
+      "useDrag (drag and drop functionality)"
+    ],
+    "props_interface": {
+      "onAddComponent": "(type: ComponentType) => void - Callback to add component to form"
+    }
+  }
+}

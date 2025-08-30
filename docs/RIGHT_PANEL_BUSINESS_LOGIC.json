@@ -1,0 +1,405 @@
+{
+  "properties_panel": {
+    "name": "Properties Panel (Right Panel)",
+    "purpose": "Provide real-time component property editing and configuration interface",
+    "location": "src/features/form-builder/components/FormBuilder.tsx (lines 102-345)",
+    
+    "business_logic": {
+      "core_functionality": {
+        "component_selection_binding": {
+          "description": "Dynamically displays properties based on selected component",
+          "implementation": "Conditional rendering based on selectedComponent state",
+          "data_source": "selectedComponent from useFormBuilder hook",
+          "update_mechanism": "Real-time updates via updateComponent() function"
+        },
+        "property_categorization": {
+          "description": "Organizes properties into logical sections for better UX",
+          "sections": [
+            "Basic Settings (label, required)",
+            "Input Settings (placeholder - conditional)",
+            "Validation (validation type)",
+            "Number Settings (min/max/step - conditional)",
+            "Options (for select/radio/checkbox - conditional)",
+            "Layout (width, alignment)",
+            "Advanced (field ID, description, help text, default value)"
+          ]
+        },
+        "conditional_property_display": {
+          "description": "Shows/hides property sections based on component type",
+          "logic": {
+            "input_settings": "Only for text_input and textarea components",
+            "number_settings": "Only for number_input components",
+            "options_management": "Only for select, radio_group, and checkbox components"
+          }
+        }
+      },
+      
+      "property_sections": {
+        "basic_settings": {
+          "purpose": "Core component configuration",
+          "properties": {
+            "label": {
+              "type": "text_input",
+              "description": "Display name for the component",
+              "real_time_updates": true,
+              "validation": "No specific validation, accepts any string"
+            },
+            "required": {
+              "type": "checkbox",
+              "description": "Makes field mandatory for form submission",
+              "default_value": false,
+              "impact": "Adds asterisk (*) to label in form rendering"
+            }
+          }
+        },
+        
+        "input_settings": {
+          "purpose": "Text input specific configuration",
+          "conditional_display": "text_input || textarea components only",
+          "properties": {
+            "placeholder": {
+              "type": "text_input",
+              "description": "Hint text shown when field is empty",
+              "real_time_updates": true,
+              "usage": "Improves user experience and form guidance"
+            }
+          }
+        },
+        
+        "validation": {
+          "purpose": "Form validation rules configuration",
+          "properties": {
+            "validation_type": {
+              "type": "select",
+              "options": ["none", "email", "number", "custom"],
+              "description": "Defines validation rules for the component",
+              "default_value": "none",
+              "impact": "Affects form submission validation logic"
+            }
+          }
+        },
+        
+        "number_settings": {
+          "purpose": "Numeric input constraints",
+          "conditional_display": "number_input components only",
+          "properties": {
+            "minimum": {
+              "type": "number_input",
+              "description": "Minimum allowed value",
+              "validation": "Must be number, can be empty"
+            },
+            "maximum": {
+              "type": "number_input", 
+              "description": "Maximum allowed value",
+              "validation": "Must be number, can be empty"
+            },
+            "step": {
+              "type": "number_input",
+              "description": "Increment/decrement step value",
+              "validation": "Must be positive number, can be empty"
+            }
+          }
+        },
+        
+        "options_management": {
+          "purpose": "Choice-based component configuration",
+          "conditional_display": "select || radio_group || checkbox components",
+          "properties": {
+            "options": {
+              "type": "textarea",
+              "description": "List of available choices (one per line)",
+              "processing": "Split by newline, filter empty lines",
+              "placeholder": "Option 1\\nOption 2\\nOption 3",
+              "validation": "Automatically removes empty lines"
+            }
+          }
+        },
+        
+        "layout": {
+          "purpose": "Visual positioning and sizing",
+          "properties": {
+            "width": {
+              "type": "select",
+              "options": ["auto", "25%", "33%", "50%", "66%", "75%", "100%"],
+              "description": "Component width in form layout",
+              "default_value": "auto"
+            },
+            "alignment": {
+              "type": "select",
+              "options": ["left", "center", "right"],
+              "description": "Horizontal alignment within container",
+              "default_value": "left"
+            }
+          }
+        },
+        
+        "advanced": {
+          "purpose": "Technical and metadata configuration",
+          "properties": {
+            "field_id": {
+              "type": "text_input",
+              "description": "Unique identifier for form processing",
+              "readonly": true,
+              "value_source": "selectedComponent.fieldId || selectedComponent.id"
+            },
+            "description": {
+              "type": "textarea",
+              "description": "Internal documentation for the component",
+              "rows": 3,
+              "usage": "Developer notes, not shown to end users"
+            },
+            "help_text": {
+              "type": "text_input",
+              "description": "User-facing help text displayed with component",
+              "usage": "Provides guidance to form users"
+            },
+            "default_value": {
+              "type": "text_input",
+              "description": "Pre-filled value when form loads",
+              "usage": "Improves user experience with sensible defaults"
+            }
+          }
+        }
+      },
+      
+      "state_management": {
+        "selection_mechanism": {
+          "trigger": "Component click in canvas",
+          "state_update": "selectComponent(componentId) updates selectedComponentId",
+          "data_flow": "Canvas → FormBuilder → useFormBuilder → Properties Panel"
+        },
+        "property_updates": {
+          "mechanism": "updateComponent(componentId, updates) function",
+          "real_time": "onChange events trigger immediate state updates",
+          "persistence": "Updates saved to formState.pages[currentPage].components",
+          "history": "Changes tracked in undo/redo system"
+        },
+        "empty_state": {
+          "condition": "selectedComponent === null",
+          "display": "Placeholder with instructions to select component",
+          "content": "Icon, title, and descriptive text"
+        }
+      },
+      
+      "user_interactions": {
+        "property_editing": {
+          "text_inputs": "Real-time updates on onChange events",
+          "checkboxes": "Immediate boolean toggle updates",
+          "selects": "Instant option selection updates",
+          "textareas": "Multi-line text with real-time updates"
+        },
+        "component_type_indicator": {
+          "display": "Shows selected component type as badge",
+          "formatting": "Converts 'text_input' to 'Text Input' with proper casing",
+          "styling": "Blue background badge in header"
+        },
+        "section_organization": {
+          "visual_hierarchy": "Clear section titles with borders",
+          "grouping": "Related properties grouped logically",
+          "responsive_layout": "Property groups adapt to panel width"
+        }
+      },
+      
+      "selection_context": {
+        "no_selection": {
+          "description": "Default state when no component is selected",
+          "display": "Placeholder message encouraging component selection",
+          "message": "Select a component to edit its properties"
+        },
+        "component_selected": {
+          "description": "Component-specific property editing interface",
+          "implementation": "Dynamic property sections based on component type",
+          "real_time_updates": "Changes immediately reflected in canvas"
+        },
+        "canvas_selected": {
+          "description": "Form-level properties when canvas area is selected",
+          "implementation": "Form metadata and global settings editor",
+          "properties": {
+            "form_title": {
+              "description": "Editable form title with real-time preview",
+              "validation": "Required field, max 100 characters",
+              "sync": "Updates form title in top navigation bar"
+            },
+            "form_description": {
+              "description": "Optional form description or instructions",
+              "implementation": "Textarea with markdown support",
+              "preview": "Shows in form header when present"
+            },
+            "form_settings": {
+              "submission_method": "POST/GET selection",
+              "action_url": "Form submission endpoint",
+              "success_message": "Custom success message after submission",
+              "error_handling": "Error message customization"
+            }
+          },
+          "visual_indicator": "Canvas shows selection outline when form-level editing"
+        }
+      },
+      
+      "integration_points": {
+        "with_canvas": {
+          "selection_sync": "Canvas selection updates properties panel content",
+          "visual_feedback": "Selected component highlighted in canvas",
+          "bidirectional": "Property changes reflect in canvas rendering"
+        },
+        "with_form_state": {
+          "data_persistence": "All property changes saved to form state",
+          "multi_page_support": "Properties maintained across page navigation",
+          "undo_redo": "Property changes included in history system"
+        },
+        "with_component_renderer": {
+          "rendering_updates": "Property changes affect component rendering",
+          "validation_integration": "Validation settings impact form behavior",
+          "layout_application": "Layout properties affect visual positioning"
+        }
+      },
+      
+      "conditional_logic": {
+        "component_type_specific_sections": {
+          "text_input_textarea": "Shows Input Settings (placeholder)",
+          "number_input": "Shows Number Settings (min/max/step)",
+          "select_radio_checkbox": "Shows Options Management (choice lists)",
+          "all_components": "Shows Basic Settings, Validation, Layout, Advanced"
+        },
+        "property_visibility": {
+          "field_id": "Always readonly, shows component.fieldId or component.id",
+          "validation_type": "Available for all components",
+          "layout_settings": "Universal for positioning and sizing"
+        }
+      },
+      
+      "data_processing": {
+        "options_handling": {
+          "input_format": "One option per line in textarea",
+          "processing": "Split by \\n, filter empty strings",
+          "storage": "Array of strings in component.options",
+          "validation": "Automatically removes blank lines"
+        },
+        "number_conversion": {
+          "min_max_step": "String input converted to Number() for storage",
+          "empty_handling": "Empty strings remain as empty, not converted to 0",
+          "validation": "Browser number input provides basic validation"
+        },
+        "layout_object": {
+          "structure": "{ width: string, alignment: string }",
+          "merging": "Spreads existing layout object to preserve other properties",
+          "defaults": "width: 'auto', alignment: 'left'"
+        }
+      },
+      
+      "user_experience": {
+        "empty_state": {
+          "visual_design": "Centered placeholder with gear icon",
+          "messaging": "Clear instruction to select component",
+          "accessibility": "Proper heading structure and descriptive text"
+        },
+        "active_state": {
+          "header": "Component type badge and 'Component Properties' title",
+          "organization": "Logical property sections with clear titles",
+          "visual_hierarchy": "Section borders and proper spacing"
+        },
+        "responsive_design": {
+          "panel_width": "320px fixed width with scroll overflow",
+          "property_groups": "Flex layout for side-by-side properties",
+          "input_sizing": "Full width inputs within property groups"
+        }
+      },
+      
+      "accessibility": {
+        "form_labels": "Proper label elements for all inputs",
+        "aria_labels": "Additional aria-label attributes for screen readers",
+        "keyboard_navigation": "Tab order through all property inputs",
+        "focus_management": "Visible focus indicators on all interactive elements",
+        "semantic_structure": "Proper heading hierarchy (h3, h4) for sections"
+      },
+      
+      "error_handling": {
+        "missing_component": "Graceful fallback to empty state",
+        "invalid_property_values": "Browser validation for number inputs",
+        "empty_options": "Automatic filtering of blank option lines",
+        "readonly_fields": "Field ID cannot be edited, prevents user errors"
+      },
+      
+      "performance_considerations": {
+        "real_time_updates": "Immediate onChange without debouncing for responsive feel",
+        "conditional_rendering": "Only renders relevant property sections",
+        "state_optimization": "Uses object spreading to minimize re-renders",
+        "memory_efficiency": "No unnecessary component instances for hidden sections"
+      }
+    },
+    
+    "workflow": {
+      "property_editing_flow": [
+        {
+          "step": 1,
+          "action": "User selects component in canvas",
+          "result": "Properties panel shows component-specific properties"
+        },
+        {
+          "step": 2,
+          "action": "User edits property values (label, validation, etc.)",
+          "result": "Changes update component state in real-time"
+        },
+        {
+          "step": 3,
+          "action": "User sees changes reflected in canvas rendering",
+          "result": "Visual feedback confirms property updates"
+        },
+        {
+          "step": 4,
+          "action": "User continues editing or selects different component",
+          "result": "Properties panel updates to show new selection"
+        }
+      ],
+      
+      "component_configuration_scenarios": [
+        {
+          "scenario": "Text Input Configuration",
+          "steps": [
+            "Set label and placeholder text",
+            "Configure validation (email, required)",
+            "Set layout (width, alignment)",
+            "Add help text and default value"
+          ]
+        },
+        {
+          "scenario": "Number Input Configuration", 
+          "steps": [
+            "Set label and required status",
+            "Configure min/max/step values",
+            "Set validation and layout",
+            "Add description and help text"
+          ]
+        },
+        {
+          "scenario": "Select/Radio Configuration",
+          "steps": [
+            "Set label and required status",
+            "Add options (one per line)",
+            "Configure layout and alignment",
+            "Set default value and help text"
+          ]
+        }
+      ]
+    },
+    
+    "technical_implementation": {
+      "dependencies": [
+        "useFormBuilder hook (selectedComponent, updateComponent)",
+        "React state management",
+        "Conditional rendering logic"
+      ],
+      "key_functions": [
+        "updateComponent(componentId, updates) - Property value updates",
+        "selectComponent(componentId) - Component selection",
+        "Conditional rendering based on component.type"
+      ],
+      "styling_classes": [
+        "properties-panel - Main container",
+        "property-section - Section groupings", 
+        "property-group - Individual property containers",
+        "property-input/select/textarea - Form controls"
+      ]
+    }
+  }
+}
