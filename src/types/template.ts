@@ -38,4 +38,5 @@ export interface FormTemplate {
   createdDate: string;
   modifiedDate: string;
   jsonSchema: any;
+  currentView?: 'desktop' | 'tablet' | 'mobile';
 }

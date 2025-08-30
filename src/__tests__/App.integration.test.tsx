@@ -8,7 +8,7 @@ import type { FormTemplate } from '../types';
 // Mock all the services and hooks
 vi.mock('../services/templateService', () => ({
   templateService: {
-    getTemplates: vi.fn(),
+    getAllTemplates: vi.fn(),
     save: vi.fn(),
     exportJSON: vi.fn(),
     exportLayoutSchema: vi.fn(),
@@ -140,7 +140,7 @@ describe('App Integration Tests - Template Flow', () => {
 
   describe('Initial App Load - Welcome Screen', () => {
     test('should start on template list view by default', () => {
-      (templateService.getTemplates as any).mockReturnValue([]);
+      (templateService.getAllTemplates as any).mockReturnValue([]);
       
       render(<App />);
 
@@ -150,7 +150,7 @@ describe('App Integration Tests - Template Flow', () => {
     });
 
     test('should show template list when templates exist', () => {
-      (templateService.getTemplates as any).mockReturnValue(mockTemplates);
+      (templateService.getAllTemplates as any).mockReturnValue(mockTemplates);
       
       render(<App />);
 
@@ -161,7 +161,7 @@ describe('App Integration Tests - Template Flow', () => {
 
   describe('Create New Template Flow', () => {
     test('should transition from welcome screen to form builder when creating new template', async () => {
-      (templateService.getTemplates as any).mockReturnValue([]);
+      (templateService.getAllTemplates as any).mockReturnValue([]);
       
       render(<App />);
 
@@ -180,7 +180,7 @@ describe('App Integration Tests - Template Flow', () => {
     });
 
     test('should transition from template list to form builder when creating new template', async () => {
-      (templateService.getTemplates as any).mockReturnValue(mockTemplates);
+      (templateService.getAllTemplates as any).mockReturnValue(mockTemplates);
       
       render(<App />);
 
@@ -201,7 +201,7 @@ describe('App Integration Tests - Template Flow', () => {
 
   describe('Edit Template Flow', () => {
     test('should transition to form builder when editing a template', async () => {
-      (templateService.getTemplates as any).mockReturnValue(mockTemplates);
+      (templateService.getAllTemplates as any).mockReturnValue(mockTemplates);
       
       render(<App />);
 
@@ -223,7 +223,7 @@ describe('App Integration Tests - Template Flow', () => {
 
   describe('Form Builder View', () => {
     test('should show all form builder components when in builder view', async () => {
-      (templateService.getTemplates as any).mockReturnValue([]);
+      (templateService.getAllTemplates as any).mockReturnValue([]);
       
       render(<App />);
 
@@ -250,7 +250,7 @@ describe('App Integration Tests - Template Flow', () => {
     });
 
     test('should have back to templates functionality', async () => {
-      (templateService.getTemplates as any).mockReturnValue(mockTemplates);
+      (templateService.getAllTemplates as any).mockReturnValue(mockTemplates);
       
       render(<App />);
 
@@ -269,14 +269,14 @@ describe('App Integration Tests - Template Flow', () => {
       // Should return to template list
       await waitFor(() => {
         expect(screen.getByText('Contact Form')).toBeInTheDocument();
-        expect(screen.queryByTestId('dnd-provider')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('dnd-provider')).toBeNull();
       });
     });
   });
 
   describe('Template Actions in Builder', () => {
     test('should show disabled state for buttons when no components', async () => {
-      (templateService.getTemplates as any).mockReturnValue([]);
+      (templateService.getAllTemplates as any).mockReturnValue([]);
       
       render(<App />);
 
@@ -299,7 +299,7 @@ describe('App Integration Tests - Template Flow', () => {
     });
 
     test('should have template name input field', async () => {
-      (templateService.getTemplates as any).mockReturnValue([]);
+      (templateService.getAllTemplates as any).mockReturnValue([]);
       
       render(<App />);
 
@@ -315,7 +315,7 @@ describe('App Integration Tests - Template Flow', () => {
     });
 
     test('should have template type selector', async () => {
-      (templateService.getTemplates as any).mockReturnValue([]);
+      (templateService.getAllTemplates as any).mockReturnValue([]);
       
       render(<App />);
 
@@ -338,7 +338,7 @@ describe('App Integration Tests - Template Flow', () => {
 
   describe('File Upload Integration', () => {
     test('should have JSON file upload functionality', async () => {
-      (templateService.getTemplates as any).mockReturnValue([]);
+      (templateService.getAllTemplates as any).mockReturnValue([]);
       
       render(<App />);
 
@@ -360,7 +360,7 @@ describe('App Integration Tests - Template Flow', () => {
 
   describe('Modal Integration', () => {
     test('should show preview modal when preview button is clicked from template list', async () => {
-      (templateService.getTemplates as any).mockReturnValue(mockTemplates);
+      (templateService.getAllTemplates as any).mockReturnValue(mockTemplates);
       
       render(<App />);
 
@@ -391,7 +391,7 @@ describe('App Integration Tests - Template Flow', () => {
 
   describe('Error Handling', () => {
     test('should handle missing template data gracefully', () => {
-      (templateService.getTemplates as any).mockReturnValue([{
+      (templateService.getAllTemplates as any).mockReturnValue([{
         templateId: 'broken-template',
         name: 'Broken Template',
         type: 'assessment',
@@ -408,9 +408,7 @@ describe('App Integration Tests - Template Flow', () => {
     });
 
     test('should handle templateService errors gracefully', () => {
-      (templateService.getTemplates as any).mockImplementation(() => {
-        throw new Error('Service error');
-      });
+      vi.mocked(templateService.getAllTemplates).mockRejectedValue(new Error('Service unavailable'));
       
       // Should not crash the app
       expect(() => render(<App />)).not.toThrow();

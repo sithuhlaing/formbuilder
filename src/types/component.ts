@@ -14,6 +14,9 @@ export type ComponentType =
   | "file_upload"
   | "section_divider"
   | "signature"
+  | "button"
+  | "heading"
+  | "card"
   | "horizontal_layout"
   | "vertical_layout";
 
@@ -37,6 +40,12 @@ export interface FormComponentData {
   content?: string;
   maxSize?: number;
   height?: string;
+  // Button component properties
+  buttonType?: 'primary' | 'secondary' | 'success' | 'danger';
+  buttonText?: string;
+  // Heading component properties
+  level?: 1 | 2 | 3 | 4 | 5 | 6;
+  text?: string;
 }
 
 // Specific component interfaces for type safety
@@ -103,5 +112,22 @@ export interface HorizontalLayoutComponent extends BaseComponent {
 
 export interface VerticalLayoutComponent extends BaseComponent {
   type: 'vertical_layout';
+  children: FormComponentData[];
+}
+
+export interface ButtonComponent extends BaseComponent {
+  type: 'button';
+  buttonType?: 'primary' | 'secondary' | 'success' | 'danger';
+  buttonText?: string;
+}
+
+export interface HeadingComponent extends BaseComponent {
+  type: 'heading';
+  level?: 1 | 2 | 3 | 4 | 5 | 6;
+  text?: string;
+}
+
+export interface CardComponent extends BaseComponent {
+  type: 'card';
   children: FormComponentData[];
 }

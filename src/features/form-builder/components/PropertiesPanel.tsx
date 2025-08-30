@@ -4,7 +4,6 @@
  */
 
 import React from 'react';
-import { ComponentEngine } from '../../../core';
 import type { FormComponentData } from '../../../types';
 
 interface PropertiesPanelProps {

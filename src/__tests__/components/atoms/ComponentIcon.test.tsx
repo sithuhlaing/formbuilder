@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import ComponentIcon from '../../../components/ComponentIcon';
-import type { ComponentType } from '../../../components/types/component';
+import ComponentIcon from '../../../shared/components/ComponentIcon';
+import type { ComponentType } from '../../../types';
 
 describe('ComponentIcon', () => {
   it('should render the text input icon', () => {

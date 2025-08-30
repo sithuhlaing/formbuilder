@@ -1,6 +1,5 @@
-
-import { beforeEach, vi } from 'vitest';
-import '@testing-library/jest-dom';
+import { beforeEach, vi, expect } from 'vitest';
+import '@testing-library/jest-dom/vitest';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -8,7 +7,7 @@ beforeEach(() => {
 
 // Mock IntersectionObserver
 class MockIntersectionObserver implements IntersectionObserver {
-  root: Element | null = null;
+  root: Element | Document | null = null;
   rootMargin: string = '';
   thresholds: ReadonlyArray<number> = [];
   callback: IntersectionObserverCallback;

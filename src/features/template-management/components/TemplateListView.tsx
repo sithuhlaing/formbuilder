@@ -131,15 +131,6 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
               {templates.map((template) => (
                 <div key={template.id} className="template-card">
                   <div className="template-card__header">
-                    <div className="template-card__title-section">
-                      <h3 className="template-card__title">{template.name}</h3>
-                      <span 
-                        className="template-card__type-badge"
-                        style={{ backgroundColor: getTypeColor('assessment') }}
-                      >
-                        assessment
-                      </span>
-                    </div>
                     <div className="template-card__actions">
                       <ActionButton
                         onClick={(e) => {
@@ -163,7 +154,7 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
                           e?.stopPropagation();
                           handleDuplicateTemplate(template);
                         }}
-                        icon="📋"
+                        icon="�"
                         title="Duplicate template"
                       />
                       <ActionButton
@@ -171,9 +162,18 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
                           e?.stopPropagation();
                           handleDeleteTemplate(template.id, template.name);
                         }}
-                        icon="🗑️"
+                        icon="�️"
                         title="Delete template"
                       />
+                    </div>
+                    <div className="template-card__title-section">
+                      <h3 className="template-card__title">{template.name}</h3>
+                      <span 
+                        className="template-card__type-badge"
+                        style={{ backgroundColor: getTypeColor('assessment') }}
+                      >
+                        assessment
+                      </span>
                     </div>
                   </div>
                   

@@ -24,13 +24,13 @@ describe('🔬 Simple Component Addition Test', () => {
     const initialCount = canvas.querySelectorAll('[data-testid="canvas-item"]').length;
     console.log('Initial canvas elements:', initialCount);
     
-    // Find and click "Text Input" component
-    const textInputComponent = screen.getByText('Text Input');
-    console.log('Found Text Input component:', textInputComponent.textContent);
+    // Find and click "Text Input Field" component (matches ComponentEngine label)
+    const textInputComponent = screen.getByText('Text Input Field');
+    console.log('Found Text Input Field component:', textInputComponent.textContent);
     
     // Click to add
     await userEvent.click(textInputComponent);
-    console.log('Clicked Text Input component');
+    console.log('Clicked Text Input Field component');
     
     // Wait a moment for any async operations
     await new Promise(resolve => setTimeout(resolve, 100));

@@ -1,4 +1,3 @@
-
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -24,15 +23,15 @@ describe('App Integration Test', () => {
     await userEvent.click(addComponentButton);
 
     // 4. Verify the component was added to the canvas
-    // We find it by its default label "Text Input Field" in a canvas item
+    // We find it by its default label "Text Input" in a canvas item
     const canvasItem = await screen.findByTestId('canvas-item-0');
-    expect(canvasItem).toHaveTextContent('Text Input Field');
+    expect(canvasItem).toHaveTextContent('Text Input');
 
     // 5. Select the new component by clicking on it to show its properties
     await userEvent.click(canvasItem);
 
     // 6. Find the label input in the Properties panel and update it
-    const labelInput = await screen.findByDisplayValue('Text Input Field');
+    const labelInput = await screen.findByDisplayValue('Text Input');
     expect(labelInput).toBeInTheDocument();
 
     // Simply use fireEvent.change which is more reliable for testing controlled inputs
@@ -47,6 +46,6 @@ describe('App Integration Test', () => {
     expect(updatedCanvasItem).toHaveTextContent('Name');
 
     // And verify the old label is gone from the canvas
-    expect(updatedCanvasItem).not.toHaveTextContent('Text Input Field');
+    expect(updatedCanvasItem).not.toHaveTextContent('Text Input');
   });
 });

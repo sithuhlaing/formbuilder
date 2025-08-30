@@ -222,7 +222,8 @@ export class FormStateEngine {
     const newPage: FormPage = {
       id: `page_${Date.now()}`,
       title: payload.title,
-      components: []
+      components: [],
+      layout: 'vertical' // Add default layout
     };
     
     return {
@@ -240,7 +241,8 @@ export class FormStateEngine {
       remainingPages.push({
         id: 'page_default',
         title: 'Page 1', 
-        components: []
+        components: [],
+        layout: 'vertical' // Add default layout
       });
     }
     
@@ -303,11 +305,11 @@ export class FormStateEngine {
     return { ...state, pages: updatedPages };
   }
 
-  private static insertHorizontalLayout(state: any, payload: { componentType: string; targetId: string }) {
+  private static insertHorizontalLayout(state: any, payload: { componentType: string; targetId: string; side?: 'left' | 'right' }) {
     const currentPage = state.pages.find((page: FormPage) => page.id === state.currentPageId);
     if (!currentPage) return state;
 
-    const targetIndex = currentPage.components.findIndex(c => c.id === payload.targetId);
+    const targetIndex = currentPage.components.findIndex((c: FormComponentData) => c.id === payload.targetId);
     if (targetIndex === -1) return state;
 
     const targetComponent = currentPage.components[targetIndex];
@@ -315,7 +317,15 @@ export class FormStateEngine {
     
     // Create horizontal layout containing both components
     const horizontalLayout = ComponentEngine.createComponent('horizontal_layout');
-    horizontalLayout.children = [targetComponent, newComponent];
+    
+    // Arrange components based on side (left/right)
+    if (payload.side === 'left') {
+      // New component on left, existing on right
+      horizontalLayout.children = [newComponent, targetComponent];
+    } else {
+      // Existing component on left, new on right (default)
+      horizontalLayout.children = [targetComponent, newComponent];
+    }
 
     const updatedComponents = [...currentPage.components];
     updatedComponents[targetIndex] = horizontalLayout;
@@ -348,4 +358,4 @@ export type FormStateAction =
   | { type: 'SWITCH_PAGE'; payload: { pageId: string } }
   | { type: 'INSERT_COMPONENT_AT_INDEX'; payload: { componentType: string; insertIndex: number } }
   | { type: 'INSERT_COMPONENT_WITH_POSITION'; payload: { componentType: string; targetId: string; position: string } }
-  | { type: 'INSERT_HORIZONTAL_LAYOUT'; payload: { componentType: string; targetId: string } };
+  | { type: 'INSERT_HORIZONTAL_LAYOUT'; payload: { componentType: string; targetId: string; side?: 'left' | 'right' } };

@@ -14,80 +14,107 @@ export class ComponentEngine {
    * Replaces: componentOperations, layoutOperations, factories
    */
   static createComponent(type: ComponentType): FormComponentData {
+    // Defensive programming - ensure we have a valid type
+    if (!type) {
+      console.error('❌ ComponentEngine.createComponent: type is undefined');
+      type = 'text_input'; // fallback
+    }
+
     const baseComponent: FormComponentData = {
       id: generateId(),
       type,
-      label: this.getDefaultLabel(type),
+      label: ComponentEngine.getDefaultLabel(type),
       fieldId: `field_${Date.now()}`,
       required: false,
-      placeholder: this.getDefaultPlaceholder(type),
+      placeholder: ComponentEngine.getDefaultPlaceholder(type),
     };
 
-    // Type-specific customization in ONE place
+    // Type-specific customization in ONE place - keep defaults from getDefaultLabel but add type-specific props
     switch (type) {
-      case 'text_input':
-        return { ...baseComponent, label: 'Text Input' };
-      
       case 'email_input':
-        return { ...baseComponent, label: 'Email Input', placeholder: 'Enter email...' };
+        return { ...baseComponent, placeholder: 'Enter email...' };
       
       case 'password_input':
-        return { ...baseComponent, label: 'Password Input', placeholder: 'Enter password...' };
+        return { ...baseComponent, placeholder: 'Enter password...' };
       
       case 'number_input':
-        return { ...baseComponent, label: 'Number Input', placeholder: 'Enter number...', min: 0, max: 100 };
-      
-      case 'textarea':
-        return { ...baseComponent, label: 'Text Area', rows: 4 };
+        return { ...baseComponent, placeholder: 'Enter number...', min: 0, max: 100 };
       
       case 'select':
         return { 
           ...baseComponent, 
-          label: 'Select Dropdown',
           options: ['Option 1', 'Option 2', 'Option 3']
         };
       
       case 'multi_select':
         return { 
           ...baseComponent, 
-          label: 'Multi-Select',
           options: ['Option 1', 'Option 2', 'Option 3']
         };
-      
-      case 'checkbox':
-        return { ...baseComponent, label: 'Checkbox' };
       
       case 'radio_group':
         return { 
           ...baseComponent, 
-          label: 'Radio Group',
           options: ['Option 1', 'Option 2', 'Option 3']
         };
       
-      case 'date_picker':
-        return { ...baseComponent, label: 'Date Picker' };
-      
       case 'file_upload':
-        return { ...baseComponent, label: 'File Upload', acceptedFileTypes: '*' };
+        return { ...baseComponent, acceptedFileTypes: '*' };
       
-      case 'section_divider':
-        return { ...baseComponent, label: 'Section Divider' };
+      case 'button':
+        return { 
+          ...baseComponent, 
+          buttonType: 'primary',
+          buttonText: 'Click Me'
+        };
       
-      case 'signature':
-        return { ...baseComponent, label: 'Digital Signature' };
+      case 'heading':
+        return { 
+          ...baseComponent, 
+          level: 1,
+          text: 'Heading Text'
+        };
       
       case 'horizontal_layout':
         return { 
           ...baseComponent, 
-          label: 'Horizontal Layout',
           children: []
         };
       
       case 'vertical_layout':
         return { 
           ...baseComponent, 
-          label: 'Vertical Layout',
           children: []
+        };
+      
+      case 'card':
+        return { 
+          ...baseComponent, 
+          children: [
+            // Buttons first at top level
+            { 
+              id: `button_${Date.now()}_1`, 
+              type: 'button' as ComponentType, 
+              label: 'Primary Action', 
+              buttonType: 'primary', 
+              required: false 
+            },
+            { 
+              id: `button_${Date.now()}_2`, 
+              type: 'button' as ComponentType, 
+              label: 'Secondary Action', 
+              buttonType: 'secondary', 
+              required: false 
+            },
+            // Title after buttons
+            { 
+              id: `title_${Date.now()}`, 
+              type: 'heading' as ComponentType, 
+              label: 'Card Title', 
+              level: 2, 
+              required: false 
+            }
+          ]
         };
       
       default:
@@ -124,6 +151,7 @@ export class ComponentEngine {
   /**
    * SINGLE method to remove ANY component
    * Replaces: scattered delete logic
+   * Includes row layout dissolution when only one child remains
    */
   static removeComponent(
     components: FormComponentData[], 
@@ -133,12 +161,35 @@ export class ComponentEngine {
       .filter(component => component.id !== componentId)
       .map(component => {
         if (component.children) {
+          const updatedChildren = this.removeComponent(component.children, componentId);
+          
+          // Row layout dissolution rule: if only one child remains, replace with the child
+          if (component.type === 'horizontal_layout' && updatedChildren.length === 1) {
+            console.log('🔄 Dissolving row layout with single child:', component.id);
+            return updatedChildren[0];
+          }
+          
           return {
             ...component,
-            children: this.removeComponent(component.children, componentId)
+            children: updatedChildren
           };
         }
         return component;
+      })
+      .filter(component => {
+        // Also handle top-level row layout dissolution
+        if (component.type === 'horizontal_layout' && component.children && component.children.length === 1) {
+          console.log('🔄 Dissolving top-level row layout with single child:', component.id);
+          return false; // Remove the row layout - it will be replaced by its child
+        }
+        return true;
+      })
+      .flatMap(component => {
+        // Replace dissolved row layouts with their single child
+        if (component.type === 'horizontal_layout' && component.children && component.children.length === 1) {
+          return [component.children[0]];
+        }
+        return [component];
       });
   }
 
@@ -203,26 +254,40 @@ export class ComponentEngine {
 
   // Private helpers - all in ONE place
   private static getDefaultLabel(type: ComponentType): string {
+    if (!type) {
+      console.error('❌ ComponentEngine.getDefaultLabel: type is undefined');
+      return 'Form Component';
+    }
+
     const labels: Record<ComponentType, string> = {
-      text_input: 'Text Input',
-      email_input: 'Email Input',
-      password_input: 'Password Input',
-      number_input: 'Number Input', 
-      textarea: 'Text Area',
-      rich_text: 'Rich Text',
-      select: 'Select Dropdown',
-      multi_select: 'Multi-Select',
-      checkbox: 'Checkbox',
-      radio_group: 'Radio Group',
-      date_picker: 'Date Picker',
-      file_upload: 'File Upload',
+      text_input: 'Text Input Field',
+      email_input: 'Email Input Field',
+      password_input: 'Password Field',
+      number_input: 'Number Input Field', 
+      textarea: 'Textarea Field',
+      rich_text: 'Rich Text Field',
+      select: 'Select Field',
+      multi_select: 'Multi Select Field',
+      checkbox: 'Checkbox Field',
+      radio_group: 'Radio Group Field',
+      date_picker: 'Date Field',
+      file_upload: 'File Upload Field',
       section_divider: 'Section Divider',
-      signature: 'Digital Signature',
+      signature: 'Signature Field',
+      button: 'Button',
+      heading: 'Heading',
       horizontal_layout: 'Horizontal Layout',
-      vertical_layout: 'Vertical Layout'
+      vertical_layout: 'Vertical Layout',
+      card: 'Card'
     };
     
-    return labels[type] || 'Form Component';
+    const label = labels[type];
+    if (!label) {
+      console.warn('⚠️ ComponentEngine.getDefaultLabel: Unknown type', type);
+      return 'Form Component';
+    }
+    
+    return label;
   }
 
   private static getDefaultPlaceholder(type: ComponentType): string {

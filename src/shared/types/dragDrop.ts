@@ -1,6 +1,7 @@
+import type { ComponentType } from './component';
 
 export interface DragItem {
-  type: string;
+  type: ComponentType | 'existing-component' | 'component';
   componentType?: string;
   component?: any;
   index?: number;

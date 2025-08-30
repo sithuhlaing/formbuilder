@@ -5,7 +5,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { ComponentEngine, FormStateEngine, ComponentRenderer } from '../core';
+import { ComponentEngine } from '../core/ComponentEngine';
+import { FormStateEngine } from '../core/FormStateEngine';
+import { ComponentRenderer } from '../core/ComponentRenderer';
 import type { FormPage } from '../types';
 
 describe('🎯 Convergent Architecture - Single Sources of Truth', () => {
@@ -14,12 +16,13 @@ describe('🎯 Convergent Architecture - Single Sources of Truth', () => {
     it('should create any component type correctly', () => {
       const textInput = ComponentEngine.createComponent('text_input');
       expect(textInput.type).toBe('text_input');
-      expect(textInput.label).toBe('Text Input');
+      expect(textInput.label).toBe('Text Input Field');
       expect(textInput.id).toBeTruthy();
       
       const select = ComponentEngine.createComponent('select');
       expect(select.type).toBe('select');
       expect(select.options).toEqual(['Option 1', 'Option 2', 'Option 3']);
+      expect(select.label).toBe('Select Field');
     });
 
     it('should update components correctly', () => {
@@ -35,7 +38,7 @@ describe('🎯 Convergent Architecture - Single Sources of Truth', () => {
       );
       
       expect(updated[0].label).toBe('Updated Label');
-      expect(updated[1].label).toBe('Select Dropdown'); // unchanged
+      expect(updated[1].label).toBe('Select Field'); // unchanged
     });
 
     it('should remove components correctly', () => {
@@ -48,6 +51,7 @@ describe('🎯 Convergent Architecture - Single Sources of Truth', () => {
       
       expect(removed).toHaveLength(1);
       expect(removed[0].type).toBe('select');
+      expect(removed[0].label).toBe('Select Field');
     });
 
     it('should validate components correctly', () => {
@@ -81,6 +85,7 @@ describe('🎯 Convergent Architecture - Single Sources of Truth', () => {
 
       expect(newState.pages[0].components).toHaveLength(1);
       expect(newState.pages[0].components[0].type).toBe('text_input');
+      expect(newState.pages[0].components[0].label).toBe('Text Input Field');
       expect(newState.selectedComponentId).toBeTruthy();
     });
 
@@ -115,9 +120,11 @@ describe('🎯 Convergent Architecture - Single Sources of Truth', () => {
 
       expect(page1Components).toHaveLength(1);
       expect(page1Components[0].type).toBe('text_input');
+      expect(page1Components[0].label).toBe('Text Input Field');
       
       expect(page2Components).toHaveLength(1);
       expect(page2Components[0].type).toBe('select');
+      expect(page2Components[0].label).toBe('Select Field');
     });
 
     it('should validate form state correctly', () => {
@@ -199,6 +206,7 @@ describe('🎯 Convergent Architecture - Single Sources of Truth', () => {
       // 1. Create component using ComponentEngine
       const component = ComponentEngine.createComponent('text_input');
       expect(component.type).toBe('text_input');
+      expect(component.label).toBe('Text Input Field');
 
       // 2. Add to form state using FormStateEngine
       const initialState = {
@@ -213,6 +221,7 @@ describe('🎯 Convergent Architecture - Single Sources of Truth', () => {
       });
 
       expect(stateWithComponent.pages[0].components).toHaveLength(1);
+      expect(stateWithComponent.pages[0].components[0].label).toBe('Text Input Field');
 
       // 3. Update component
       const updatedState = FormStateEngine.executeAction(stateWithComponent, {
@@ -247,9 +256,9 @@ describe('🧪 Business Logic Alignment', () => {
     expect(component).toBeTruthy();
     expect(component.id).toBeTruthy();
     expect(component.type).toBe('text_input');
+    expect(component.label).toBe('Text Input Field');
 
     // Requirement: Component should have default properties
-    expect(component.label).toBe('Text Input');
     expect(component.placeholder).toBe('Enter text...');
     expect(component.required).toBe(false);
 

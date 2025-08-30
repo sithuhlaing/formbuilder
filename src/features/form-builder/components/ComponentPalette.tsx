@@ -14,7 +14,7 @@ interface PaletteItemProps {
 }
 
 const PaletteItem: React.FC<PaletteItemProps> = ({ componentType, onAddComponent }) => {
-  const [{ isDragging }, drag] = useDrag({
+  const [{ isDragging }, drag, preview] = useDrag({
     type: 'component',
     item: { type: componentType },
     collect: (monitor) => ({
@@ -26,13 +26,13 @@ const PaletteItem: React.FC<PaletteItemProps> = ({ componentType, onAddComponent
 
   return (
     <button
-      ref={drag}
+      ref={drag as any}
       onClick={() => onAddComponent(componentType)}
       className={`palette-item ${isDragging ? 'palette-item--dragging' : ''}`}
       title={info.description}
     >
       <span className="palette-item__icon">{info.icon}</span>
-      <span className="palette-item__label">{info.description}</span>
+      <span className="palette-item__label">{info.label}</span>
     </button>
   );
 };

@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import App from '../App';
@@ -6,22 +5,11 @@ import App from '../App';
 // Mock the entire useFormBuilder hook for workflow testing
 const mockUseFormBuilder = vi.fn();
 
-vi.mock('../hooks/useFormBuilder', () => ({
+vi.mock('../features/form-builder/hooks/useFormBuilder', () => ({
   useFormBuilder: () => mockUseFormBuilder()
 }));
 
-vi.mock('../hooks/useModals', () => ({
-  useModals: () => ({
-    notification: { isOpen: false },
-    confirmation: { isOpen: false },
-    showNotification: vi.fn(),
-    showConfirmation: vi.fn(),
-    closeNotification: vi.fn(),
-    closeConfirmation: vi.fn(),
-  })
-}));
-
-vi.mock('../services/templateService', () => ({
+vi.mock('../features/template-management/services/templateService', () => ({
   templateService: {
     getTemplates: vi.fn(() => []),
     save: vi.fn(),
@@ -168,15 +156,15 @@ describe('Template Workflow Tests', () => {
 
       await waitFor(() => {
         // Buttons should be enabled when components exist
-        const previewButton = screen.getByText('Preview');
-        const exportButton = screen.getByText('Export JSON');
-        const saveButton = screen.getByText('Save Template');
-        const clearAllButton = screen.getByText('Clear All');
+        const previewButton = screen.getByText('Preview') as HTMLButtonElement;
+        const exportButton = screen.getByText('Export JSON') as HTMLButtonElement;
+        const saveButton = screen.getByText('Save Template') as HTMLButtonElement;
+        const clearAllButton = screen.getByText('Clear All') as HTMLButtonElement;
 
-        expect(previewButton).not.toBeDisabled();
-        expect(exportButton).not.toBeDisabled();
-        expect(saveButton).not.toBeDisabled();
-        expect(clearAllButton).not.toBeDisabled();
+        expect(previewButton.disabled).toBe(false);
+        expect(exportButton.disabled).toBe(false);
+        expect(saveButton.disabled).toBe(false);
+        expect(clearAllButton.disabled).toBe(false);
       });
     });
 
@@ -195,11 +183,11 @@ describe('Template Workflow Tests', () => {
       fireEvent.click(createButton);
 
       await waitFor(() => {
-        const undoButton = screen.getByText('↶ Undo');
-        const redoButton = screen.getByText('↷ Redo');
+        const undoButton = screen.getByText('↶ Undo') as HTMLButtonElement;
+        const redoButton = screen.getByText('↷ Redo') as HTMLButtonElement;
 
-        expect(undoButton).not.toBeDisabled();
-        expect(redoButton).not.toBeDisabled();
+        expect(undoButton.disabled).toBe(false);
+        expect(redoButton.disabled).toBe(false);
 
         // Test undo
         fireEvent.click(undoButton);
@@ -314,7 +302,7 @@ describe('Template Workflow Tests', () => {
       });
 
       // Should not crash
-      expect(() => render(<App />)).not.toThrow();
+      expect(() => render(<App />)).not.toThrowError();
     });
 
     test('should handle missing pages gracefully', async () => {

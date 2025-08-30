@@ -29,18 +29,18 @@ describe('🔍 Debug Component Palette', () => {
     
     // Try to find elements by specific component names
     try {
-      const textInput = screen.getByText('Text Input');
-      console.log('Found Text Input element:', textInput.tagName, textInput.textContent);
+      const textInput = screen.getByText('Text Input Field');
+      console.log('Found Text Input Field element:', textInput.tagName, textInput.textContent);
     } catch (e) {
-      console.log('Text Input not found directly');
+      console.log('Text Input Field not found directly');
     }
     
     // Look for all divs containing component-like text
     const allDivs = document.querySelectorAll('div');
     const componentDivs = Array.from(allDivs).filter(div => 
-      div.textContent && div.textContent.includes('Input')
+      div.textContent && (div.textContent.includes('Input') || div.textContent.includes('Field'))
     );
-    console.log('Divs containing "Input":', componentDivs.length);
+    console.log('Divs containing "Input" or "Field":', componentDivs.length);
     componentDivs.forEach((div, i) => {
       console.log(`Input div ${i}:`, div.textContent?.trim());
     });

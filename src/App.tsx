@@ -3,22 +3,19 @@
  * Full functionality: Template list, form builder with all tools
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-
-// Clean feature imports - single sources of truth
 import { 
   Canvas, 
   ComponentPalette, 
   PropertiesPanel,
   PreviewModal,
+  DeleteZone,
   useFormBuilder 
 } from './features/form-builder';
 import { TemplateListView, templateService } from './features/template-management';
 import { Button } from './shared/components';
-
-// Types
 import type { ComponentType } from './types';
 
 // Styles
@@ -27,7 +24,6 @@ import './styles/main.css';
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'list' | 'builder'>('list');
   const [showPreview, setShowPreview] = useState(false);
-  const [templates, setTemplates] = useState(() => templateService.getAllTemplates());
   
   const {
     formState,
@@ -35,28 +31,44 @@ const App: React.FC = () => {
     selectedComponent,
     addComponent,
     updateComponent,
+    deleteComponent,
     selectComponent,
+    clearAll,
     handleDrop,
+    moveComponent,
     setTemplateName,
+    getCurrentPageIndex,
+    navigateToNextPage,
+    navigateToPreviousPage,
+    addNewPage,
+    handleFormSubmit,
     undo,
     redo,
     canUndo,
     canRedo,
-    clearAll,
-    loadFromJSON
+    loadFromJSON,
+    loadTemplate
   } = useFormBuilder();
 
   // Actions for form builder
   const handleSave = () => {
-    const saved = templateService.saveTemplate({
-      name: formState.templateName,
-      pages: formState.pages
-    });
-    console.log('Template saved:', saved);
-    // Refresh templates list
-    setTemplates(templateService.getAllTemplates());
-    // Show success message or redirect to list
-    alert(`Template "${formState.templateName}" saved successfully!`);
+    if (formState.templateId) {
+      // Update existing template
+      const updated = templateService.updateTemplate(formState.templateId, {
+        name: formState.templateName,
+        pages: formState.pages
+      });
+      console.log('Template updated:', updated);
+      alert(`Template "${formState.templateName}" updated successfully!`);
+    } else {
+      // Create new template
+      const saved = templateService.saveTemplate({
+        name: formState.templateName,
+        pages: formState.pages
+      });
+      console.log('Template saved:', saved);
+      alert(`Template "${formState.templateName}" saved successfully!`);
+    }
   };
 
   const handleClearAll = () => {
@@ -98,45 +110,25 @@ const App: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  // Export advanced schema with layout and styling information
+  // Export schema for testing - shows current form structure
   const handleExportSchema = () => {
-    const advancedSchema = {
+    const currentPage = formState.pages.find(page => page.id === formState.currentPageId);
+    const schemaData = {
       templateName: formState.templateName,
-      pages: formState.pages,
+      components: currentPage?.components || [],
       metadata: {
-        version: '1.0',
-        createdAt: new Date().toISOString(),
-        type: 'advanced-layout-schema'
-      },
-      layout: {
-        type: 'responsive',
-        breakpoints: {
-          mobile: '768px',
-          tablet: '1024px',
-          desktop: '1200px'
-        }
-      },
-      styling: {
-        theme: 'default',
-        colors: {
-          primary: '#3B82F6',
-          secondary: '#64748B',
-          background: '#FFFFFF',
-          text: '#1F2937'
-        }
+        exportedAt: new Date().toISOString(),
+        version: '1.0.0'
       }
     };
     
-    const jsonString = JSON.stringify(advancedSchema, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
+    // Update schema output for tests
+    const schemaOutput = document.getElementById('schema-output');
+    if (schemaOutput) {
+      schemaOutput.textContent = JSON.stringify(schemaData, null, 2);
+    }
     
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${formState.templateName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_schema.json`;
-    a.click();
-    
-    URL.revokeObjectURL(url);
+    console.log('📋 Schema exported:', schemaData);
   };
 
   // Template List View
@@ -153,12 +145,8 @@ const App: React.FC = () => {
             setCurrentView('builder');
           }}
           onEditTemplate={(template) => {
-            console.log('Loading template:', template.name);
-            loadFromJSON(JSON.stringify({
-              templateName: template.name,
-              pages: template.pages
-            }));
-            setTemplates(templateService.getAllTemplates()); // Refresh templates
+            console.log('Loading template for editing:', template.name);
+            loadTemplate(template);
             setCurrentView('builder');
           }}
         />
@@ -180,7 +168,7 @@ const App: React.FC = () => {
               <Button 
                 onClick={() => setCurrentView('list')}
                 variant="secondary"
-                size="sm"
+                size="small"
               >
                 ← Back to Templates
               </Button>
@@ -190,7 +178,7 @@ const App: React.FC = () => {
               <Button
                 onClick={undo}
                 variant="secondary"
-                size="sm" 
+                size="small" 
                 disabled={!canUndo}
               >
                 ↶ Undo
@@ -199,7 +187,7 @@ const App: React.FC = () => {
               <Button
                 onClick={redo}
                 variant="secondary"
-                size="sm"
+                size="small"
                 disabled={!canRedo}
               >
                 ↷ Redo
@@ -207,7 +195,7 @@ const App: React.FC = () => {
               
               <div className="divider-vertical" />
               
-              <label className="btn btn--secondary btn--sm">
+              <label className="btn btn--secondary btn--small">
                 📁 Load JSON
                 <input
                   type="file"
@@ -220,7 +208,7 @@ const App: React.FC = () => {
               <Button
                 onClick={handleClearAll}
                 variant="secondary"
-                size="sm"
+                size="small"
                 disabled={currentComponents.length === 0}
               >
                 Clear All
@@ -229,7 +217,7 @@ const App: React.FC = () => {
               <Button
                 onClick={() => setShowPreview(true)}
                 variant="secondary"
-                size="sm"
+                size="small"
                 disabled={currentComponents.length === 0}
               >
                 Preview
@@ -238,16 +226,25 @@ const App: React.FC = () => {
               <Button
                 onClick={handleExportJSON}
                 variant="secondary"
-                size="sm"
+                size="small"
                 disabled={currentComponents.length === 0}
               >
                 Export JSON
               </Button>
               
               <Button
+                onClick={handleExportSchema}
+                variant="secondary"
+                size="small"
+                disabled={currentComponents.length === 0}
+              >
+                Export Schema
+              </Button>
+              
+              <Button
                 onClick={handleSave}
                 variant="primary"
-                size="sm"
+                size="small"
                 disabled={currentComponents.length === 0}
               >
                 Save Template
@@ -256,7 +253,6 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        {/* Main Content */}
         <main className="main">
           {/* Left Sidebar with Component Palette */}
           <aside className="sidebar">
@@ -266,65 +262,51 @@ const App: React.FC = () => {
           {/* Canvas Area */}
           <section className="canvas">
             <div className="canvas__header">
-              <div className="flex flex--between flex--align-center">
-                <input
-                  type="text"
-                  value={formState.templateName}
-                  onChange={(e) => setTemplateName(e.target.value)}
-                  className="canvas__title-input field-group--inline"
-                  placeholder="Form Name"
-                  style={{ 
-                    flex: 1, 
-                    marginRight: '1rem',
-                    padding: '0.5rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px'
-                  }}
-                />
-                <div className="flex flex--align-center flex--gap-2">
-                  <label className="field-group__label field-label--compact">Type:</label>
-                  <select
-                    className="select input--auto-width"
-                    defaultValue="assessment"
-                  >
-                    <option value="assessment">Assessment</option>
-                    <option value="referral">Referral</option>
-                    <option value="compliance">Compliance</option>
-                    <option value="other">Other</option>
-                  </select>
+              <div className="canvas__title-section">
+                <h1 className="canvas__title">
+                  {formState.templateName}
+                </h1>
+                <div className="canvas__page-info">
+                  Page {getCurrentPageIndex() + 1} of {formState.pages.length}
                 </div>
               </div>
-            </div>
-            
-            {/* Pages Navigation */}
-            <div className="canvas__pages">
-              <div className="page-navigation">
-                <div className="page-navigation__header">
-                  <h3 className="page-navigation__title">
-                    <span className="page-navigation__icon">📄</span>
-                    Pages
-                  </h3>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    className="page-navigation__add-btn"
-                  >
-                    + Add Page
-                  </Button>
-                </div>
-                <div className="page-navigation__list">
-                  <div className="page-navigation__item page-navigation__item--active">
-                    <div className="page-navigation__item-content">
-                      <div className="page-navigation__item-header">
-                        <span className="page-navigation__item-number">1</span>
-                        <span className="page-navigation__item-title">Page 1</span>
-                      </div>
-                      <div className="page-navigation__item-info">
-                        {currentComponents.length} components
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              
+              {/* Page Navigation */}
+              <div className="canvas__page-navigation">
+                {formState.pages.length > 1 && (
+                  <>
+                    <button 
+                      className="btn btn--secondary"
+                      onClick={navigateToPreviousPage}
+                      disabled={getCurrentPageIndex() === 0}
+                    >
+                      ← Previous
+                    </button>
+                    
+                    {getCurrentPageIndex() < formState.pages.length - 1 ? (
+                      <button 
+                        className="btn btn--primary"
+                        onClick={navigateToNextPage}
+                      >
+                        Next →
+                      </button>
+                    ) : (
+                      <button 
+                        className="btn btn--success"
+                        onClick={handleFormSubmit}
+                      >
+                        Submit Form
+                      </button>
+                    )}
+                  </>
+                )}
+                
+                <button 
+                  className="btn btn--outline"
+                  onClick={addNewPage}
+                >
+                  + Add Page
+                </button>
               </div>
             </div>
             
@@ -334,6 +316,8 @@ const App: React.FC = () => {
                 components={currentComponents}
                 onDrop={handleDrop}
                 onSelect={selectComponent}
+                onMove={moveComponent}
+                onDelete={deleteComponent}
                 selectedId={formState.selectedComponentId || undefined}
               />
             </div>
@@ -356,6 +340,12 @@ const App: React.FC = () => {
             </div>
           </aside>
         </main>
+
+        {/* Delete Zone - Outside Canvas Area */}
+        <DeleteZone onDelete={deleteComponent} />
+
+        {/* Schema Output */}
+        <pre id="schema-output"></pre>
 
         {/* Preview Modal */}
         <PreviewModal

@@ -64,24 +64,7 @@ export class ComponentRenderer {
 
   // Private rendering methods - all in ONE place
   private static renderBuilderMode(component: FormComponentData): string {
-    const dragHandle = '⋮⋮';
-    const deleteButton = '×';
-    
-    return `
-      <div class="form-component smart-drop-zone" data-component-id="${component.id}">
-        <div class="form-component__hover-controls">
-          <button class="form-component__hover-action form-component__hover-action--drag" title="Drag to reorder">
-            ${dragHandle}
-          </button>
-          <button class="form-component__hover-action form-component__hover-action--delete" title="Delete component">
-            ${deleteButton}
-          </button>
-        </div>
-        <div class="form-component__content">
-          ${this.renderComponentContent(component)}
-        </div>
-      </div>
-    `;
+    return this.renderComponentContent(component);
   }
 
   private static renderPreviewMode(component: FormComponentData): string {
@@ -287,6 +270,36 @@ export class ComponentRenderer {
           </div>
         `;
       
+      case 'button':
+        return `
+          <button type="button" class="btn btn--primary">
+            ${component.label}
+          </button>
+        `;
+      
+      case 'heading':
+        return `
+          <h2 class="form-field__heading">
+            ${component.label}
+          </h2>
+        `;
+      
+      case 'card':
+        const cardChildren = (component.children || [])
+          .map(child => this.renderComponentContent(child))
+          .join('');
+        
+        return `
+          <div class="form-card">
+            <div class="form-card__header">
+              <span class="form-card__label">${component.label}</span>
+            </div>
+            <div class="form-card__content">
+              ${cardChildren}
+            </div>
+          </div>
+        `;
+      
       default:
         return `
           <div class="form-field__unknown">
@@ -301,24 +314,27 @@ export class ComponentRenderer {
    * Replaces: scattered component info logic
    */
   static getComponentInfo(type: string) {
-    const info: Record<string, { category: string; description: string; icon: string }> = {
-      text_input: { category: 'Input Fields', description: 'Single line text input', icon: '📝' },
-      email_input: { category: 'Input Fields', description: 'Email address input', icon: '📧' },
-      password_input: { category: 'Input Fields', description: 'Password input field', icon: '🔒' },
-      number_input: { category: 'Input Fields', description: 'Numeric input field', icon: '🔢' },
-      textarea: { category: 'Input Fields', description: 'Multi-line text input', icon: '📄' },
-      select: { category: 'Selection', description: 'Dropdown selection', icon: '⬇️' },
-      multi_select: { category: 'Selection', description: 'Multiple selection dropdown', icon: '☑️' },
-      checkbox: { category: 'Selection', description: 'Single checkbox', icon: '☑️' },
-      radio_group: { category: 'Selection', description: 'Radio button group', icon: '🔘' },
-      date_picker: { category: 'Input Fields', description: 'Date selection', icon: '📅' },
-      file_upload: { category: 'Input Fields', description: 'File upload field', icon: '📎' },
-      section_divider: { category: 'Layout', description: 'Section separator', icon: '➖' },
-      signature: { category: 'Special', description: 'Digital signature pad', icon: '✍️' },
-      horizontal_layout: { category: 'Layout', description: 'Horizontal container', icon: '⬌' },
-      vertical_layout: { category: 'Layout', description: 'Vertical container', icon: '⬍' },
+    const info: Record<string, { category: string; description: string; label: string; icon: string }> = {
+      text_input: { category: 'Input Fields', description: 'Single line text input', label: 'Text Input', icon: '📝' },
+      email_input: { category: 'Input Fields', description: 'Email address input', label: 'Email Input', icon: '📧' },
+      password_input: { category: 'Input Fields', description: 'Password input field', label: 'Password Input', icon: '🔒' },
+      number_input: { category: 'Input Fields', description: 'Numeric input field', label: 'Number Input', icon: '🔢' },
+      textarea: { category: 'Input Fields', description: 'Multi-line text input', label: 'Text Area', icon: '📄' },
+      select: { category: 'Selection', description: 'Dropdown selection', label: 'Select', icon: '⬇️' },
+      multi_select: { category: 'Selection', description: 'Multiple selection dropdown', label: 'Multi Select', icon: '☑️' },
+      checkbox: { category: 'Selection', description: 'Single checkbox', label: 'Checkbox', icon: '☑️' },
+      radio_group: { category: 'Selection', description: 'Radio button group', label: 'Radio Group', icon: '🔘' },
+      date_picker: { category: 'Input Fields', description: 'Date selection', label: 'Date Picker', icon: '📅' },
+      file_upload: { category: 'Input Fields', description: 'File upload field', label: 'File Upload', icon: '📎' },
+      section_divider: { category: 'Layout', description: 'Section separator', label: 'Section Divider', icon: '➖' },
+      signature: { category: 'Special', description: 'Digital signature pad', label: 'Signature', icon: '✍️' },
+      button: { category: 'Actions', description: 'Clickable button', label: 'Button', icon: '🔘' },
+      heading: { category: 'Content', description: 'Text heading', label: 'Heading', icon: '📰' },
+      card: { category: 'Layout', description: 'Card container', label: 'Card', icon: '🃏' },
+      horizontal_layout: { category: 'Layout', description: 'Horizontal container', label: 'Horizontal Layout', icon: '⬌' },
+      vertical_layout: { category: 'Layout', description: 'Vertical container', label: 'Vertical Layout', icon: '⬍' },
     };
     
-    return info[type] || { category: 'Unknown', description: 'Unknown component', icon: '❓' };
+    return info[type] || { category: 'Unknown', description: 'Unknown component', label: 'Unknown', icon: '❓' };
   }
 }

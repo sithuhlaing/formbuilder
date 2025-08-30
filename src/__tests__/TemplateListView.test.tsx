@@ -1,44 +1,36 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import TemplateListView from '../components/TemplateListView';
-import { templateService } from '../features/template-management';
+import { TemplateListView } from '../features/template-management/components/TemplateListView';
+import { templateService } from '../features/template-management/services/templateService';
 import type { FormTemplate } from '../types';
 
 // Mock the templateService
-vi.mock('../services/templateService', () => ({
+vi.mock('../features/template-management/services/templateService', () => ({
   templateService: {
-    getTemplates: vi.fn(),
+    getAllTemplates: vi.fn(),
   }
 }));
 
 // Mock the modal components
-vi.mock('../components/molecules/forms/PreviewModal', () => ({
+vi.mock('../features/form-builder/components/PreviewModal', () => ({
   default: ({ isOpen, onClose, templateName }: any) => 
     isOpen ? (
-      <div data-testid="preview-modal">
+      <div>
         <h2>Preview: {templateName}</h2>
         <button onClick={onClose}>Close Preview</button>
       </div>
     ) : null
 }));
 
-vi.mock('../components/ConfirmDialog', () => ({
-  default: ({ isOpen, onClose, onConfirm, title, message }: any) => 
-    isOpen ? (
-      <div data-testid="confirm-dialog">
-        <h2>{title}</h2>
-        <p>{message}</p>
-        <button onClick={onConfirm}>Confirm</button>
-        <button onClick={onClose}>Cancel</button>
-      </div>
-    ) : null
-}));
-
-vi.mock('../components/atoms/controls/ActionButton', () => ({
-  default: ({ onClick, icon, title, variant }: any) => (
+vi.mock('../shared/components', () => ({
+  ActionButton: ({ onClick, icon, title, variant }: any) => (
     <button onClick={onClick} title={title} data-variant={variant}>
       {icon}
+    </button>
+  ),
+  Button: ({ onClick, children, ...props }: any) => (
+    <button onClick={onClick} {...props}>
+      {children}
     </button>
   )
 }));
@@ -94,8 +86,7 @@ const mockTemplates: FormTemplate[] = [
     ],
     createdDate: '2024-01-01T10:00:00Z',
     modifiedDate: '2024-01-02T11:00:00Z',
-    jsonSchema: null,
-    currentView: 'desktop'
+    jsonSchema: null
   },
   {
     templateId: 'template-2',
@@ -114,8 +105,7 @@ const mockTemplates: FormTemplate[] = [
     pages: [],
     createdDate: '2024-01-03T09:00:00Z',
     modifiedDate: '2024-01-03T09:30:00Z',
-    jsonSchema: null,
-    currentView: 'desktop'
+    jsonSchema: null
   }
 ];
 
@@ -129,7 +119,7 @@ describe('TemplateListView - Welcome Screen Tests', () => {
 
   describe('Empty State - Welcome Screen', () => {
     beforeEach(() => {
-      (templateService.getTemplates as any).mockReturnValue([]);
+      (templateService.getAllTemplates as any).mockReturnValue([]);
     });
 
     test('should show welcome screen when no templates exist', () => {
@@ -175,7 +165,7 @@ describe('TemplateListView - Welcome Screen Tests', () => {
 
   describe('Templates List View', () => {
     beforeEach(() => {
-      (templateService.getTemplates as any).mockReturnValue(mockTemplates);
+      (templateService.getAllTemplates as any).mockReturnValue(mockTemplates);
     });
 
     test('should display list of templates', () => {
@@ -224,7 +214,7 @@ describe('TemplateListView - Welcome Screen Tests', () => {
 
   describe('Template Actions', () => {
     beforeEach(() => {
-      (templateService.getTemplates as any).mockReturnValue(mockTemplates);
+      (templateService.getAllTemplates as any).mockReturnValue(mockTemplates);
     });
 
     test('should call onEditTemplate when edit button is clicked', () => {
@@ -257,7 +247,6 @@ describe('TemplateListView - Welcome Screen Tests', () => {
 
       // Check if preview modal opens
       await waitFor(() => {
-        expect(screen.getByTestId('preview-modal')).toBeInTheDocument();
         expect(screen.getByText('Preview: Customer Feedback Form')).toBeInTheDocument();
       });
     });
@@ -275,7 +264,7 @@ describe('TemplateListView - Welcome Screen Tests', () => {
       fireEvent.click(previewButtons[0]);
 
       await waitFor(() => {
-        expect(screen.getByTestId('preview-modal')).toBeInTheDocument();
+        expect(screen.getByText('Preview: Customer Feedback Form')).toBeInTheDocument();
       });
 
       // Close preview modal
@@ -283,7 +272,7 @@ describe('TemplateListView - Welcome Screen Tests', () => {
       fireEvent.click(closeButton);
 
       await waitFor(() => {
-        expect(screen.queryByTestId('preview-modal')).not.toBeInTheDocument();
+        expect(screen.queryByText('Preview: Customer Feedback Form')).toBeNull();
       });
     });
 
@@ -301,7 +290,6 @@ describe('TemplateListView - Welcome Screen Tests', () => {
 
       // Check if confirmation dialog opens
       await waitFor(() => {
-        expect(screen.getByTestId('confirm-dialog')).toBeInTheDocument();
         expect(screen.getByText('Delete Template')).toBeInTheDocument();
         expect(screen.getByText(/are you sure you want to delete.*customer feedback form/i)).toBeInTheDocument();
       });
@@ -329,11 +317,11 @@ describe('TemplateListView - Welcome Screen Tests', () => {
       fireEvent.click(deleteButtons[0]);
 
       await waitFor(() => {
-        expect(screen.getByTestId('confirm-dialog')).toBeInTheDocument();
+        expect(screen.getByText('Delete Template')).toBeInTheDocument();
       });
 
       // Confirm deletion
-      const confirmButton = screen.getByText('Confirm');
+      const confirmButton = screen.getByRole('button', { name: 'Delete Template' });
       fireEvent.click(confirmButton);
 
       // Check if localStorage.setItem was called (template deleted)
@@ -346,7 +334,7 @@ describe('TemplateListView - Welcome Screen Tests', () => {
 
   describe('Create New Template', () => {
     beforeEach(() => {
-      (templateService.getTemplates as any).mockReturnValue(mockTemplates);
+      (templateService.getAllTemplates as any).mockReturnValue(mockTemplates);
     });
 
     test('should call onCreateNew when "Create New Form" button is clicked', () => {
@@ -366,7 +354,7 @@ describe('TemplateListView - Welcome Screen Tests', () => {
 
   describe('Template Loading', () => {
     test('should load templates from templateService on mount', () => {
-      (templateService.getTemplates as any).mockReturnValue(mockTemplates);
+      (templateService.getAllTemplates as any).mockReturnValue(mockTemplates);
       
       render(
         <TemplateListView 
@@ -375,11 +363,11 @@ describe('TemplateListView - Welcome Screen Tests', () => {
         />
       );
 
-      expect(templateService.getTemplates).toHaveBeenCalledTimes(1);
+      expect(templateService.getAllTemplates).toHaveBeenCalledTimes(1);
     });
 
     test('should handle empty template list gracefully', () => {
-      (templateService.getTemplates as any).mockReturnValue([]);
+      (templateService.getAllTemplates as any).mockReturnValue([]);
       
       render(
         <TemplateListView 
@@ -396,7 +384,7 @@ describe('TemplateListView - Welcome Screen Tests', () => {
         ...mockTemplates[0],
         fields: []
       }];
-      (templateService.getTemplates as any).mockReturnValue(templatesWithoutFields);
+      (templateService.getAllTemplates as any).mockReturnValue(templatesWithoutFields);
       
       render(
         <TemplateListView 
@@ -411,7 +399,7 @@ describe('TemplateListView - Welcome Screen Tests', () => {
 
   describe('Accessibility', () => {
     beforeEach(() => {
-      (templateService.getTemplates as any).mockReturnValue(mockTemplates);
+      (templateService.getAllTemplates as any).mockReturnValue(mockTemplates);
     });
 
     test('should have proper button labels and titles', () => {

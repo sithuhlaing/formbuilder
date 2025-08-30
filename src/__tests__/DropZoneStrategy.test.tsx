@@ -1,7 +1,13 @@
-
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import { BetweenComponentsDropStrategy, CanvasMainDropStrategy } from '../components/Canvas/strategies/DropZoneStrategy';
-import type { DragItem, CanvasActions } from '../components/Canvas/types';
+import { BetweenComponentsDropStrategy, CanvasMainDropStrategy } from '../features/form-builder/components/Canvas/strategies/DropZoneStrategy';
+import type { DragItem } from '../features/form-builder/components/Canvas/types';
+
+// Define CanvasActions interface locally since it may not be exported
+interface CanvasActions {
+  onAddComponent: (componentType: string) => void;
+  onInsertBetween?: (componentType: string, index: number) => void;
+  onMoveFromContainerToCanvas?: (componentId: string, containerPath: string) => void;
+}
 
 describe('DropZoneStrategy', () => {
   let mockActions: CanvasActions;
@@ -23,7 +29,7 @@ describe('DropZoneStrategy', () => {
       strategy.handleDrop(dragItem);
 
       expect(mockActions.onInsertBetween).toHaveBeenCalledWith('text_input', 2);
-      expect(mockActions.onAddComponent).not.toHaveBeenCalled();
+      expect(mockActions.onAddComponent).toHaveBeenCalledTimes(0);
     });
 
     test('should fallback to onAddComponent when onInsertBetween is not available', () => {
