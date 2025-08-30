@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { templateService } from '../services/templateService';
-import { ActionButton, Button } from '../../../shared/components';
+import { ActionButton, Button, Modal } from '../../../shared/components';
 import { PreviewModal } from '../../form-builder';
 import type { FormTemplate, FormTemplateType } from '../../../types';
 
@@ -24,6 +24,10 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
     templateId: string;
     templateName: string;
   }>({ isOpen: false, templateId: '', templateName: '' });
+  const [successModal, setSuccessModal] = useState<{
+    isOpen: boolean;
+    message: string;
+  }>({ isOpen: false, message: '' });
 
   useEffect(() => {
     const savedTemplates = templateService.getAllTemplates();
@@ -48,10 +52,17 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
   const handleDuplicateTemplate = (template: FormTemplate) => {
     const duplicatedTemplate = templateService.saveTemplate({
       name: `${template.name} (Copy)`,
-      pages: template.pages
+      pages: template.pages,
+      type: template.type || 'other',
+      fields: template.fields || [],
+      jsonSchema: template.jsonSchema || {},
+      currentView: template.currentView
     });
     setTemplates(templateService.getAllTemplates());
-    alert(`Template duplicated as "${duplicatedTemplate.name}"`);
+    setSuccessModal({
+      isOpen: true,
+      message: `Template duplicated as "${duplicatedTemplate.name}"`
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -129,7 +140,7 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
           ) : (
             <div className="template-grid">
               {templates.map((template) => (
-                <div key={template.id} className="template-card">
+                <div key={template.templateId} className="template-card">
                   <div className="template-card__header">
                     <div className="template-card__actions">
                       <ActionButton
@@ -160,7 +171,7 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
                       <ActionButton
                         onClick={(e) => {
                           e?.stopPropagation();
-                          handleDeleteTemplate(template.id, template.name);
+                          handleDeleteTemplate(template.templateId, template.name);
                         }}
                         icon="�️"
                         title="Delete template"
@@ -195,11 +206,11 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
                     
                     <div className="template-card__meta">
                       <div className="template-card__date">
-                        Created: {formatDate(template.createdAt)}
+                        Created: {formatDate(template.createdDate)}
                       </div>
-                      {template.updatedAt !== template.createdAt && (
+                      {template.modifiedDate !== template.createdDate && (
                         <div className="template-card__date">
-                          Updated: {formatDate(template.updatedAt)}
+                          Updated: {formatDate(template.modifiedDate)}
                         </div>
                       )}
                     </div>
@@ -209,7 +220,7 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
                     <Button
                       onClick={() => onEditTemplate(template)}
                       variant="primary"
-                      size="sm"
+                      size="small"
                     >
                       Open Template
                     </Button>
@@ -257,8 +268,25 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
           onClose={() => setPreviewTemplate(null)}
           templateName={previewTemplate.name}
           components={previewTemplate.pages?.[0]?.components || []}
+          pages={previewTemplate.pages?.map((page, index) => ({
+            ...page,
+            order: index + 1
+          })) || []}
         />
       )}
+
+      {/* Success Modal */}
+      <Modal
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal({ isOpen: false, message: '' })}
+        title="Success"
+        size="small"
+      >
+        <div className="text-center py-4">
+          <div className="text-green-600 text-4xl mb-4">✅</div>
+          <p className="text-gray-700">{successModal.message}</p>
+        </div>
+      </Modal>
     </div>
   );
 };

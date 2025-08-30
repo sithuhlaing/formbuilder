@@ -2,7 +2,7 @@
  * Modal Component - Reusable modal wrapper
  */
 
-import React, { ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 
 interface ModalProps {
   isOpen: boolean;

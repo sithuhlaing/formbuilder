@@ -23,12 +23,15 @@ export abstract class AbstractCanvasRenderer implements CanvasRenderer {
  * Note: Not recommended for PWA/CSP environments
  */
 export class HTMLStringRenderer extends AbstractCanvasRenderer {
-  constructor(private htmlGenerator: (item: CanvasItem, mode: string) => string) {
+  private htmlGenerator: (item: CanvasItem, mode: string) => string;
+  
+  constructor(htmlGenerator: (item: CanvasItem, mode: string) => string) {
     super();
+    this.htmlGenerator = htmlGenerator;
   }
 
   render(item: CanvasItem, context: RenderContext): React.ReactNode {
-    const htmlContent = this.htmlGenerator(item.data, 'builder');
+    const htmlContent = this.htmlGenerator(item, 'builder');
     
     return React.createElement('div', {
       className: 'form-component__content',
@@ -42,13 +45,18 @@ export class HTMLStringRenderer extends AbstractCanvasRenderer {
  * CSP-Safe Renderer - Uses React components
  * Recommended for PWA environments
  */
+interface CSPSafeRendererProps {
+  item: CanvasItem;
+  context: RenderContext;
+  readOnly?: boolean;
+}
+
 export class CSPSafeRenderer extends AbstractCanvasRenderer {
-  constructor(private componentRenderer: React.ComponentType<{
-    item: CanvasItem;
-    context: RenderContext;
-    readOnly?: boolean;
-  }>) {
+  private componentRenderer: React.ComponentType<CSPSafeRendererProps>;
+  
+  constructor(componentRenderer: React.ComponentType<CSPSafeRendererProps>) {
     super();
+    this.componentRenderer = componentRenderer;
   }
 
   render(item: CanvasItem, context: RenderContext): React.ReactNode {
@@ -67,8 +75,11 @@ export class CSPSafeRenderer extends AbstractCanvasRenderer {
  * Most flexible approach
  */
 export class FunctionRenderer extends AbstractCanvasRenderer {
-  constructor(private renderFunction: (item: CanvasItem, context: RenderContext) => React.ReactNode) {
+  private renderFunction: (item: CanvasItem, context: RenderContext) => React.ReactNode;
+  
+  constructor(renderFunction: (item: CanvasItem, context: RenderContext) => React.ReactNode) {
     super();
+    this.renderFunction = renderFunction;
   }
 
   render(item: CanvasItem, context: RenderContext): React.ReactNode {

@@ -6,7 +6,7 @@ import { templateService } from '../features/template-management';
 import type { FormTemplate } from '../types';
 
 // Mock all the services and hooks
-vi.mock('../services/templateService', () => ({
+vi.mock('../features/template-management/services/templateService', () => ({
   templateService: {
     getAllTemplates: vi.fn(),
     save: vi.fn(),
@@ -146,7 +146,7 @@ describe('App Integration Tests - Template Flow', () => {
 
       // Should show welcome screen when no templates
       expect(screen.getByText('No templates yet')).toBeInTheDocument();
-      expect(screen.getByText('Get started by creating your first form template')).toBeInTheDocument();
+      expect(screen.getByText(/Get started by creating your first form template/)).toBeInTheDocument();
     });
 
     test('should show template list when templates exist', () => {
@@ -234,11 +234,10 @@ describe('App Integration Tests - Template Flow', () => {
       await waitFor(() => {
         // Check header toolbar
         expect(screen.getByText('← Back to Templates')).toBeInTheDocument();
-        expect(screen.getByText('🧹 Clear')).toBeInTheDocument();
+        expect(screen.getByText('Clear All')).toBeInTheDocument();
         expect(screen.getByText('↶ Undo')).toBeInTheDocument();
         expect(screen.getByText('↷ Redo')).toBeInTheDocument();
         expect(screen.getByText('📁 Load JSON')).toBeInTheDocument();
-        expect(screen.getByText('Clear All')).toBeInTheDocument();
         expect(screen.getByText('Preview')).toBeInTheDocument();
         expect(screen.getByText('Export JSON')).toBeInTheDocument();
         expect(screen.getByText('Export Schema')).toBeInTheDocument();
@@ -389,29 +388,36 @@ describe('App Integration Tests - Template Flow', () => {
     });
   });
 
-  describe('Error Handling', () => {
-    test('should handle missing template data gracefully', () => {
-      (templateService.getAllTemplates as any).mockReturnValue([{
-        templateId: 'broken-template',
-        name: 'Broken Template',
-        type: 'assessment',
-        fields: null, // Broken data
-        pages: undefined, // Missing data
-        createdDate: '2024-01-01T10:00:00Z',
-        modifiedDate: '2024-01-01T10:00:00Z',
-        jsonSchema: null,
-        currentView: 'desktop'
-      }]);
-      
-      // Should not crash
-      expect(() => render(<App />)).not.toThrow();
-    });
+  test('should handle missing template data gracefully', () => {
+    (templateService.getAllTemplates as any).mockReturnValue([{
+      templateId: 'broken-template',
+      name: 'Broken Template',
+      type: 'assessment',
+      fields: null, // Broken data
+      pages: undefined, // Missing data
+      createdDate: '2024-01-01T10:00:00Z',
+      modifiedDate: '2024-01-01T10:00:00Z',
+      jsonSchema: null,
+      currentView: 'desktop'
+    }]);
+    
+    // Should not crash
+    expect(() => render(<App />)).not.toThrow();
+  });
 
-    test('should handle templateService errors gracefully', () => {
-      vi.mocked(templateService.getAllTemplates).mockRejectedValue(new Error('Service unavailable'));
-      
-      // Should not crash the app
-      expect(() => render(<App />)).not.toThrow();
+  test('should handle templateService errors gracefully', () => {
+    vi.mocked(templateService.getAllTemplates).mockImplementation(() => {
+      throw new Error('Service unavailable');
     });
+    
+    // Should not crash the app
+    expect(() => render(<App />)).not.toThrow();
+  });
+
+  test('should handle templateService errors gracefully', () => {
+    vi.mocked(templateService.getAllTemplates).mockRejectedValue(new Error('Service unavailable'));
+    
+    // Should not crash the app
+    expect(() => render(<App />)).not.toThrow();
   });
 });

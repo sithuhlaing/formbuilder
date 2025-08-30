@@ -291,11 +291,11 @@ export const PropertiesEditor: React.FC<PropertiesEditorProps> = ({
               renderSection('number', 'Number Settings', (
                 <>
                   {renderPropertyGroup('Minimum', 
-                    renderPropertyInput('minimum', selectedComponent.minimum, 'number')
+                    renderPropertyInput('min', selectedComponent.min, 'number')
                   )}
                   
                   {renderPropertyGroup('Maximum', 
-                    renderPropertyInput('maximum', selectedComponent.maximum, 'number')
+                    renderPropertyInput('max', selectedComponent.max, 'number')
                   )}
                   
                   {renderPropertyGroup('Step', 

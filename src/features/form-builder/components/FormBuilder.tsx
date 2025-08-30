@@ -96,7 +96,7 @@ export const FormBuilder: React.FC = () => {
           <div className="form-builder__middle-panel">
             {/* Card 1: Form Title and Page Management */}
             <FormPageCard
-              formTitle={formState.name || 'Untitled Form'}
+              formTitle={formState.templateName || 'Untitled Form'}
               onFormTitleChange={setTemplateName}
               currentPageIndex={currentPageIndex}
               totalPages={formState.pages.length}
@@ -126,7 +126,9 @@ export const FormBuilder: React.FC = () => {
           <div className="form-builder__properties">
             <PropertiesPanel
               selectedComponent={selectedComponent}
-              onUpdateComponent={updateComponent}
+              onUpdateComponent={(updates) => 
+                selectedComponent && updateComponent(selectedComponent.id, updates)
+              }
             />
           </div>
         </div>

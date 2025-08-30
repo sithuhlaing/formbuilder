@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import type { FormComponentData, ComponentType } from '../types/component';
+import type { FormComponentData } from '../types/component';
 
 export interface RenderConfig {
   cssPrefix: string;
@@ -46,7 +46,6 @@ export class Renderer {
     component: FormComponentData,
     context: RenderContext = { selectedItemId: null, isDragging: false, isHover: false }
   ): React.ReactElement {
-    const { cssPrefix } = this.config;
     const isSelected = context.selectedItemId === component.id;
     
     // Handle horizontal layout rendering
@@ -201,8 +200,8 @@ export class Renderer {
         return React.createElement('input', {
           ...commonProps,
           type: 'number',
-          min: component.minimum,
-          max: component.maximum,
+          min: component.min,
+          max: component.max,
           step: component.step
         });
 
@@ -328,15 +327,26 @@ export class Renderer {
         ]);
 
       case 'heading':
-        const HeadingTag = `h${component.level || 2}` as keyof JSX.IntrinsicElements;
-        return React.createElement(HeadingTag, {
+        const level = component.level || 2;
+        const headingProps = {
           style: {
-            fontSize: component.level === 1 ? '24px' : component.level === 3 ? '18px' : '20px',
+            fontSize: level === 1 ? '24px' : level === 3 ? '18px' : '20px',
             fontWeight: '600',
             color: '#1f2937',
             margin: '0 0 8px 0'
           }
-        }, component.label || 'Heading');
+        };
+        
+        // Type-safe heading tag selection
+        switch (level) {
+          case 1: return React.createElement('h1', headingProps, component.label || 'Heading');
+          case 2: return React.createElement('h2', headingProps, component.label || 'Heading');
+          case 3: return React.createElement('h3', headingProps, component.label || 'Heading');
+          case 4: return React.createElement('h4', headingProps, component.label || 'Heading');
+          case 5: return React.createElement('h5', headingProps, component.label || 'Heading');
+          case 6: return React.createElement('h6', headingProps, component.label || 'Heading');
+          default: return React.createElement('h2', headingProps, component.label || 'Heading');
+        }
 
       case 'paragraph':
         return React.createElement('p', {
@@ -500,7 +510,7 @@ export class Renderer {
       backgroundColor: isSelected ? '#eff6ff' : '#fff',
       transition: 'all 0.2s ease',
       width: component.width || 'auto',
-      textAlign: component.alignment as any || 'left'
+      textAlign: component.alignment || 'left'
     };
   }
 

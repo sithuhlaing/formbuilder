@@ -1,7 +1,7 @@
 import type { FormComponentData } from './component';
 
 // Template type definitions
-export type FormTemplateType = "assessment" | "survey" | "application" | "feedback" | "registration" | "other";
+export type FormTemplateType = "assessment" | "survey" | "application" | "feedback" | "registration" | "referral" | "compliance" | "other";
 
 export interface Page {
   id: string;
@@ -15,6 +15,7 @@ export interface FormPage {
   components: FormComponentData[];
   layout: any;
   description?: string;
+  order: number;
 }
 
 export interface Template {

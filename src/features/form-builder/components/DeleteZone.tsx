@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { useDrop } from 'react-dnd';
 
 interface DeleteZoneProps {
@@ -6,9 +6,11 @@ interface DeleteZoneProps {
 }
 
 export const DeleteZone: React.FC<DeleteZoneProps> = ({ onDelete }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  
   const [{ isOver }, drop] = useDrop({
     accept: ['existing-component'],
-    drop: (item: { type: string; id: string; componentType?: string }, monitor) => {
+    drop: (item: { type: string; id: string; componentType?: string }) => {
       // Only handle existing components being dragged outside
       if (item.type === 'existing-component' && item.id) {
         console.log('🗑️ Deleting component by drag outside:', item.id);
@@ -20,9 +22,12 @@ export const DeleteZone: React.FC<DeleteZoneProps> = ({ onDelete }) => {
     }),
   });
 
+  // Connect the drop target to the ref
+  drop(ref);
+
   return (
     <div
-      ref={drop}
+      ref={ref}
       className={`delete-zone ${isOver ? 'delete-zone--active' : ''}`}
       data-testid="delete-zone"
     >

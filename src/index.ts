@@ -1,10 +1,7 @@
 // Main application exports
-export { FormBuilder } from './features/form-builder';
-export { FormPreview } from './features/form-preview';
+export { PreviewForm } from './features/form-builder/components/PreviewForm';
 
 // Types
-export { ComponentType } from './features/form-builder/types';
-export { DragItem } from './features/form-builder/types';
-export { DropResult } from './features/form-builder/types';
-export { FormComponentData } from './features/form-builder/types';
-export type { FormTemplate, FormField } from './shared/types';
+export type { ComponentType } from './features/form-builder/types';
+export type { FormComponentData } from './features/form-builder/types';
+export type { FormTemplate } from './shared/types';

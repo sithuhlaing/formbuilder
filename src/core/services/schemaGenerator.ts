@@ -73,7 +73,9 @@ export class SchemaGenerator {
       case "select":
       case "radio_group":
         if (component.options && component.options.length > 0) {
-          baseProperty.enum = component.options;
+          baseProperty.enum = component.options.map(option => 
+            typeof option === 'string' ? option : option.value
+          );
         }
         break;
 
@@ -82,7 +84,9 @@ export class SchemaGenerator {
         if (component.options && component.options.length > 0) {
           baseProperty.items = {
             type: "string",
-            enum: component.options
+            enum: component.options.map(option => 
+              typeof option === 'string' ? option : option.value
+            )
           };
         } else {
           baseProperty.items = {

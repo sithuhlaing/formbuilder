@@ -30,12 +30,14 @@ interface ComponentRendererProps {
   component: FormComponentData;
   readOnly?: boolean;
   showControls?: boolean;
+  isSelected?: boolean;
 }
 
 export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ 
   component, 
   readOnly = true,
-  showControls = false 
+  showControls = false,
+  isSelected = false
 }) => {
   // Handle components that don't need FormField wrapper
   const renderWithoutWrapper = () => {
@@ -159,7 +161,9 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
               <Select
                 required={component.required}
                 disabled={readOnly}
-                options={component.options || []}
+                options={(component.options || []).map(option => 
+                  typeof option === 'string' ? option : option.label
+                )}
               />
             );
           
@@ -168,7 +172,9 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
               <Select
                 required={component.required}
                 disabled={readOnly}
-                options={component.options || []}
+                options={(component.options || []).map(option => 
+                  typeof option === 'string' ? option : option.label
+                )}
                 multiple
               />
             );
@@ -191,7 +197,9 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
             return (
               <RadioGroup
                 name={component.id}
-                options={component.options || []}
+                options={(component.options || []).map(option => 
+                  typeof option === 'string' ? option : option.label
+                )}
                 required={component.required}
                 disabled={readOnly}
               />
@@ -220,7 +228,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
           case 'rich_text':
             return (
               <RichTextEditor
-                value={component.defaultValue || ''}
+                value={String(component.defaultValue || '')}
                 placeholder={component.placeholder || 'Enter rich text content...'}
                 readOnly={false}
                 height={component.height || '200px'}

@@ -3,7 +3,7 @@
  * SOLID: Single Responsibility - Only handles horizontal layout display
  */
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { useDrop } from 'react-dnd';
 import { SmartDropZone } from './SmartDropZone';
 import type { HorizontalLayoutProps, DragItem } from '../types';
@@ -20,6 +20,7 @@ export const HorizontalLayout: React.FC<HorizontalLayoutProps> = ({
   config
 }) => {
   const children = item.children || [];
+  const ref = useRef<HTMLDivElement>(null);
 
   // Drop functionality for the horizontal layout container
   const [{ isOver }, drop] = useDrop({
@@ -28,8 +29,8 @@ export const HorizontalLayout: React.FC<HorizontalLayoutProps> = ({
       if (monitor.didDrop()) return; // Prevent duplicate drops
       
       // Handle drops within horizontal layout
-      if (dragItem.componentType && onLayoutCreate) {
-        onLayoutCreate(dragItem.componentType, item.id, 'right');
+      if (dragItem.itemType && onLayoutCreate) {
+        onLayoutCreate(dragItem.itemType, item.id, 'right');
       }
     },
     collect: (monitor) => ({
@@ -37,13 +38,17 @@ export const HorizontalLayout: React.FC<HorizontalLayoutProps> = ({
     })
   });
 
+  // Combine drop ref with the component ref
+  drop(ref);
+
   return (
     <div 
-      ref={drop}
+      ref={ref}
       className={`${cssPrefix}__horizontal-layout horizontal-layout ${isOver ? 'is-drop-target' : ''}`}
-      data-testid="row-layout"
+      data-testid={`row-layout-${index}`}
       data-component-id={item.id}
       data-component-type={item.type}
+      data-layout-index={index}
       style={{
         display: 'flex',
         flexDirection: 'row',
@@ -125,8 +130,8 @@ export const HorizontalLayout: React.FC<HorizontalLayoutProps> = ({
               index={childIndex}
               renderItem={renderItem}
               onItemDelete={onItemDelete}
-              onItemMove={onItemMove}
-              onLayoutCreate={onLayoutCreate}
+              onItemMove={onItemMove || (() => {})}
+              onLayoutCreate={onLayoutCreate || (() => {})}
               selectedItemId={selectedItemId}
               config={config}
             />

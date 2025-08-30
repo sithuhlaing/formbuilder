@@ -5,7 +5,6 @@
 
 import React from 'react';
 import { FormWizardNavigation } from './FormWizardNavigation';
-import type { FormPage } from '../../../types';
 
 interface FormPageCardProps {
   formTitle: string;

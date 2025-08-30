@@ -1,14 +1,11 @@
-// Re-export component types from their proper location
-export type {
-  ComponentType,
-  FormComponentData,
-  ValidationRule,
-  ValidationType,
-  SidebarProps,
-} from './components/types/component';
+// Component validation types
+export interface ValidationRule {
+  type: 'required' | 'minLength' | 'maxLength' | 'pattern' | 'min' | 'max';
+  value?: any;
+  message: string;
+}
 
-// Re-export strategy types
-export type { IDropZoneStrategy } from './components/Canvas/strategies/DropZoneStrategy';
+export type ValidationType = 'required' | 'email' | 'number' | 'url' | 'pattern';
 
 // App-level types
 export interface AppState {
@@ -76,6 +73,7 @@ export type FormTemplateType =
   | 'application'
   | 'feedback'
   | 'registration'
+  | 'referral'
   | 'other';
 
 export interface FormPage {
@@ -163,13 +161,7 @@ interface VerticalLayoutComponent extends BaseComponent {
   children: FormComponentData[];
 }
 
-export interface FormComponentData {
-  id: string;
-  type: string;
-  [key: string]: any;
-}
-
-type FormComponentData =
+export type FormComponentData =
   | TextInputComponent
   | NumberInputComponent
   | TextareaComponent
@@ -200,7 +192,4 @@ export type ComponentType =
   | 'horizontal_layout'
   | 'vertical_layout';
 
-export type {
-  ValidationRule,
-  ValidationType,
-} from './components/types/validation';
+// ValidationRule and ValidationType are defined above

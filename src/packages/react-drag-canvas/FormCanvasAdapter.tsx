@@ -8,11 +8,11 @@ import { DragDropCanvas } from './components/DragDropCanvas';
 import { CSPSafeComponentRenderer } from './components/CSPSafeComponentRenderer';
 import { CanvasRendererFactory, createRenderItemFunction } from './abstractions/CanvasRenderer';
 import type { CanvasItem, RenderContext } from './types';
-import type { FormComponentData } from '../../types';
+import type { FormComponentData, ComponentType } from '../../types';
 
 interface FormCanvasProps {
   components: FormComponentData[];
-  onDrop: (componentType: string, targetId?: string, position?: string) => void;
+  onDrop: (componentType: ComponentType, targetId: string, position: 'before' | 'after' | 'left' | 'right' | 'inside') => void;
   onSelect: (componentId: string) => void;
   onDelete: (componentId: string) => void;
   onMove: (fromIndex: number, toIndex: number) => void;
@@ -83,11 +83,12 @@ export const FormCanvas: React.FC<FormCanvasProps> = ({
       renderItem={renderFormComponent}
       onItemMove={onMove}
       onLayoutCreate={(itemType, targetId, position) => {
-        onDrop(itemType, targetId, position);
+        onDrop(itemType as ComponentType, targetId, position);
       }}
       onItemDelete={onDelete}
       onItemAdd={(itemType, position) => {
-        onDrop(itemType, position.targetId, position.type);
+        const mappedPosition = position.type === 'center' ? 'inside' : position.type;
+        onDrop(itemType as ComponentType, position.targetId || 'empty-canvas', mappedPosition as 'before' | 'after' | 'left' | 'right' | 'inside');
       }}
       selectedItemId={selectedId}
       config={{

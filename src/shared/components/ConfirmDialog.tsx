@@ -29,7 +29,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="small">
+    <Modal isOpen={isOpen} onClose={onClose} title={title} size="small">
       <div className="confirm-dialog">
         <div className="confirm-dialog__header">
           <h2 className="confirm-dialog__title">{title}</h2>
@@ -43,14 +43,14 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           <Button
             onClick={onClose}
             variant="secondary"
-            size="md"
+            size="medium"
           >
             {cancelText}
           </Button>
           <Button
             onClick={handleConfirm}
             variant={variant}
-            size="md"
+            size="medium"
           >
             {confirmText}
           </Button>

@@ -1,3 +1,4 @@
+
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { BetweenComponentsDropStrategy, CanvasMainDropStrategy } from '../features/form-builder/components/Canvas/strategies/DropZoneStrategy';
 import type { DragItem } from '../features/form-builder/components/Canvas/types';

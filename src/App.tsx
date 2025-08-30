@@ -3,7 +3,7 @@
  * Full functionality: Template list, form builder with all tools
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { 
@@ -15,8 +15,7 @@ import {
   useFormBuilder 
 } from './features/form-builder';
 import { TemplateListView, templateService } from './features/template-management';
-import { Button } from './shared/components';
-import type { ComponentType } from './types';
+import { Button, Modal } from './shared/components';
 
 // Styles
 import './styles/main.css';
@@ -24,6 +23,11 @@ import './styles/main.css';
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'list' | 'builder'>('list');
   const [showPreview, setShowPreview] = useState(false);
+  const [successModal, setSuccessModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+  }>({ isOpen: false, title: '', message: '' });
   
   const {
     formState,
@@ -36,7 +40,6 @@ const App: React.FC = () => {
     clearAll,
     handleDrop,
     moveComponent,
-    setTemplateName,
     getCurrentPageIndex,
     navigateToNextPage,
     navigateToPreviousPage,
@@ -59,15 +62,26 @@ const App: React.FC = () => {
         pages: formState.pages
       });
       console.log('Template updated:', updated);
-      alert(`Template "${formState.templateName}" updated successfully!`);
+      setSuccessModal({
+        isOpen: true,
+        title: 'Template Updated',
+        message: `Template "${formState.templateName}" updated successfully!`
+      });
     } else {
       // Create new template
       const saved = templateService.saveTemplate({
         name: formState.templateName,
-        pages: formState.pages
+        type: 'other',
+        fields: [],
+        pages: formState.pages,
+        jsonSchema: {}
       });
       console.log('Template saved:', saved);
-      alert(`Template "${formState.templateName}" saved successfully!`);
+      setSuccessModal({
+        isOpen: true,
+        title: 'Template Saved',
+        message: `Template "${formState.templateName}" saved successfully!`
+      });
     }
   };
 
@@ -108,27 +122,6 @@ const App: React.FC = () => {
     a.click();
     
     URL.revokeObjectURL(url);
-  };
-
-  // Export schema for testing - shows current form structure
-  const handleExportSchema = () => {
-    const currentPage = formState.pages.find(page => page.id === formState.currentPageId);
-    const schemaData = {
-      templateName: formState.templateName,
-      components: currentPage?.components || [],
-      metadata: {
-        exportedAt: new Date().toISOString(),
-        version: '1.0.0'
-      }
-    };
-    
-    // Update schema output for tests
-    const schemaOutput = document.getElementById('schema-output');
-    if (schemaOutput) {
-      schemaOutput.textContent = JSON.stringify(schemaData, null, 2);
-    }
-    
-    console.log('📋 Schema exported:', schemaData);
   };
 
   // Template List View
@@ -230,15 +223,6 @@ const App: React.FC = () => {
                 disabled={currentComponents.length === 0}
               >
                 Export JSON
-              </Button>
-              
-              <Button
-                onClick={handleExportSchema}
-                variant="secondary"
-                size="small"
-                disabled={currentComponents.length === 0}
-              >
-                Export Schema
               </Button>
               
               <Button
@@ -344,16 +328,27 @@ const App: React.FC = () => {
         {/* Delete Zone - Outside Canvas Area */}
         <DeleteZone onDelete={deleteComponent} />
 
-        {/* Schema Output */}
-        <pre id="schema-output"></pre>
-
         {/* Preview Modal */}
         <PreviewModal
           isOpen={showPreview}
           onClose={() => setShowPreview(false)}
           templateName={formState.templateName}
           components={currentComponents}
+          pages={formState.pages}
         />
+
+        {/* Success Modal */}
+        <Modal
+          isOpen={successModal.isOpen}
+          onClose={() => setSuccessModal({ isOpen: false, title: '', message: '' })}
+          title={successModal.title}
+          size="small"
+        >
+          <div className="text-center py-4">
+            <div className="text-green-600 text-4xl mb-4">✅</div>
+            <p className="text-gray-700">{successModal.message}</p>
+          </div>
+        </Modal>
       </div>
     </DndProvider>
   );

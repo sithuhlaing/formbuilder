@@ -3,10 +3,9 @@
  * Consolidates component selection into clean cross-domain interface
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useDrag } from 'react-dnd';
-import { CanvasManager, type CanvasState } from '../../core/CanvasManager';
-import { ComponentEngine } from '../../core/ComponentEngine';
+import { CanvasManager } from '../../core/CanvasManager';
 import type { ComponentType } from '../../types/component';
 
 interface ComponentPaletteProps {
@@ -28,19 +27,34 @@ const DraggableComponent: React.FC<{
   onDragStart: () => void;
   onDragEnd: () => void;
 }> = ({ component, isDragging, onDragStart, onDragEnd }) => {
-  const [{ opacity }, drag] = useDrag({
+  const elementRef = useRef<HTMLDivElement>(null);
+  const [{ opacity }, drag] = useDrag<
+    { type: string; itemType: ComponentType },
+    unknown,
+    { opacity: number }
+  >({
     type: 'new-item',
     item: { type: 'new-item', itemType: component.type },
     collect: (monitor) => ({
       opacity: monitor.isDragging() ? 0.5 : 1,
     }),
-    begin: onDragStart,
-    end: onDragEnd,
   });
+
+  // Connect the drag source to the element
+  drag(elementRef);
+
+  // Handle drag events using useEffect
+  React.useEffect(() => {
+    if (opacity < 1) {
+      onDragStart();
+    } else if (isDragging && opacity === 1) {
+      onDragEnd();
+    }
+  }, [opacity, isDragging, onDragStart, onDragEnd]);
 
   return (
     <div
-      ref={drag}
+      ref={elementRef}
       style={{
         opacity,
         padding: '12px',
@@ -105,16 +119,9 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({
   canvasManager,
   className = ''
 }) => {
-  const [canvasState, setCanvasState] = useState<CanvasState>(canvasManager.getState());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['input', 'selection']));
   const [isDragging, setIsDragging] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Subscribe to canvas state changes
-  useEffect(() => {
-    const unsubscribe = canvasManager.subscribe(setCanvasState);
-    return unsubscribe;
-  }, [canvasManager]);
 
   const toggleCategory = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);

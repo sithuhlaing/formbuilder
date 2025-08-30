@@ -63,6 +63,13 @@ export class CanvasManager {
   }
 
   /**
+   * Get canvas configuration
+   */
+  getConfig(): Required<CanvasManagerConfig> {
+    return { ...this.config };
+  }
+
+  /**
    * Subscribe to state changes
    */
   subscribe(listener: (state: CanvasState) => void): () => void {
@@ -271,9 +278,9 @@ export class CanvasManager {
   getAvailableComponents(): ComponentType[] {
     switch (this.config.crossDomainMode) {
       case 'surveys':
-        return ['text_input', 'textarea', 'select', 'radio_group', 'checkbox_group', 'number_input'];
+        return ['text_input', 'textarea', 'rich_text', 'select', 'radio_group', 'checkbox_group', 'number_input'];
       case 'workflows':
-        return ['text_input', 'select', 'button', 'heading', 'card'];
+        return ['text_input', 'textarea', 'rich_text', 'select', 'button', 'heading', 'card'];
       case 'forms':
       default:
         return ComponentEngine.getAllComponentTypes();

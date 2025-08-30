@@ -3,15 +3,9 @@
  * Single purpose: Handle template CRUD operations
  */
 
-import type { FormPage } from '../../../types';
+import type { FormTemplate } from '../../../types';
 
-export interface FormTemplate {
-  id: string;
-  name: string;
-  pages: FormPage[];
-  createdAt: string;
-  updatedAt: string;
-}
+// Remove local FormTemplate interface - use the global one
 
 class TemplateService {
   private readonly storageKey = 'form-templates';
@@ -26,13 +20,16 @@ class TemplateService {
     }
   }
 
-  saveTemplate(template: Omit<FormTemplate, 'id' | 'createdAt' | 'updatedAt'>): FormTemplate {
+  saveTemplate(template: Omit<FormTemplate, 'templateId' | 'createdDate' | 'modifiedDate'>): FormTemplate {
     const templates = this.getAllTemplates();
     const newTemplate: FormTemplate = {
       ...template,
-      id: `template_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      templateId: `template_${Date.now()}`,
+      type: template.type || 'other',
+      fields: template.fields || [],
+      createdDate: new Date().toISOString(),
+      modifiedDate: new Date().toISOString(),
+      jsonSchema: template.jsonSchema || {}
     };
     
     templates.push(newTemplate);
@@ -40,25 +37,25 @@ class TemplateService {
     return newTemplate;
   }
 
-  updateTemplate(id: string, updates: Partial<Pick<FormTemplate, 'name' | 'pages'>>): FormTemplate | null {
+  updateTemplate(templateId: string, updates: Partial<Pick<FormTemplate, 'name' | 'pages'>>): FormTemplate | null {
     const templates = this.getAllTemplates();
-    const index = templates.findIndex(t => t.id === id);
+    const index = templates.findIndex(t => t.templateId === templateId);
     
     if (index === -1) return null;
     
     templates[index] = {
       ...templates[index],
       ...updates,
-      updatedAt: new Date().toISOString()
+      modifiedDate: new Date().toISOString()
     };
     
     localStorage.setItem(this.storageKey, JSON.stringify(templates));
     return templates[index];
   }
 
-  deleteTemplate(id: string): boolean {
+  deleteTemplate(templateId: string): boolean {
     const templates = this.getAllTemplates();
-    const filtered = templates.filter(t => t.id !== id);
+    const filtered = templates.filter(t => t.templateId !== templateId);
     
     if (filtered.length === templates.length) return false;
     
@@ -66,8 +63,8 @@ class TemplateService {
     return true;
   }
 
-  getTemplate(id: string): FormTemplate | null {
-    return this.getAllTemplates().find(t => t.id === id) || null;
+  getTemplate(templateId: string): FormTemplate | null {
+    return this.getAllTemplates().find(t => t.templateId === templateId) || null;
   }
 }
 

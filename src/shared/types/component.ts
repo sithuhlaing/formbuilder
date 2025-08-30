@@ -1,4 +1,3 @@
-
 export type ComponentType = 
   | 'text_input'
   | 'email_input'
@@ -9,9 +8,13 @@ export type ComponentType =
   | 'select'
   | 'multi_select'
   | 'checkbox'
+  | 'checkbox_group'
   | 'radio_group'
   | 'date_picker'
   | 'file_upload'
+  | 'heading'
+  | 'paragraph'
+  | 'divider'
   | 'section_divider'
   | 'signature'
   | 'horizontal_layout'

@@ -430,6 +430,8 @@ export const PWADragDropCanvas: React.FC<PWADragDropCanvasProps> = ({
   // PWA-OPTIMIZED MAIN CANVAS
   // ============================================================================
 
+  const canvasRef = useRef<HTMLDivElement>(null);
+  
   const [{ isOver }, drop] = useDrop({
     accept: ['new-item'],
     drop: (dragItem: DragItem) => {
@@ -442,6 +444,9 @@ export const PWADragDropCanvas: React.FC<PWADragDropCanvasProps> = ({
     }),
   });
 
+  // Connect the drop target to the ref
+  drop(canvasRef);
+
   const canvasStyle: React.CSSProperties = {
     minHeight: touchOptimized ? '200px' : '100px',
     touchAction: 'pan-y', // Allow vertical scrolling but prevent horizontal
@@ -449,7 +454,7 @@ export const PWADragDropCanvas: React.FC<PWADragDropCanvasProps> = ({
 
   return (
     <div
-      ref={drop}
+      ref={canvasRef}
       className={`
         ${cssPrefix} 
         ${className} 

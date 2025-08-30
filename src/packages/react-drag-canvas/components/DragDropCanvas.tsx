@@ -58,8 +58,10 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
 
   return (
     <div 
-      ref={drop} 
-      className={`drag-drop-canvas ${isOver ? 'is-drop-target' : ''}`}
+      ref={(node) => {
+        drop(node);
+      }}
+      className={`drag-drop-canvas ${isOver ? 'is-drop-target' : ''} ${className}`.trim()}
       data-testid="canvas-drop-zone"
     >
       {items.length === 0 ? (
@@ -84,8 +86,11 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
                   index={index}
                   renderItem={renderItem}
                   onItemDelete={onItemDelete}
+                  onItemMove={onItemMove}
+                  onLayoutCreate={onLayoutCreate}
                   selectedItemId={selectedItemId}
                   cssPrefix={cssPrefix}
+                  config={requiredConfig}
                 />
               );
             }

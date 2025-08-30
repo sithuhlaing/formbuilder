@@ -16,7 +16,12 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
   onItemDelete,
   onItemAdd,
   selectedItemId,
-  config,
+  config = {
+    cssPrefix: 'canvas',
+    enableHorizontalLayouts: true,
+    enableVerticalLayouts: true,
+    dropZoneThresholds: { horizontal: 0.25, vertical: 0.3 }
+  }
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [dropPosition, setDropPosition] = useState<string>('');

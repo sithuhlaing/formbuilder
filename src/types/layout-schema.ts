@@ -407,7 +407,9 @@ function convertComponentToLayout(component: FormComponentData): LayoutStructure
         fieldId: component.fieldId,
         required: component.required,
         placeholder: component.placeholder,
-        options: component.options,
+        options: component.options?.map(option => 
+          typeof option === 'string' ? option : option.value
+        ),
         validation: {
           required: component.required,
           ...(component.min !== undefined && { min: component.min }),

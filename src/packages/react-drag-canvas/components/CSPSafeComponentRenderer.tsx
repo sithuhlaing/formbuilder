@@ -353,7 +353,6 @@ const FormComponents = {
 // Main CSP-safe renderer component
 export const CSPSafeComponentRenderer: React.FC<CSPSafeRendererProps> = ({
   item,
-  context,
   readOnly = true
 }) => {
   const component = item.data as FormComponentData;

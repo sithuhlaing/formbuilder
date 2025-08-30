@@ -4,11 +4,11 @@
 
 import React from 'react';
 import { FormCanvas } from '../../../packages/react-drag-canvas/FormCanvasAdapter';
-import type { FormComponentData } from '../../../types';
+import type { FormComponentData, ComponentType } from '../../../types';
 
 interface CanvasProps {
   components: FormComponentData[];
-  onDrop: (componentType: string, targetId?: string, position?: string) => void;
+  onDrop: (componentType: ComponentType, targetId: string, position: 'before' | 'after' | 'left' | 'right' | 'inside') => void;
   onSelect: (componentId: string) => void;
   onDelete: (componentId: string) => void;
   onMove: (fromIndex: number, toIndex: number) => void;

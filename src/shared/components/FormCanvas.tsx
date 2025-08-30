@@ -3,11 +3,11 @@
  * Consolidates Canvas, FormPageCard, and CanvasCard into single cross-domain interface
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDrop } from 'react-dnd';
 import { CanvasManager, type CanvasState } from '../../core/CanvasManager';
 import { ComponentRenderer } from './ComponentRenderer';
-import type { FormComponentData, ComponentType } from '../../types/component';
+import type { ComponentType } from '../../types/component';
 
 interface FormCanvasProps {
   canvasManager: CanvasManager;
@@ -23,6 +23,7 @@ export const FormCanvas: React.FC<FormCanvasProps> = ({
   showPageNavigation = true
 }) => {
   const [canvasState, setCanvasState] = useState<CanvasState>(canvasManager.getState());
+  const dropRef = useRef<HTMLDivElement>(null);
 
   // Subscribe to canvas state changes
   useEffect(() => {
@@ -44,6 +45,11 @@ export const FormCanvas: React.FC<FormCanvasProps> = ({
       canDrop: monitor.canDrop()
     })
   });
+
+  // Connect drop target
+  useEffect(() => {
+    drop(dropRef.current);
+  }, [drop]);
 
   const handleComponentSelect = (componentId: string) => {
     canvasManager.selectComponent(componentId);
@@ -133,7 +139,7 @@ export const FormCanvas: React.FC<FormCanvasProps> = ({
 
       {/* Canvas Content Area */}
       <div
-        ref={drop}
+        ref={dropRef}
         className={`form-canvas__content ${isEmpty ? 'empty' : ''} ${isOver ? 'drop-target' : ''}`}
         style={{
           flex: 1,
@@ -203,7 +209,7 @@ export const FormCanvas: React.FC<FormCanvasProps> = ({
             flexDirection: 'column',
             gap: '12px'
           }}>
-            {canvasState.components.map((component, index) => (
+            {canvasState.components.map((component) => (
               <div
                 key={component.id}
                 className={`form-canvas__component ${canvasState.selectedComponentId === component.id ? 'selected' : ''}`}

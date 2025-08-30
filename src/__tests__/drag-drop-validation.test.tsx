@@ -1,9 +1,11 @@
-import { describe, it, expect } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { DndProvider } from 'react-dnd';
-import { TestBackend } from 'react-dnd-test-backend';
-import App from '../App';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderAppWithDragDrop, mockFormBuilderState } from './utils/testUtils';
+
+// Mock the form builder hook
+vi.mock('../hooks/useFormBuilder', () => ({
+  useFormBuilder: () => mockFormBuilderState
+}));
 
 describe('🔍 Drag-and-Drop Validation', () => {
   const renderAppWithDragDrop = async () => {
@@ -183,5 +185,17 @@ describe('🔍 Drag-and-Drop Validation', () => {
     
     // Verify hover state classes exist in CSS structure
     expect(canvasItem.className).toContain('smart-drop-zone');
+  });
+
+  it('✅ Component palette renders draggable items', async () => {
+    await renderAppWithDragDrop();
+    
+    // Check for component palette
+    const palette = screen.getByTestId('component-palette');
+    expect(palette).toBeInTheDocument();
+    
+    // Check for draggable items
+    const textComponent = screen.getByText(/text input/i);
+    expect(textComponent).toBeInTheDocument();
   });
 });

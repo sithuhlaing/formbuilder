@@ -4,9 +4,8 @@
  */
 
 import React, { useCallback } from 'react';
-import { $getRoot, $getSelection } from 'lexical';
+import { $getRoot, $getSelection, $isRangeSelection } from 'lexical';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
-import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
@@ -16,7 +15,6 @@ import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import {
-  $isRangeSelection,
   FORMAT_TEXT_COMMAND,
   FORMAT_ELEMENT_COMMAND,
   UNDO_COMMAND,
@@ -28,12 +26,12 @@ import {
   INSERT_UNORDERED_LIST_COMMAND,
   INSERT_ORDERED_LIST_COMMAND,
   REMOVE_LIST_COMMAND,
-  $isListNode,
   ListNode,
   ListItemNode
 } from '@lexical/list';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { LinkNode, AutoLinkNode } from '@lexical/link';
+import './../../styles/RichTextEditor.css';
 
 interface RichTextEditorProps {
   value?: string;
@@ -47,6 +45,22 @@ interface RichTextEditorProps {
 // Toolbar component for formatting controls
 const ToolbarPlugin: React.FC = () => {
   const [editor] = useLexicalComposerContext();
+  const [activeFormats, setActiveFormats] = React.useState<Set<string>>(new Set());
+
+  React.useEffect(() => {
+    return editor.registerUpdateListener(({ editorState }) => {
+      editorState.read(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          const formats = new Set<string>();
+          if (selection.hasFormat('bold')) formats.add('bold');
+          if (selection.hasFormat('italic')) formats.add('italic');
+          if (selection.hasFormat('underline')) formats.add('underline');
+          setActiveFormats(formats);
+        }
+      });
+    });
+  }, [editor]);
 
   const formatText = useCallback((format: 'bold' | 'italic' | 'underline') => {
     editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
@@ -64,6 +78,10 @@ const ToolbarPlugin: React.FC = () => {
     }
   }, [editor]);
 
+  const removeList = useCallback(() => {
+    editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+  }, [editor]);
+
   const undo = useCallback(() => {
     editor.dispatchCommand(UNDO_COMMAND, undefined);
   }, [editor]);
@@ -73,44 +91,34 @@ const ToolbarPlugin: React.FC = () => {
   }, [editor]);
 
   return (
-    <div className="rich-text-toolbar" style={{
-      display: 'flex',
-      gap: '4px',
-      padding: '8px',
-      borderBottom: '1px solid #e0e0e0',
-      backgroundColor: '#f8f9fa',
-      borderRadius: '4px 4px 0 0'
-    }}>
+    <div className="rich-text-toolbar">
       {/* Text formatting */}
       <button
         type="button"
         onClick={() => formatText('bold')}
-        className="toolbar-btn"
+        className={`toolbar-btn ${activeFormats.has('bold') ? 'active' : ''}`}
         title="Bold"
-        style={toolbarButtonStyle}
       >
         <strong>B</strong>
       </button>
       <button
         type="button"
         onClick={() => formatText('italic')}
-        className="toolbar-btn"
+        className={`toolbar-btn ${activeFormats.has('italic') ? 'active' : ''}`}
         title="Italic"
-        style={toolbarButtonStyle}
       >
         <em>I</em>
       </button>
       <button
         type="button"
         onClick={() => formatText('underline')}
-        className="toolbar-btn"
+        className={`toolbar-btn ${activeFormats.has('underline') ? 'active' : ''}`}
         title="Underline"
-        style={toolbarButtonStyle}
       >
         <u>U</u>
       </button>
 
-      <div style={{ width: '1px', height: '24px', backgroundColor: '#ddd', margin: '0 4px' }} />
+      <div className="toolbar-divider" />
 
       {/* Lists */}
       <button
@@ -118,7 +126,6 @@ const ToolbarPlugin: React.FC = () => {
         onClick={() => insertList('bullet')}
         className="toolbar-btn"
         title="Bullet List"
-        style={toolbarButtonStyle}
       >
         •
       </button>
@@ -127,12 +134,19 @@ const ToolbarPlugin: React.FC = () => {
         onClick={() => insertList('number')}
         className="toolbar-btn"
         title="Numbered List"
-        style={toolbarButtonStyle}
       >
         1.
       </button>
+      <button
+        type="button"
+        onClick={removeList}
+        className="toolbar-btn"
+        title="Remove List"
+      >
+        ❌
+      </button>
 
-      <div style={{ width: '1px', height: '24px', backgroundColor: '#ddd', margin: '0 4px' }} />
+      <div className="toolbar-divider" />
 
       {/* Alignment */}
       <button
@@ -140,7 +154,6 @@ const ToolbarPlugin: React.FC = () => {
         onClick={() => formatElement('left')}
         className="toolbar-btn"
         title="Align Left"
-        style={toolbarButtonStyle}
       >
         ⬅
       </button>
@@ -149,7 +162,6 @@ const ToolbarPlugin: React.FC = () => {
         onClick={() => formatElement('center')}
         className="toolbar-btn"
         title="Align Center"
-        style={toolbarButtonStyle}
       >
         ↔
       </button>
@@ -158,12 +170,11 @@ const ToolbarPlugin: React.FC = () => {
         onClick={() => formatElement('right')}
         className="toolbar-btn"
         title="Align Right"
-        style={toolbarButtonStyle}
       >
         ➡
       </button>
 
-      <div style={{ width: '1px', height: '24px', backgroundColor: '#ddd', margin: '0 4px' }} />
+      <div className="toolbar-divider" />
 
       {/* Undo/Redo */}
       <button
@@ -171,7 +182,6 @@ const ToolbarPlugin: React.FC = () => {
         onClick={undo}
         className="toolbar-btn"
         title="Undo"
-        style={toolbarButtonStyle}
       >
         ↶
       </button>
@@ -180,27 +190,11 @@ const ToolbarPlugin: React.FC = () => {
         onClick={redo}
         className="toolbar-btn"
         title="Redo"
-        style={toolbarButtonStyle}
       >
         ↷
       </button>
     </div>
   );
-};
-
-const toolbarButtonStyle: React.CSSProperties = {
-  background: 'none',
-  border: '1px solid transparent',
-  borderRadius: '3px',
-  padding: '4px 8px',
-  cursor: 'pointer',
-  fontSize: '14px',
-  minWidth: '28px',
-  height: '28px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  transition: 'all 0.2s',
 };
 
 // Initial editor configuration
@@ -252,12 +246,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   }, [onChange]);
 
   return (
-    <div className={`rich-text-editor ${className}`} style={{
-      border: '1px solid #d1d5db',
-      borderRadius: '4px',
-      backgroundColor: '#fff',
-      overflow: 'hidden'
-    }}>
+    <div className={`rich-text-editor ${className}`}>
       <LexicalComposer initialConfig={{
         ...initialConfig,
         editable: !readOnly,
@@ -271,40 +260,18 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       }}>
         {!readOnly && <ToolbarPlugin />}
         
-        <div style={{ 
-          position: 'relative',
-          minHeight: height,
-          maxHeight: readOnly ? 'auto' : '400px',
-          overflow: 'auto'
-        }}>
+        <div className="rich-text-content-container" style={{ height }}>
           <RichTextPlugin
             contentEditable={
               <ContentEditable
                 className="rich-text-content"
-                style={{
-                  padding: '12px',
-                  minHeight: height,
-                  outline: 'none',
-                  fontSize: '14px',
-                  lineHeight: '1.5',
-                  color: '#374151',
-                  backgroundColor: readOnly ? '#f9fafb' : '#fff'
-                }}
                 readOnly={readOnly}
+                style={{ minHeight: height }}
               />
             }
             placeholder={
               <div
                 className="rich-text-placeholder"
-                style={{
-                  position: 'absolute',
-                  top: '12px',
-                  left: '12px',
-                  color: '#9ca3af',
-                  fontSize: '14px',
-                  pointerEvents: 'none',
-                  userSelect: 'none'
-                }}
               >
                 {placeholder}
               </div>
@@ -314,47 +281,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         </div>
 
         <HistoryPlugin />
-        <ListPlugin />
+        <ListPlugin hasStrictIndent={true} />
         <LinkPlugin />
         <OnChangePlugin onChange={handleChange} />
       </LexicalComposer>
-
-      <style jsx>{`
-        .rich-text-editor .toolbar-btn:hover {
-          background-color: #e5e7eb;
-          border-color: #d1d5db;
-        }
-        
-        .rich-text-bold {
-          font-weight: bold;
-        }
-        
-        .rich-text-italic {
-          font-style: italic;
-        }
-        
-        .rich-text-underline {
-          text-decoration: underline;
-        }
-        
-        .rich-text-paragraph {
-          margin: 0 0 8px 0;
-        }
-        
-        .rich-text-list-ol,
-        .rich-text-list-ul {
-          margin: 8px 0;
-          padding-left: 20px;
-        }
-        
-        .rich-text-listitem {
-          margin: 4px 0;
-        }
-        
-        .rich-text-nested-listitem {
-          list-style-type: none;
-        }
-      `}</style>
     </div>
   );
 };

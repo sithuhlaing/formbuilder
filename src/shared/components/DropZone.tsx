@@ -3,13 +3,13 @@
  * Provides consistent drag-and-drop behavior
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useDrop } from 'react-dnd';
 import { classNames } from '../utils';
 import type { ComponentType } from '../../types';
 
 interface DragItem {
-  type: ComponentType;
+  type: ComponentType | 'existing-component' | 'component';
   id?: string;
   isFromContainer?: boolean;
   containerPath?: string;
@@ -43,6 +43,7 @@ export const DropZone: React.FC<BaseDropZoneProps> = ({
   onDrop,
   acceptedTypes = ['component', 'existing-component']
 }) => {
+  const ref = useRef<HTMLDivElement>(null);
   const [{ isOver }, drop] = useDrop({
     accept: acceptedTypes,
     drop: (item: DragItem, monitor) => {
@@ -54,9 +55,15 @@ export const DropZone: React.FC<BaseDropZoneProps> = ({
     }),
   });
 
+  // Combine refs
+  const combinedRef = useCallback((node: HTMLDivElement | null) => {
+    ref.current = node;
+    drop(node);
+  }, [drop]);
+
   return (
     <div 
-      ref={drop}
+      ref={combinedRef}
       className={classNames(
         'drop-zone',
         isOver && 'drop-zone--active',
@@ -74,6 +81,7 @@ export const BetweenDropZone: React.FC<BetweenDropZoneProps> = ({
   onInsertBetween, 
   className 
 }) => {
+  const ref = useRef<HTMLDivElement>(null);
   const [{ isOver }, drop] = useDrop({
     accept: ['component'],
     drop: (item: DragItem, monitor) => {
@@ -81,8 +89,11 @@ export const BetweenDropZone: React.FC<BetweenDropZoneProps> = ({
       
       const componentType = item.componentType || item.type;
       
-      if (componentType && componentType !== 'existing-component') {
-        onInsertBetween(componentType, index);
+      // Only process actual component types, not drag operation types
+      if (componentType && 
+          componentType !== 'existing-component' && 
+          componentType !== 'component') {
+        onInsertBetween(componentType as ComponentType, index);
       }
     },
     collect: (monitor) => ({
@@ -90,9 +101,15 @@ export const BetweenDropZone: React.FC<BetweenDropZoneProps> = ({
     }),
   });
 
+  // Combine refs
+  const combinedRef = useCallback((node: HTMLDivElement | null) => {
+    ref.current = node;
+    drop(node);
+  }, [drop]);
+
   return (
     <div 
-      ref={drop}
+      ref={combinedRef}
       className={classNames(
         'canvas-item__drop-zone',
         isOver && 'canvas-item__drop-zone--active',
@@ -133,6 +150,7 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
   showPositionIndicators = true,
   acceptedTypes = ['component', 'existing-component']
 }) => {
+  const ref = useRef<HTMLDivElement>(null);
   const [dropPosition, setDropPosition] = useState<string>('');
   const [isDropTarget, setIsDropTarget] = useState(false);
 
@@ -147,7 +165,7 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
 
   const [{ isOver }, drop] = useDrop({
     accept: acceptedTypes,
-    hover: (item: DragItem, monitor) => {
+    hover: (_item: DragItem, monitor) => {
       const clientOffset = monitor.getClientOffset();
       const position = (calculatePosition || defaultCalculatePosition)(clientOffset);
       
@@ -168,6 +186,12 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
     }),
   });
 
+  // Combine refs
+  const combinedRef = useCallback((node: HTMLDivElement | null) => {
+    ref.current = node;
+    drop(node);
+  }, [drop]);
+
   // Reset state when not hovering
   React.useEffect(() => {
     if (!isOver) {
@@ -179,7 +203,7 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
 
   return (
     <div 
-      ref={drop}
+      ref={combinedRef}
       className={classNames(
         'smart-drop-zone',
         isDropTarget && 'is-drop-target',
@@ -235,6 +259,7 @@ export const CanvasDropZone: React.FC<{
   className,
   children
 }) => {
+  const ref = useRef<HTMLDivElement>(null);
   const [{ isOver }, drop] = useDrop({
     accept: ['component', 'existing-component'],
     drop: (item: DragItem, monitor) => {
@@ -246,9 +271,15 @@ export const CanvasDropZone: React.FC<{
     }),
   });
 
+  // Combine refs
+  const combinedRef = useCallback((node: HTMLDivElement | null) => {
+    ref.current = node;
+    drop(node);
+  }, [drop]);
+
   return (
     <div 
-      ref={drop}
+      ref={combinedRef}
       className={classNames(
         'canvas',
         'survey-drop-zone',

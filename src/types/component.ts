@@ -9,16 +9,25 @@ export type ComponentType =
   | "select"
   | "multi_select"
   | "checkbox"
+  | "checkbox_group"
   | "radio_group"
   | "date_picker"
   | "file_upload"
+  | "heading"
+  | "paragraph"
+  | "divider"
   | "section_divider"
   | "signature"
   | "button"
-  | "heading"
   | "card"
   | "horizontal_layout"
   | "vertical_layout";
+
+// Option type for select, radio, and checkbox components
+export interface OptionData {
+  value: string;
+  label: string;
+}
 
 export interface FormComponentData {
   layout?: any; // Keep as any for backwards compatibility
@@ -28,11 +37,13 @@ export interface FormComponentData {
   placeholder?: string;
   required?: boolean;
   fieldId?: string;
-  options?: string[];
+  defaultValue?: string | number | boolean; // Default value for form components
+  options?: (string | OptionData)[];
   min?: number;
   max?: number;
   step?: number;
   acceptedFileTypes?: string;
+  multiple?: boolean; // For file upload components
   description?: string;
   helpText?: string;
   children?: FormComponentData[];
@@ -40,6 +51,8 @@ export interface FormComponentData {
   content?: string;
   maxSize?: number;
   height?: string;
+  width?: string;
+  alignment?: 'left' | 'center' | 'right' | 'justify';
   // Button component properties
   buttonType?: 'primary' | 'secondary' | 'success' | 'danger';
   buttonText?: string;
@@ -85,7 +98,7 @@ export interface RichTextComponent extends BaseComponent {
 
 export interface SelectComponent extends BaseComponent {
   type: 'select';
-  options?: string[];
+  options?: (string | OptionData)[];
 }
 
 export interface DatePickerComponent extends BaseComponent {
@@ -95,6 +108,7 @@ export interface DatePickerComponent extends BaseComponent {
 export interface FileUploadComponent extends BaseComponent {
   type: 'file_upload';
   acceptedFileTypes?: string;
+  multiple?: boolean;
 }
 
 export interface SectionDividerComponent extends BaseComponent {

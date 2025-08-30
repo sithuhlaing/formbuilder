@@ -216,6 +216,34 @@ export class ComponentEngine {
   }
 
   /**
+   * Get all available component types
+   * Used by CanvasManager for cross-domain filtering
+   */
+  static getAllComponentTypes(): ComponentType[] {
+    return [
+      'text_input',
+      'email_input', 
+      'password_input',
+      'number_input',
+      'textarea',
+      'rich_text',
+      'select',
+      'multi_select',
+      'checkbox',
+      'radio_group',
+      'date_picker',
+      'file_upload',
+      'section_divider',
+      'signature',
+      'button',
+      'heading',
+      'horizontal_layout',
+      'vertical_layout',
+      'card'
+    ];
+  }
+
+  /**
    * SINGLE method to validate ANY component
    * Business logic: Exactly what requirements need
    */
@@ -253,7 +281,7 @@ export class ComponentEngine {
   }
 
   // Private helpers - all in ONE place
-  private static getDefaultLabel(type: ComponentType): string {
+  public static getDefaultLabel(type: ComponentType): string {
     if (!type) {
       console.error('❌ ComponentEngine.getDefaultLabel: type is undefined');
       return 'Form Component';
@@ -269,13 +297,16 @@ export class ComponentEngine {
       select: 'Select',
       multi_select: 'Multi Select',
       checkbox: 'Checkbox',
+      checkbox_group: 'Checkbox Group',
       radio_group: 'Radio Group',
       date_picker: 'Date Picker',
       file_upload: 'File Upload',
+      heading: 'Heading',
+      paragraph: 'Paragraph',
+      divider: 'Divider',
       section_divider: 'Section Divider',
       signature: 'Signature',
       button: 'Button',
-      heading: 'Heading',
       horizontal_layout: 'Horizontal Layout',
       vertical_layout: 'Vertical Layout',
       card: 'Card'
