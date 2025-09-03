@@ -1,34 +1,33 @@
 // Central type exports - main entry point for all types
+// ALIGNED WITH DOCUMENTATION
 
-// Re-export component types
-export type ComponentType = 
-  | 'text_input'
-  | 'email_input' 
-  | 'password_input'
-  | 'number_input'
-  | 'textarea'
-  | 'rich_text'
-  | 'select'
-  | 'multi_select'
-  | 'checkbox'
-  | 'checkbox_group'
-  | 'radio_group'
-  | 'date_picker'
-  | 'file_upload'
-  | 'heading'
-  | 'paragraph'
-  | 'divider'
-  | 'section_divider'
-  | 'signature'
-  | 'button'
-  | 'card'
-  | 'horizontal_layout'
-  | 'vertical_layout';
+// Re-export component types - DOCUMENTATION ALIGNED
+export type { 
+  ComponentType,
+  FormComponentData,
+  ValidationRule,
+  ValidationResult,
+  ConditionalRule,
+  OptionData
+} from './component';
 
-export type { FormComponentData } from './component';
+// Re-export form schema types - DOCUMENTATION ALIGNED
+export type {
+  FormSchema,
+  FormPage,
+  FormSettings,
+  FormTheme,
+  PageNavigationSettings,
+  IndividualSubmissionJSON,
+  SurveyDataCollectionJSON,
+  SurveyResponse,
+  FieldResponse,
+  SurveyStatistics,
+  FieldStatistics
+} from './form-schema';
 
 // Re-export template types  
-export type { Template, Page, FormPage, FormTemplate, FormTemplateType } from './template';
+export type { Template, FormTemplate, FormTemplateType } from './template';
 
 // Re-export app types
 export type { AppState, FormBuilderConfig, ModalFunctions } from './app';

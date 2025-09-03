@@ -4,31 +4,40 @@
   border: 1px solid #d1d5db;
   border-radius: 4px;
   background-color: #fff;
-  overflow: hidden;
+  overflow: visible;
+  min-height: 200px;
 }
 
 .rich-text-toolbar {
-  display: flex;
+  display: flex !important;
+  flex-wrap: wrap;
   gap: 4px;
   padding: 8px;
   border-bottom: 1px solid #e0e0e0;
   background-color: #f8f9fa;
   border-radius: 4px 4px 0 0;
+  z-index: 10;
+  position: relative;
+  min-height: 40px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .rich-text-toolbar .toolbar-btn {
-  background: none;
-  border: 1px solid transparent;
+  background: #fff !important;
+  border: 1px solid #ccc !important;
   border-radius: 3px;
   padding: 4px 8px;
   cursor: pointer;
   font-size: 14px;
   min-width: 28px;
   height: 28px;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
+  color: #333;
+  font-weight: 500;
 }
 
 .rich-text-toolbar .toolbar-btn:hover {

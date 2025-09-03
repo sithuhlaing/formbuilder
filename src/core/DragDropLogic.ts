@@ -184,7 +184,8 @@ export class DragDropLogic {
   }
 
   /**
-   * Insert component horizontally (create or extend horizontal layout)
+   * Insert component horizontally (left/right of target)
+   * Improved logic to prevent race conditions and conflicts
    */
   private insertHorizontal(
     components: FormComponentData[],
@@ -193,11 +194,18 @@ export class DragDropLogic {
     side: 'left' | 'right'
   ): FormComponentData[] {
     const targetIndex = components.findIndex(comp => comp.id === targetId);
-    
-    if (targetIndex === -1) {
-      // Check inside horizontal layouts
+    if (targetIndex === -1) return components;
+
+    // Check if we need to recursively search in layout children
+    if (components.some(comp => comp.children && comp.children.length > 0)) {
       return components.map(component => {
         if (component.type === 'horizontal_layout' && component.children) {
+          const updatedChildren = this.insertHorizontal(component.children, targetId, newComponent, side);
+          if (updatedChildren !== component.children) {
+            return { ...component, children: updatedChildren };
+          }
+        }
+        if (component.type === 'vertical_layout' && component.children) {
           const updatedChildren = this.insertHorizontal(component.children, targetId, newComponent, side);
           if (updatedChildren !== component.children) {
             return { ...component, children: updatedChildren };
@@ -213,12 +221,12 @@ export class DragDropLogic {
     // Check if target is already in a horizontal layout
     const parentLayout = this.findParentHorizontalLayout(components, targetId);
     
-    if (parentLayout) {
-      // Add to existing horizontal layout
-      const targetChildIndex = parentLayout.children!.findIndex(child => child.id === targetId);
+    if (parentLayout && parentLayout.children && parentLayout.children.length < 4) {
+      // Add to existing horizontal layout (max 4 items)
+      const targetChildIndex = parentLayout.children.findIndex(child => child.id === targetId);
       const insertIndex = side === 'left' ? targetChildIndex : targetChildIndex + 1;
       
-      const updatedChildren = [...parentLayout.children!];
+      const updatedChildren = [...parentLayout.children];
       updatedChildren.splice(insertIndex, 0, newComponent);
       
       return components.map(comp => 
@@ -227,17 +235,90 @@ export class DragDropLogic {
           : comp
       );
     } else {
-      // Create new horizontal layout
+      // Create new horizontal layout with proper field IDs
       const horizontalLayout: FormComponentData = {
-        id: `horizontal_${Date.now()}`,
+        id: `horizontal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         type: 'horizontal_layout',
+        fieldId: `horizontal_field_${Date.now()}`,
         label: 'Row Layout',
+        required: false,
+        helpText: undefined,
         children: side === 'left' 
           ? [newComponent, targetComponent]
           : [targetComponent, newComponent]
       };
 
       result[targetIndex] = horizontalLayout;
+      return result;
+    }
+  }
+
+  /**
+   * Insert component vertically (top/bottom of target)
+   * Similar to horizontal but creates vertical layouts
+   */
+  private insertVertical(
+    components: FormComponentData[],
+    targetId: string,
+    newComponent: FormComponentData,
+    side: 'top' | 'bottom'
+  ): FormComponentData[] {
+    const targetIndex = components.findIndex(comp => comp.id === targetId);
+    if (targetIndex === -1) return components;
+
+    // Check if we need to recursively search in layout children
+    if (components.some(comp => comp.children && comp.children.length > 0)) {
+      return components.map(component => {
+        if (component.type === 'vertical_layout' && component.children) {
+          const updatedChildren = this.insertVertical(component.children, targetId, newComponent, side);
+          if (updatedChildren !== component.children) {
+            return { ...component, children: updatedChildren };
+          }
+        }
+        if (component.type === 'horizontal_layout' && component.children) {
+          const updatedChildren = this.insertVertical(component.children, targetId, newComponent, side);
+          if (updatedChildren !== component.children) {
+            return { ...component, children: updatedChildren };
+          }
+        }
+        return component;
+      });
+    }
+
+    const targetComponent = components[targetIndex];
+    const result = [...components];
+
+    // Check if target is already in a vertical layout
+    const parentLayout = this.findParentVerticalLayout(components, targetId);
+    
+    if (parentLayout && parentLayout.children && parentLayout.children.length < 6) {
+      // Add to existing vertical layout (max 6 items)
+      const targetChildIndex = parentLayout.children.findIndex((child: FormComponentData) => child.id === targetId);
+      const insertIndex = side === 'top' ? targetChildIndex : targetChildIndex + 1;
+      
+      const updatedChildren = [...parentLayout.children];
+      updatedChildren.splice(insertIndex, 0, newComponent);
+      
+      return components.map(comp => 
+        comp.id === parentLayout.id 
+          ? { ...comp, children: updatedChildren }
+          : comp
+      );
+    } else {
+      // Create new vertical layout with proper field IDs
+      const verticalLayout: FormComponentData = {
+        id: `vertical_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: 'vertical_layout',
+        fieldId: `vertical_field_${Date.now()}`,
+        label: 'Column Layout',
+        required: false,
+        helpText: undefined,
+        children: side === 'top' 
+          ? [newComponent, targetComponent]
+          : [targetComponent, newComponent]
+      };
+
+      result[targetIndex] = verticalLayout;
       return result;
     }
   }
@@ -309,7 +390,7 @@ export class DragDropLogic {
   }
 
   /**
-   * Find parent horizontal layout containing component
+   * Find parent horizontal layout containing the given component
    */
   private findParentHorizontalLayout(
     components: FormComponentData[],
@@ -324,6 +405,28 @@ export class DragDropLogic {
         
         // Check nested layouts
         const nestedParent = this.findParentHorizontalLayout(component.children, componentId);
+        if (nestedParent) return nestedParent;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Find parent vertical layout containing the given component
+   */
+  private findParentVerticalLayout(
+    components: FormComponentData[],
+    componentId: string
+  ): FormComponentData | null {
+    for (const component of components) {
+      if (component.type === 'vertical_layout' && component.children) {
+        const hasChild = component.children.some(child => child.id === componentId);
+        if (hasChild) {
+          return component;
+        }
+        
+        // Check nested layouts
+        const nestedParent = this.findParentVerticalLayout(component.children, componentId);
         if (nestedParent) return nestedParent;
       }
     }

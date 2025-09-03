@@ -143,39 +143,52 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
                 <div key={template.templateId} className="template-card">
                   <div className="template-card__header">
                     <div className="template-card__actions">
-                      <ActionButton
-                        onClick={(e) => {
-                          e?.stopPropagation();
-                          console.log('🔍 Edit button clicked for:', template.name);
-                          onEditTemplate(template);
-                        }}
-                        icon="✏️"
-                        title="Edit template"
-                      />
-                      <ActionButton
-                        onClick={(e) => {
-                          e?.stopPropagation();
-                          handlePreviewTemplate(template);
-                        }}
-                        icon="👁️"
-                        title="Preview template"
-                      />
-                      <ActionButton
-                        onClick={(e) => {
-                          e?.stopPropagation();
-                          handleDuplicateTemplate(template);
-                        }}
-                        icon="�"
-                        title="Duplicate template"
-                      />
-                      <ActionButton
-                        onClick={(e) => {
-                          e?.stopPropagation();
-                          handleDeleteTemplate(template.templateId, template.name);
-                        }}
-                        icon="�️"
-                        title="Delete template"
-                      />
+                      {[
+                        {
+                          key: 'edit',
+                          icon: '✏️',
+                          title: 'Edit template',
+                          onClick: (e: React.MouseEvent) => {
+                            e?.stopPropagation();
+                            console.log('🔍 Edit button clicked for:', template.name);
+                            onEditTemplate(template);
+                          }
+                        },
+                        {
+                          key: 'preview',
+                          icon: '👁️',
+                          title: 'Preview template',
+                          onClick: (e: React.MouseEvent) => {
+                            e?.stopPropagation();
+                            handlePreviewTemplate(template);
+                          }
+                        },
+                        {
+                          key: 'duplicate',
+                          icon: '📋',
+                          title: 'Duplicate template',
+                          onClick: (e: React.MouseEvent) => {
+                            e?.stopPropagation();
+                            handleDuplicateTemplate(template);
+                          }
+                        },
+                        {
+                          key: 'delete',
+                          icon: '🗑️',
+                          title: 'Delete template',
+                          onClick: (e: React.MouseEvent) => {
+                            e?.stopPropagation();
+                            handleDeleteTemplate(template.templateId, template.name);
+                          }
+                        }
+                      ].map((action) => (
+                        <ActionButton
+                          key={`${action.key}-${template.templateId}`}
+                          onClick={action.onClick}
+                          icon={action.icon}
+                          title={action.title}
+                        />
+                      ))}
                     </div>
                     <div className="template-card__title-section">
                       <h3 className="template-card__title">{template.name}</h3>
@@ -270,6 +283,7 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
           components={previewTemplate.pages?.[0]?.components || []}
           pages={previewTemplate.pages?.map((page, index) => ({
             ...page,
+            id: page.id || `page-${index}`,
             order: index + 1
           })) || []}
         />

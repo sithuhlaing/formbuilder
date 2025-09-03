@@ -7,6 +7,8 @@ import React from 'react';
 import { useDrop } from 'react-dnd';
 import { SmartDropZone } from './SmartDropZone';
 import { HorizontalLayout } from './HorizontalLayout';
+import { RowLayout } from './RowLayout';
+import { BetweenElementsDropZone } from './BetweenElementsDropZone';
 import type { DragDropCanvasProps, DragItem } from '../types';
 
 export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
@@ -77,26 +79,19 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
       ) : (
         <div className="canvas-content">
           {items.map((item, index) => {
-            // Render horizontal layouts differently
-            if (item.type === 'horizontal_layout') {
-              return (
-                <HorizontalLayout
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  renderItem={renderItem}
-                  onItemDelete={onItemDelete}
-                  onItemMove={onItemMove}
-                  onLayoutCreate={onLayoutCreate}
-                  selectedItemId={selectedItemId}
-                  cssPrefix={cssPrefix}
-                  config={requiredConfig}
-                />
-              );
-            }
-
-            // Render regular items
-            return (
+            const itemElement = item.type === 'horizontal_layout' ? (
+              <RowLayout
+                key={item.id}
+                item={item}
+                index={index}
+                renderItem={renderItem}
+                onItemDelete={onItemDelete}
+                onItemMove={onItemMove}
+                onLayoutCreate={onLayoutCreate}
+                selectedItemId={selectedItemId}
+                config={requiredConfig}
+              />
+            ) : (
               <SmartDropZone
                 key={item.id}
                 item={item}
@@ -110,6 +105,23 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
                 config={requiredConfig}
               />
             );
+
+            // Add between-element drop zone after each item (except the last)
+            if (index < items.length - 1) {
+              return (
+                <React.Fragment key={`item-${item.id}`}>
+                  {itemElement}
+                  <BetweenElementsDropZone
+                    beforeIndex={index}
+                    afterIndex={index + 1}
+                    onItemAdd={onItemAdd}
+                    config={requiredConfig}
+                  />
+                </React.Fragment>
+              );
+            }
+
+            return itemElement;
           })}
           
           {/* Bottom drop zone for adding items at the end */}

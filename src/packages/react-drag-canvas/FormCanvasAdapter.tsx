@@ -87,8 +87,13 @@ export const FormCanvas: React.FC<FormCanvasProps> = ({
       }}
       onItemDelete={onDelete}
       onItemAdd={(itemType, position) => {
-        const mappedPosition = position.type === 'center' ? 'inside' : position.type;
-        onDrop(itemType as ComponentType, position.targetId || 'empty-canvas', mappedPosition as 'before' | 'after' | 'left' | 'right' | 'inside');
+        if (position.type === 'between' && position.targetIndex !== undefined) {
+          // Handle between-element insertion
+          onDrop(itemType as ComponentType, `index-${position.targetIndex}`, 'before');
+        } else {
+          const mappedPosition = position.type === 'center' ? 'inside' : position.type;
+          onDrop(itemType as ComponentType, position.targetId || 'empty-canvas', mappedPosition as 'before' | 'after' | 'left' | 'right' | 'inside');
+        }
       }}
       selectedItemId={selectedId}
       config={{

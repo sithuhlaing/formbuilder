@@ -263,7 +263,7 @@ export const FormCanvas: React.FC<FormCanvasProps> = ({
                 {/* Component Content */}
                 <ComponentRenderer
                   component={component}
-                  readOnly={true}
+                  readOnly={false}
                   isSelected={canvasState.selectedComponentId === component.id}
                 />
 

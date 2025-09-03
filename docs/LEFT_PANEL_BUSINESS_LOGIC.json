@@ -29,7 +29,7 @@
           "icon": "📝",
           "components": [
             "text_input", "email_input", "password_input", "number_input",
-            "textarea", "date_picker", "file_upload", "signature"
+            "textarea", "rich_text", "date_picker", "file_upload", "signature"
           ],
           "default_state": "expanded",
           "purpose": "Basic form input elements"
@@ -45,7 +45,7 @@
         "layout_components": {
           "icon": "🏗️",
           "components": [
-            "section_divider"
+            "section_divider", "horizontal_layout", "vertical_layout"
           ],
           "default_state": "collapsed", 
           "purpose": "Form structure and organization"

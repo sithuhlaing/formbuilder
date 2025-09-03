@@ -6,6 +6,7 @@
 @import './components.css';
 @import './layout.css';
 @import './drag-drop.css';
+@import './RichTextEditor.css';
 
 /* Import Clean Feature Styles */
 @import './features/form-builder.css';

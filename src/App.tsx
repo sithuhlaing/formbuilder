@@ -9,11 +9,12 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { 
   Canvas, 
   ComponentPalette, 
-  PropertiesPanel,
   PreviewModal,
   DeleteZone,
   useFormBuilder 
 } from './features/form-builder';
+import { PropertiesPanel } from './shared/components/PropertiesPanel';
+import type { FormComponentData } from './types/component';
 import { TemplateListView, templateService } from './features/template-management';
 import { Button, Modal } from './shared/components';
 
@@ -309,19 +310,12 @@ const App: React.FC = () => {
 
           {/* Properties Panel */}
           <aside className="properties">
-            <div className="properties__header">
-              <h2>Properties</h2>
-            </div>
-            <div className="properties__content">
-              <PropertiesPanel
-                selectedComponent={selectedComponent}
-                onUpdateComponent={(updates) => {
-                  if (selectedComponent) {
-                    updateComponent(selectedComponent.id, updates);
-                  }
-                }}
-              />
-            </div>
+            <PropertiesPanel
+              selectedComponent={selectedComponent}
+              onUpdateComponent={(componentId: string, updates: Partial<FormComponentData>) => {
+                updateComponent(componentId, updates);
+              }}
+            />
           </aside>
         </main>
 

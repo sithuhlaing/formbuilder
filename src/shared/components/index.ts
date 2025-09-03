@@ -36,11 +36,13 @@ export {
 // Component Renderer
 export { ComponentRenderer } from './ComponentRenderer';
 
-// Drop Zone Components
+// Drop Zone Components - Legacy Pattern
+// NOTE: These use legacy callback patterns for backward compatibility
+// For NPM package usage, see: src/packages/react-drag-canvas/components/
 export { 
   DropZone, 
-  BetweenDropZone, 
-  SmartDropZone, 
+  BetweenDropZone,      // Legacy: onInsertBetween(ComponentType, index)
+  SmartDropZone,        // Legacy: basic position detection
   CanvasDropZone 
 } from './DropZone';
 

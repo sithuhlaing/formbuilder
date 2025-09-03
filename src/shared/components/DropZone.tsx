@@ -1,6 +1,14 @@
 /**
- * Reusable Drop Zone Components
- * Provides consistent drag-and-drop behavior
+ * Reusable Drop Zone Components - Legacy Pattern
+ * 
+ * ARCHITECTURAL NOTE: These components use the legacy pattern for backward compatibility
+ * and internal usage. They are maintained alongside the newer package components.
+ * 
+ * For NPM package usage or new implementations, consider:
+ * - BetweenElementsDropZone in packages/react-drag-canvas/
+ * - SmartDropZone in packages/react-drag-canvas/
+ * 
+ * Both patterns are intentionally maintained for different use cases.
  */
 
 import React, { useState, useCallback, useRef } from 'react';
@@ -75,7 +83,16 @@ export const DropZone: React.FC<BaseDropZoneProps> = ({
   );
 };
 
-// Between Components Drop Zone
+// Between Components Drop Zone - Legacy Pattern
+/**
+ * Legacy between-drop zone implementation
+ * 
+ * Uses: onInsertBetween(ComponentType, index) callback pattern
+ * Purpose: Backward compatibility with existing tests and internal usage
+ * 
+ * For new implementations, consider BetweenElementsDropZone in packages/
+ * which uses the more generic onItemAdd(string, position) pattern.
+ */
 export const BetweenDropZone: React.FC<BetweenDropZoneProps> = ({ 
   index, 
   onInsertBetween, 

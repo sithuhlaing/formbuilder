@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import type { FormComponentData } from '../../../types';
 import type { FormPage } from '../../../core/FormState';
+import { RichTextEditor } from '../../../shared/components/RichTextEditor';
 
 interface PreviewFormProps {
   templateName: string;
@@ -147,6 +148,26 @@ export const PreviewForm: React.FC<PreviewFormProps> = ({
               onChange={(e) => handleFieldChange(fieldId, e.target.value)}
               required={component.required}
             />
+            {hasError && <div className="preview-field__error">{hasError}</div>}
+          </div>
+        );
+
+      case 'rich_text':
+        return (
+          <div key={component.id} className="preview-field">
+            <label className="preview-field__label">
+              {component.label}{requiredMark}
+            </label>
+            <div className="rich-text-preview">
+              <RichTextEditor
+                value={value || '<p>Enter your text here...</p>'}
+                placeholder={component.placeholder || 'Enter rich text content...'}
+                readOnly={false}
+                height="150px"
+                className={`preview-field__rich-text ${hasError ? 'preview-field__rich-text--error' : ''}`}
+                onChange={(newValue) => handleFieldChange(fieldId, newValue)}
+              />
+            </div>
             {hasError && <div className="preview-field__error">{hasError}</div>}
           </div>
         );
@@ -357,7 +378,11 @@ export const PreviewForm: React.FC<PreviewFormProps> = ({
             </div>
           </div>
         ) : (
-          currentPageComponents.map(renderComponent)
+          currentPageComponents.map((component) => (
+            <React.Fragment key={component.id || component.fieldId}>
+              {renderComponent(component)}
+            </React.Fragment>
+          ))
         )}
         
         <div className="preview-form__page-controls">

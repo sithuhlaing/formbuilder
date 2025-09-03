@@ -3,7 +3,7 @@
  * Provides WYSIWYG editing capabilities for form fields
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { $getRoot, $getSelection, $isRangeSelection } from 'lexical';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
@@ -22,6 +22,7 @@ import {
   $createParagraphNode,
   $createTextNode
 } from 'lexical';
+import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
 import {
   INSERT_UNORDERED_LIST_COMMAND,
   INSERT_ORDERED_LIST_COMMAND,
@@ -197,6 +198,26 @@ const ToolbarPlugin: React.FC = () => {
   );
 };
 
+// Plugin to set initial HTML content
+const InitialContentPlugin: React.FC<{ html: string }> = ({ html }) => {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    if (html) {
+      editor.update(() => {
+        const parser = new DOMParser();
+        const dom = parser.parseFromString(html, 'text/html');
+        const nodes = $generateNodesFromDOM(editor, dom);
+        const root = $getRoot();
+        root.clear();
+        root.append(...nodes);
+      });
+    }
+  }, [editor, html]);
+
+  return null;
+};
+
 // Initial editor configuration
 const initialConfig = {
   namespace: 'RichTextEditor',
@@ -239,9 +260,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 }) => {
   const handleChange = useCallback((editorState: any) => {
     editorState.read(() => {
-      const root = $getRoot();
-      const textContent = root.getTextContent();
-      onChange?.(textContent);
+      const htmlString = $generateHtmlFromNodes(editorState._editor);
+      onChange?.(htmlString);
     });
   }, [onChange]);
 
@@ -249,14 +269,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     <div className={`rich-text-editor ${className}`}>
       <LexicalComposer initialConfig={{
         ...initialConfig,
-        editable: !readOnly,
-        editorState: value ? () => {
-          const root = $getRoot();
-          const paragraph = $createParagraphNode();
-          const text = $createTextNode(value);
-          paragraph.append(text);
-          root.append(paragraph);
-        } : undefined
+        editable: !readOnly
       }}>
         {!readOnly && <ToolbarPlugin />}
         
@@ -284,6 +297,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         <ListPlugin hasStrictIndent={true} />
         <LinkPlugin />
         <OnChangePlugin onChange={handleChange} />
+        {value && <InitialContentPlugin html={value} />}
       </LexicalComposer>
     </div>
   );

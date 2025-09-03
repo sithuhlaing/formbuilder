@@ -120,6 +120,13 @@ export const useFormBuilder = () => {
       return;
     }
     
+    // Handle between-element insertion (from BetweenElementsDropZone)
+    if (targetId.startsWith('index-') && position === 'before') {
+      const insertIndex = parseInt(targetId.replace('index-', ''), 10);
+      insertBetweenComponents(componentType, insertIndex);
+      return;
+    }
+    
     // Handle different drop positions for comprehensive drag-drop
     if (position === 'left' || position === 'right') {
       // Create horizontal layout with the component
@@ -134,7 +141,7 @@ export const useFormBuilder = () => {
         payload: { componentType, targetId, position }
       });
     }
-  }, [executeAction, addComponent, insertHorizontalToComponent, insertComponentWithPosition]);
+  }, [executeAction, addComponent, insertHorizontalToComponent, insertComponentWithPosition, insertBetweenComponents]);
 
   const moveComponent = useCallback((dragIndex: number, hoverIndex: number) => {
     executeAction({
@@ -184,30 +191,55 @@ export const useFormBuilder = () => {
     }));
   }, [formState, saveToHistory]);
 
-  const handleFormSubmit = useCallback(() => {
-    // Validate all pages before submission
-    const hasEmptyPages = formState.pages.some(page => page.components.length === 0);
+  const handleFormSubmit = useCallback((formData?: Record<string, any>) => {
+    // Import ValidationEngine for form validation
+    const { ValidationEngine } = require('../../core/ValidationEngine');
     
-    if (hasEmptyPages) {
-      console.warn('Some pages are empty. Please add components to all pages before submitting.');
-      return false;
+    // Validate all components in all pages
+    const validationResults: Record<string, any> = {};
+    let hasErrors = false;
+
+    for (const page of formState.pages) {
+      for (const component of page.components) {
+        const fieldValue = formData?.[component.fieldId];
+        const result = ValidationEngine.validateComponent(component, fieldValue);
+        
+        if (!result.isValid) {
+          validationResults[component.fieldId] = result;
+          hasErrors = true;
+        }
+      }
+    }
+
+    // If validation fails, return validation results
+    if (hasErrors) {
+      console.warn('Form validation failed:', validationResults);
+      return { success: false, validationResults };
+    }
+
+    // Basic validation - check if form has components
+    if (currentComponents.length === 0) {
+      console.warn('Cannot submit empty form');
+      return { success: false, error: 'Form is empty' };
     }
 
     // Create submission data
     const submissionData = {
       templateName: formState.templateName,
       pages: formState.pages,
+      formData: formData || {},
       submittedAt: new Date().toISOString(),
       totalPages: formState.pages.length,
-      totalComponents: formState.pages.reduce((total, page) => total + page.components.length, 0)
+      totalComponents: formState.pages.reduce((total, page) => total + page.components.length, 0),
+      validationResults
     };
 
-    console.log('Form submitted:', submissionData);
+    console.log('Form submitted successfully:', submissionData);
     
     // Here you would typically send to an API
     // For now, we'll just log and return success
-    return true;
-  }, [formState]);
+    return { success: true, submissionData };
+  }, [formState, currentComponents]);
 
   const updatePageTitle = useCallback((pageId: string, title: string) => {
     executeAction({
@@ -236,14 +268,20 @@ export const useFormBuilder = () => {
   }, [formState, saveToHistory]);
 
   const loadTemplate = useCallback((template: any) => {
+    console.log('Template updated:', template);
+    if (!template || !template.pages || template.pages.length === 0) {
+      console.error('Invalid template structure:', template);
+      return;
+    }
+    
     saveToHistory(formState);
     setFormState(prev => ({
       ...prev,
-      templateName: template.name,
+      templateName: template.name || 'Untitled Form',
       pages: template.pages,
       currentPageId: template.pages[0]?.id || 'page1',
       selectedComponentId: null,
-      templateId: template.id
+      templateId: template.id || template.templateId
     }));
   }, [formState, saveToHistory]);
 

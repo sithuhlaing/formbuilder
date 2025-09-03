@@ -82,10 +82,10 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddCompone
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['input-fields']));
 
-  // Properly categorized components
+  // ALIGNED WITH DOCUMENTATION - Properly categorized components
   const inputFieldTypes: ComponentType[] = [
     'text_input', 'email_input', 'password_input', 'number_input',
-    'textarea', 'date_picker', 'file_upload', 'signature'
+    'textarea', 'rich_text', 'date_picker', 'file_upload', 'signature'
   ];
 
   const selectionControlTypes: ComponentType[] = [
@@ -93,7 +93,7 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddCompone
   ];
 
   const layoutTypes: ComponentType[] = [
-    'section_divider'
+    'section_divider', 'horizontal_layout', 'vertical_layout'
   ];
 
   // Filter components based on search

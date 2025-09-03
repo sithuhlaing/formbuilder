@@ -4,7 +4,7 @@
  * Business Logic: Exactly what the requirements need
  */
 
-import type { FormComponentData, ComponentType } from '../types';
+import type { FormComponentData, ComponentType, ValidationResult, ValidationRule } from '../types';
 import { generateId } from '../shared/utils';
 
 export class ComponentEngine {
@@ -27,6 +27,8 @@ export class ComponentEngine {
       fieldId: `field_${Date.now()}`,
       required: false,
       placeholder: ComponentEngine.getDefaultPlaceholder(type),
+      validationRules: [],
+      conditionalDisplay: {}
     };
 
     // Type-specific customization in ONE place - keep defaults from getDefaultLabel but add type-specific props
@@ -43,37 +45,43 @@ export class ComponentEngine {
       case 'select':
         return { 
           ...baseComponent, 
-          options: ['Option 1', 'Option 2', 'Option 3']
+          options: [
+            { label: 'Option 1', value: 'option1' },
+            { label: 'Option 2', value: 'option2' },
+            { label: 'Option 3', value: 'option3' }
+          ]
         };
       
       case 'multi_select':
         return { 
           ...baseComponent, 
-          options: ['Option 1', 'Option 2', 'Option 3']
+          options: [
+            { label: 'Option 1', value: 'option1' },
+            { label: 'Option 2', value: 'option2' },
+            { label: 'Option 3', value: 'option3' }
+          ]
         };
       
       case 'radio_group':
         return { 
           ...baseComponent, 
-          options: ['Option 1', 'Option 2', 'Option 3']
+          options: [
+            { label: 'Option 1', value: 'option1' },
+            { label: 'Option 2', value: 'option2' },
+            { label: 'Option 3', value: 'option3' }
+          ]
         };
       
       case 'file_upload':
         return { ...baseComponent, acceptedFileTypes: '*' };
       
-      case 'button':
+      case 'rich_text':
         return { 
           ...baseComponent, 
-          buttonType: 'primary',
-          buttonText: 'Click Me'
+          defaultValue: '<p>Click here to start editing with <strong>bold</strong>, <em>italic</em> and more formatting options!</p>',
+          placeholder: 'Enter rich text content...'
         };
       
-      case 'heading':
-        return { 
-          ...baseComponent, 
-          level: 1,
-          text: 'Heading Text'
-        };
       
       case 'horizontal_layout':
         return { 
@@ -87,35 +95,6 @@ export class ComponentEngine {
           children: []
         };
       
-      case 'card':
-        return { 
-          ...baseComponent, 
-          children: [
-            // Buttons first at top level
-            { 
-              id: `button_${Date.now()}_1`, 
-              type: 'button' as ComponentType, 
-              label: 'Primary Action', 
-              buttonType: 'primary', 
-              required: false 
-            },
-            { 
-              id: `button_${Date.now()}_2`, 
-              type: 'button' as ComponentType, 
-              label: 'Secondary Action', 
-              buttonType: 'secondary', 
-              required: false 
-            },
-            // Title after buttons
-            { 
-              id: `title_${Date.now()}`, 
-              type: 'heading' as ComponentType, 
-              label: 'Card Title', 
-              level: 2, 
-              required: false 
-            }
-          ]
-        };
       
       default:
         return baseComponent;
@@ -235,11 +214,8 @@ export class ComponentEngine {
       'file_upload',
       'section_divider',
       'signature',
-      'button',
-      'heading',
       'horizontal_layout',
-      'vertical_layout',
-      'card'
+      'vertical_layout'
     ];
   }
 
@@ -247,7 +223,7 @@ export class ComponentEngine {
    * SINGLE method to validate ANY component
    * Business logic: Exactly what requirements need
    */
-  static validateComponent(component: FormComponentData): { valid: boolean; errors: string[] } {
+  static validateComponent(component: FormComponentData): ValidationResult {
     const errors: string[] = [];
     
     // Required validation
@@ -275,8 +251,9 @@ export class ComponentEngine {
     }
     
     return {
-      valid: errors.length === 0,
-      errors
+      isValid: errors.length === 0,
+      errors,
+      message: errors.join(', ')
     };
   }
 
@@ -297,19 +274,13 @@ export class ComponentEngine {
       select: 'Select',
       multi_select: 'Multi Select',
       checkbox: 'Checkbox',
-      checkbox_group: 'Checkbox Group',
       radio_group: 'Radio Group',
       date_picker: 'Date Picker',
       file_upload: 'File Upload',
-      heading: 'Heading',
-      paragraph: 'Paragraph',
-      divider: 'Divider',
       section_divider: 'Section Divider',
       signature: 'Signature',
-      button: 'Button',
       horizontal_layout: 'Horizontal Layout',
-      vertical_layout: 'Vertical Layout',
-      card: 'Card'
+      vertical_layout: 'Vertical Layout'
     };
     
     const label = labels[type];

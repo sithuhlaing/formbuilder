@@ -1,4 +1,4 @@
-// Component type definitions
+// Component type definitions - ALIGNED WITH DOCUMENTATION
 export type ComponentType = 
   | "text_input"
   | "email_input"
@@ -9,17 +9,11 @@ export type ComponentType =
   | "select"
   | "multi_select"
   | "checkbox"
-  | "checkbox_group"
   | "radio_group"
   | "date_picker"
   | "file_upload"
-  | "heading"
-  | "paragraph"
-  | "divider"
-  | "section_divider"
   | "signature"
-  | "button"
-  | "card"
+  | "section_divider"
   | "horizontal_layout"
   | "vertical_layout";
 
@@ -29,36 +23,80 @@ export interface OptionData {
   label: string;
 }
 
+// ALIGNED WITH DOCUMENTATION - Validation interfaces
+export interface ValidationRule {
+  type: 'required' | 'minLength' | 'maxLength' | 'pattern' | 'email' | 'custom';
+  value?: any;
+  message: string;
+  validator?: (value: any) => ValidationResult;
+}
+
+export interface ValidationResult {
+  isValid: boolean;
+  message?: string;
+  errors?: string[];
+}
+
+// ALIGNED WITH DOCUMENTATION - Conditional logic interfaces
+export interface ConditionalRule {
+  field: string;                    // Reference field ID
+  operator: 'equals' | 'not_equals' | 'contains' | 'greater_than' | 'less_than';
+  value: any;                       // Comparison value
+}
+
+// ALIGNED WITH DOCUMENTATION - FormComponentData interface
 export interface FormComponentData {
-  layout?: any; // Keep as any for backwards compatibility
+  helpText: undefined;
+  // Core properties - REQUIRED
   id: string;
   type: ComponentType;
-  label?: string;
+  fieldId: string;                    // Unique field identifier for data mapping
+  label: string;
+  required: boolean;
+  
+  // Optional core properties
   placeholder?: string;
-  required?: boolean;
-  fieldId?: string;
-  defaultValue?: string | number | boolean; // Default value for form components
-  options?: (string | OptionData)[];
-  min?: number;
-  max?: number;
-  step?: number;
-  acceptedFileTypes?: string;
-  multiple?: boolean; // For file upload components
-  description?: string;
-  helpText?: string;
-  children?: FormComponentData[];
-  rows?: number;
-  content?: string;
-  maxSize?: number;
-  height?: string;
-  width?: string;
-  alignment?: 'left' | 'center' | 'right' | 'justify';
-  // Button component properties
-  buttonType?: 'primary' | 'secondary' | 'success' | 'danger';
-  buttonText?: string;
-  // Heading component properties
-  level?: 1 | 2 | 3 | 4 | 5 | 6;
-  text?: string;
+  defaultValue?: string | number | boolean;
+  
+  // Validation properties
+  validationRules?: ValidationRule[];
+  
+  // Component-specific properties
+  options?: Array<{label: string; value: string}>;  // For select, radio, checkbox
+  minLength?: number;                 // For text inputs
+  maxLength?: number;                 // For text inputs
+  pattern?: string;                   // Regex validation
+  min?: number;                       // For number inputs
+  max?: number;                       // For number inputs
+  step?: number;                      // For number inputs
+  acceptedFileTypes?: string;         // For file uploads
+  multiple?: boolean;                 // For file uploads and multi-select
+  rows?: number;                      // For textarea
+  height?: string;                    // For rich text and others
+  width?: string;                     // CSS width
+  
+  // Layout properties
+  children?: FormComponentData[];     // For layout containers
+  
+  // Conditional display
+  conditionalDisplay?: {
+    showWhen?: ConditionalRule;
+    hideWhen?: ConditionalRule;
+  };
+  
+  // Position and styling
+  position?: {
+    x: number;
+    y: number;
+    row?: number;
+    column?: number;
+  };
+  
+  styling?: {
+    className?: string;
+    customCSS?: string;
+    theme?: string;
+  };
 }
 
 // Specific component interfaces for type safety

@@ -1,14 +1,27 @@
 /**
- * HorizontalLayout Component - Handles horizontal layout rendering
- * SOLID: Single Responsibility - Only handles horizontal layout display
+ * RowLayout Component
+ * Renders a row layout container with drag-drop support
+ * This is specifically for horizontal row layouts (different from HorizontalLayout)
  */
 
 import React, { useRef } from 'react';
 import { useDrop } from 'react-dnd';
 import { SmartDropZone } from './SmartDropZone';
-import type { HorizontalLayoutProps, DragItem } from '../types';
+import type { CanvasItem, DragItem } from '../types';
 
-export const HorizontalLayout: React.FC<HorizontalLayoutProps> = ({
+interface RowLayoutProps {
+  item: CanvasItem;
+  index: number;
+  renderItem: (item: CanvasItem, context: any) => React.ReactNode;
+  onItemDelete: (itemId: string) => void;
+  onItemMove?: (dragIndex: number, hoverIndex: number) => void;
+  onLayoutCreate?: (componentType: string, targetId: string, side: 'left' | 'right' | 'top' | 'bottom') => void;
+  selectedItemId?: string;
+  cssPrefix?: string;
+  config?: any;
+}
+
+export const RowLayout: React.FC<RowLayoutProps> = ({
   item,
   index,
   renderItem,
@@ -16,19 +29,19 @@ export const HorizontalLayout: React.FC<HorizontalLayoutProps> = ({
   onItemMove,
   onLayoutCreate,
   selectedItemId,
-  cssPrefix,
+  cssPrefix = 'canvas',
   config
 }) => {
   const children = item.children || [];
   const ref = useRef<HTMLDivElement>(null);
 
-  // Drop functionality for the horizontal layout container
+  // Drop functionality for the row layout container
   const [{ isOver }, drop] = useDrop({
     accept: ['new-item', 'existing-item'],
     drop: (dragItem: DragItem, monitor) => {
       if (monitor.didDrop()) return; // Prevent duplicate drops
       
-      // Handle drops within horizontal layout
+      // Handle drops within row layout
       const componentType = dragItem.itemType || dragItem.type;
       if (componentType && onLayoutCreate) {
         onLayoutCreate(componentType, item.id, 'right');
@@ -45,8 +58,8 @@ export const HorizontalLayout: React.FC<HorizontalLayoutProps> = ({
   return (
     <div 
       ref={ref}
-      className={`${cssPrefix}__horizontal-layout horizontal-layout ${isOver ? 'is-drop-target' : ''}`}
-      data-testid={`row-layout-${index}`}
+      className={`${cssPrefix}__row-layout row-layout ${isOver ? 'is-drop-target' : ''}`}
+      data-testid="row-layout"
       data-component-id={item.id}
       data-component-type={item.type}
       data-layout-index={index}
@@ -59,7 +72,8 @@ export const HorizontalLayout: React.FC<HorizontalLayoutProps> = ({
         borderRadius: '4px',
         backgroundColor: isOver ? '#f0f9ff' : '#fafafa',
         minHeight: '60px',
-        alignItems: 'stretch'
+        alignItems: 'stretch',
+        position: 'relative'
       }}
     >
       {/* Layout header */}

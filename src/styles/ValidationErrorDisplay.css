@@ -1,0 +1,215 @@
+/* Validation Error Display Styles */
+
+.validation-display {
+  margin-top: 4px;
+}
+
+.validation-block {
+  padding: 8px 12px;
+  border-radius: 4px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.validation-inline {
+  padding: 4px 0;
+}
+
+/* Error Messages */
+.validation-errors {
+  margin-bottom: 4px;
+}
+
+.validation-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 4px;
+  color: #dc2626;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.validation-error:last-child {
+  margin-bottom: 0;
+}
+
+/* Warning Messages */
+.validation-warnings {
+  margin-bottom: 4px;
+}
+
+.validation-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 4px;
+  color: #d97706;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.validation-warning:last-child {
+  margin-bottom: 0;
+}
+
+/* Icons */
+.validation-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.error-icon {
+  color: #dc2626;
+}
+
+.warning-icon {
+  color: #d97706;
+}
+
+/* Validation Messages */
+.validation-message {
+  flex: 1;
+  word-break: break-word;
+}
+
+/* Field-specific validation */
+.field-validation {
+  margin-top: 4px;
+  padding-left: 0;
+}
+
+.field-validation .validation-error,
+.field-validation .validation-warning {
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+/* Form Validation Summary */
+.form-validation-summary {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.validation-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.validation-summary-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.validation-summary-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.validation-summary-item {
+  margin-bottom: 6px;
+}
+
+.validation-summary-item:last-child {
+  margin-bottom: 0;
+}
+
+.validation-summary-link {
+  background: none;
+  border: none;
+  color: #dc2626;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  padding: 0;
+  line-height: 1.4;
+}
+
+.validation-summary-link:hover {
+  color: #b91c1c;
+  text-decoration: none;
+}
+
+/* Form field states */
+.form-field.has-error input,
+.form-field.has-error textarea,
+.form-field.has-error select {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.form-field.has-error input:focus,
+.form-field.has-error textarea:focus,
+.form-field.has-error select:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+
+.form-field.has-warning input,
+.form-field.has-warning textarea,
+.form-field.has-warning select {
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
+}
+
+.form-field.has-warning input:focus,
+.form-field.has-warning textarea:focus,
+.form-field.has-warning select:focus {
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.2);
+}
+
+/* Success state */
+.form-field.has-success input,
+.form-field.has-success textarea,
+.form-field.has-success select {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Validation status indicators */
+.validation-status-indicator {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.validation-status-indicator.success {
+  color: #10b981;
+}
+
+.validation-status-indicator.error {
+  color: #dc2626;
+}
+
+.validation-status-indicator.warning {
+  color: #d97706;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .form-validation-summary {
+    padding: 12px;
+  }
+  
+  .validation-summary-header h4 {
+    font-size: 13px;
+  }
+  
+  .validation-summary-link {
+    font-size: 12px;
+  }
+}

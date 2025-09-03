@@ -320,6 +320,7 @@ export class ComponentRenderer {
       password_input: { category: 'Input Fields', description: 'Password input field', label: 'Password Input', icon: '🔒' },
       number_input: { category: 'Input Fields', description: 'Numeric input field', label: 'Number Input', icon: '🔢' },
       textarea: { category: 'Input Fields', description: 'Multi-line text input', label: 'Text Area', icon: '📄' },
+      rich_text: { category: 'Input Fields', description: 'Rich text editor', label: 'Rich Text', icon: '📝' },
       select: { category: 'Selection', description: 'Dropdown selection', label: 'Select', icon: '⬇️' },
       multi_select: { category: 'Selection', description: 'Multiple selection dropdown', label: 'Multi Select', icon: '☑️' },
       checkbox: { category: 'Selection', description: 'Single checkbox', label: 'Checkbox', icon: '☑️' },

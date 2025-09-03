@@ -7,6 +7,8 @@
 export { DragDropCanvas } from './components/DragDropCanvas';
 export { SmartDropZone } from './components/SmartDropZone';
 export { HorizontalLayout } from './components/HorizontalLayout';
+export { RowLayout } from './components/RowLayout';
+export { VerticalLayout } from './components/VerticalLayout';
 export { PWADragDropCanvas } from './components/PWAOptimizedCanvas';
 export { CSPSafeComponentRenderer, PWAFormCanvasAdapter } from './components/CSPSafeComponentRenderer';
 export { FormCanvas } from './FormCanvasAdapter';

@@ -4,7 +4,7 @@
  * Business Logic: Exactly what the requirements need
  */
 
-import type { FormComponentData, FormPage } from '../types';
+import type { FormComponentData, FormPage, ValidationResult } from '../types';
 import { ComponentEngine } from './ComponentEngine';
 import { DragDropService } from '../features/drag-drop';
 
@@ -15,9 +15,9 @@ export class FormStateEngine {
    * Replaces: useFormBuilder, reducers, scattered state logic
    */
   static executeAction(
-    currentState: { pages: FormPage[]; currentPageId: string; selectedComponentId: string | null },
+    currentState: { pages: FormPage[]; currentPageId: string; selectedComponentId: string | null; validationState?: Record<string, ValidationResult> },
     action: FormStateAction
-  ): { pages: FormPage[]; currentPageId: string; selectedComponentId: string | null } {
+  ): { pages: FormPage[]; currentPageId: string; selectedComponentId: string | null; validationState?: Record<string, ValidationResult> } {
     
     switch (action.type) {
       case 'ADD_COMPONENT':
@@ -50,6 +50,12 @@ export class FormStateEngine {
       case 'UPDATE_PAGE_TITLE':
         return this.updatePageTitle(currentState, action.payload);
       
+      case 'UPDATE_FIELD_VALIDATION':
+        return this.updateFieldValidation(currentState, action.payload);
+      
+      case 'CLEAR_VALIDATION':
+        return this.clearValidation(currentState);
+      
       case 'INSERT_COMPONENT_AT_INDEX':
         return this.insertComponentAtIndex(currentState, action.payload);
       
@@ -66,6 +72,34 @@ export class FormStateEngine {
   }
 
   /**
+   * Update field validation state
+   */
+  static updateFieldValidation(
+    currentState: { pages: FormPage[]; currentPageId: string; selectedComponentId: string | null; validationState?: Record<string, ValidationResult> },
+    payload: { fieldId: string; validationResult: ValidationResult }
+  ) {
+    return {
+      ...currentState,
+      validationState: {
+        ...currentState.validationState,
+        [payload.fieldId]: payload.validationResult
+      }
+    };
+  }
+
+  /**
+   * Clear all validation state
+   */
+  static clearValidation(
+    currentState: { pages: FormPage[]; currentPageId: string; selectedComponentId: string | null; validationState?: Record<string, ValidationResult> }
+  ) {
+    return {
+      ...currentState,
+      validationState: {}
+    };
+  }
+
+  /**
    * Get current page components - SINGLE source
    */
   static getCurrentPageComponents(
@@ -79,7 +113,7 @@ export class FormStateEngine {
   /**
    * Validate entire form state - SINGLE validation logic
    */
-  static validateFormState(pages: FormPage[]): { valid: boolean; errors: string[] } {
+  static validateFormState(pages: FormPage[]): ValidationResult {
     const errors: string[] = [];
     
     // Validate pages
@@ -96,15 +130,16 @@ export class FormStateEngine {
       // Validate components on this page
       page.components.forEach(component => {
         const componentValidation = ComponentEngine.validateComponent(component);
-        if (!componentValidation.valid) {
-          errors.push(`Page ${pageIndex + 1}, Component "${component.label}": ${componentValidation.errors.join(', ')}`);
+        if (!componentValidation.isValid) {
+          errors.push(`Page ${pageIndex + 1}, Component "${component.label}": ${componentValidation.errors?.join(', ')}`);
         }
       });
     });
     
     return {
-      valid: errors.length === 0,
-      errors
+      isValid: errors.length === 0,
+      errors,
+      message: errors.join('; ')
     };
   }
 
@@ -319,6 +354,7 @@ export class FormStateEngine {
     return { ...state, pages: updatedPages };
   }
 
+
   private static insertHorizontalLayout(state: any, payload: { componentType: string; targetId: string; side?: 'left' | 'right' }) {
     const currentPage = state.pages.find((page: FormPage) => page.id === state.currentPageId);
     if (!currentPage) return state;
@@ -369,6 +405,8 @@ export type FormStateAction =
   | { type: 'SELECT_COMPONENT'; payload: { componentId: string | null } }
   | { type: 'ADD_PAGE'; payload: { title: string } }
   | { type: 'DELETE_PAGE'; payload: { pageId: string } }
+  | { type: 'UPDATE_FIELD_VALIDATION'; payload: { fieldId: string; validationResult: ValidationResult } }
+  | { type: 'CLEAR_VALIDATION'; payload?: {} }
   | { type: 'SWITCH_PAGE'; payload: { pageId: string } }
   | { type: 'UPDATE_PAGE_TITLE'; payload: { pageId: string; title: string } }
   | { type: 'INSERT_COMPONENT_AT_INDEX'; payload: { componentType: string; insertIndex: number } }

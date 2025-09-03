@@ -5,19 +5,12 @@
 
 import React from 'react';
 import { RichTextEditor } from '../../../shared/components/RichTextEditor';
+import { SignatureCanvas } from '../../../shared/components/SignatureCanvas';
+import { ValidatedFormField } from '../../../shared/components/ValidatedFormField';
+import { FieldValidationDisplay } from '../../../shared/components/ValidationErrorDisplay';
 import type { CanvasItem, RenderContext } from '../types';
+import type { FormComponentData } from '../../../types/component';
 
-interface FormComponentData {
-  id: string;
-  type: string;
-  label: string;
-  placeholder?: string;
-  required?: boolean;
-  options?: Array<{ label: string; value: string }>;
-  children?: FormComponentData[];
-  defaultValue?: string;
-  height?: string;
-}
 
 interface CSPSafeRendererProps {
   item: CanvasItem;
@@ -227,29 +220,23 @@ const FormComponents = {
     </div>
   ),
 
-  signature: ({ component, readOnly }: { component: FormComponentData; readOnly?: boolean }) => (
-    <div className="form-field">
-      <label className="form-field__label">
-        {component.label}
-        {component.required && <span className="form-field__required">*</span>}
-      </label>
-      <div className="form-field__signature">
-        <canvas 
-          className="signature-canvas" 
-          width="400" 
-          height="100"
-          style={{ border: '1px solid #ccc', borderRadius: '4px' }}
+  signature: ({ component, readOnly }: { component: FormComponentData; readOnly?: boolean }) => {
+    return (
+      <div className="form-field">
+        <label className="form-field__label">
+          {component.label}
+          {component.required && <span className="form-field__required">*</span>}
+        </label>
+        <SignatureCanvas
+          value={typeof component.defaultValue === 'string' ? component.defaultValue : ''}
+          width={component.width ? parseInt(component.width) : 400}
+          height={component.height ? parseInt(component.height) : 150}
+          readOnly={readOnly}
+          placeholder={component.placeholder || 'Sign here'}
         />
-        <button 
-          type="button" 
-          className="btn btn--secondary btn--sm"
-          disabled={readOnly}
-        >
-          Clear Signature
-        </button>
       </div>
-    </div>
-  ),
+    );
+  },
 
   rich_text: ({ component, readOnly }: { component: FormComponentData; readOnly?: boolean }) => (
     <div className="form-field">
@@ -259,7 +246,7 @@ const FormComponents = {
       </label>
       <RichTextEditor
         value={component.defaultValue || ''}
-        placeholder={component.placeholder || 'Enter rich text content...'}
+        placeholder={component.placeholder?.toString() || 'Enter rich text content...'}
         readOnly={readOnly}
         height={component.height || '200px'}
         className="form-field__rich-text"
@@ -332,11 +319,11 @@ const FormComponents = {
 
   horizontal_layout: ({ component, readOnly }: { component: FormComponentData; readOnly?: boolean }) => (
     <div className="form-field">
-      <div className="form-field__horizontal-layout">
-        {component.children?.map((child, index) => {
+      <div className="form-field__horizontal-layout" style={{ display: 'flex', flexDirection: 'row', gap: '12px' }}>
+        {component.children?.map((child, childIndex) => {
           const ChildComponent = FormComponents[child.type as keyof typeof FormComponents];
           return (
-            <div key={child.id} className="form-field__horizontal-item">
+            <div key={child.id} className="form-field__horizontal-item" style={{ flex: 1 }}>
               {ChildComponent ? (
                 <ChildComponent component={child} readOnly={readOnly} />
               ) : (
@@ -345,6 +332,57 @@ const FormComponents = {
             </div>
           );
         })}
+      </div>
+    </div>
+  ),
+
+  vertical_layout: ({ component, readOnly }: { component: FormComponentData; readOnly?: boolean }) => (
+    <div className="form-field">
+      <div className="form-field__vertical-layout" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {component.children?.map((child, childIndex) => {
+          const ChildComponent = FormComponents[child.type as keyof typeof FormComponents];
+          return (
+            <div key={child.id} className="form-field__vertical-item">
+              {ChildComponent ? (
+                <ChildComponent component={child} readOnly={readOnly} />
+              ) : (
+                <div>Unsupported component: {child.type}</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  ),
+
+  section_divider: ({ component }: { component: FormComponentData; readOnly?: boolean }) => (
+    <div className="form-field">
+      <div className="form-field__section-divider" style={{ 
+        margin: '24px 0',
+        padding: '12px 0',
+        borderBottom: '2px solid #e5e7eb',
+        textAlign: 'center'
+      }}>
+        {component.label && (
+          <h3 style={{
+            margin: '0 0 8px 0',
+            fontSize: '18px',
+            fontWeight: '600',
+            color: '#374151'
+          }}>
+            {component.label}
+          </h3>
+        )}
+        {component.placeholder && (
+          <p style={{
+            margin: '0',
+            fontSize: '14px',
+            color: '#6b7280',
+            fontStyle: 'italic'
+          }}>
+            {component.placeholder}
+          </p>
+        )}
       </div>
     </div>
   ),

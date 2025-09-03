@@ -2,11 +2,12 @@
   "canvas_area": {
     "name": "Canvas Area (Middle Panel)",
     "purpose": "Visual form building workspace with form metadata management and drag-drop functionality",
-    "location": "src/features/form-builder/components/Canvas.tsx + react-drag-canvas package",
+    "location": "src/features/form-builder/components/FormBuilder.tsx (main layout) + Canvas.tsx (wrapper) + react-drag-canvas package",
     
     "structure": {
       "form_page_card": {
         "description": "Card for managing form title and page navigation/creation",
+        "implementation": "FormPageCard.tsx component in FormBuilder.tsx layout",
         "components": {
           "form_title": {
             "description": "Editable form name with validation and auto-save",
@@ -87,6 +88,7 @@
       },
       "canvas_card": {
         "description": "Card for drag-and-drop component arrangement and rendering",
+        "implementation": "CanvasCard.tsx component wrapping Canvas.tsx in FormBuilder.tsx layout",
         "business_logic": {
           "core_functionality": {
             "visual_form_building": {

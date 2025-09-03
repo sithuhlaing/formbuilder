@@ -156,6 +156,21 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
               />
             );
           
+          case 'rich_text':
+            return (
+              <RichTextEditor
+                value={component.defaultValue || ''}
+                placeholder={component.placeholder || 'Enter rich text content...'}
+                readOnly={readOnly}
+                height={component.height || '200px'}
+                className="component-rich-text"
+                onChange={(value) => {
+                  // TODO: Implement proper state management for rich text content
+                  console.log('Rich text content changed:', value);
+                }}
+              />
+            );
+          
           case 'select':
             return (
               <Select
@@ -224,16 +239,6 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
           
           case 'signature':
             return <SignatureField />;
-          
-          case 'rich_text':
-            return (
-              <RichTextEditor
-                value={String(component.defaultValue || '')}
-                placeholder={component.placeholder || 'Enter rich text content...'}
-                readOnly={false}
-                height={component.height || '200px'}
-              />
-            );
           
           default:
             return <UnknownComponent type={component.type} />;
