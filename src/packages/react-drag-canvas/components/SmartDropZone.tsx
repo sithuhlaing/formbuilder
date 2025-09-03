@@ -79,11 +79,20 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
       setDropPosition(position);
     },
     drop: (dragItem: DragItem, monitor) => {
+      // Prevent event bubbling to parent drop zones
+      if (monitor.didDrop()) return;
+      
       const position = calculateDropPosition(monitor.getClientOffset());
       
       if (dragItem.type === 'existing-item') {
-        // Handle reordering existing items
-        if (dragItem.index !== undefined && dragItem.index !== index) {
+        // Handle existing items - create horizontal layout for left/right drops
+        if (position === 'left' || position === 'right') {
+          // Create horizontal layout with existing item
+          if (onLayoutCreate && dragItem.item) {
+            onLayoutCreate(dragItem.item.type, item.id, position);
+          }
+        } else if (dragItem.index !== undefined && dragItem.index !== index) {
+          // Regular reordering for before/after/center drops
           onItemMove(dragItem.index, index);
         }
       } else if (dragItem.type === 'new-item' && dragItem.itemType) {

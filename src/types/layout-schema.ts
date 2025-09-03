@@ -143,7 +143,7 @@ export interface FileUploadConfiguration {
 export interface ValidationSchema {
   jsonSchema: {
     type: "object";
-    properties: Record<string, any>;
+    properties: Record<string, unknown>;
     required?: string[];
     additionalProperties?: boolean;
   };
@@ -424,12 +424,12 @@ function convertComponentToLayout(component: FormComponentData): LayoutStructure
 }
 
 function generateValidationSchema(components: FormComponentData[]): ValidationSchema {
-  const properties: Record<string, any> = {};
+  const properties: Record<string, unknown> = {};
   const required: string[] = [];
   
   const processComponent = (component: FormComponentData) => {
     if (component.fieldId && component.type !== 'horizontal_layout' && component.type !== 'vertical_layout') {
-      const fieldSchema: any = {};
+      const fieldSchema: Record<string, unknown> = {};
       
       // Set base type
       switch (component.type) {

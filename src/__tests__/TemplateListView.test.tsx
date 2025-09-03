@@ -32,6 +32,15 @@ vi.mock('../shared/components', () => ({
     <button onClick={onClick} {...props}>
       {children}
     </button>
+  ),
+  Modal: ({ isOpen, onClose, title, children }: any) => (
+    isOpen ? (
+      <div data-testid="modal">
+        <div>{title}</div>
+        {children}
+        <button onClick={onClose}>Close</button>
+      </div>
+    ) : null
   )
 }));
 

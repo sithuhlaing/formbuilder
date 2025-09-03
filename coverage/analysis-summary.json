@@ -1,0 +1,46 @@
+{
+  "timestamp": "2025-09-03T21:00:24.226Z",
+  "overall": {
+    "statements": 4.03,
+    "branches": 81.69,
+    "functions": 72.13,
+    "lines": 4.03
+  },
+  "categories": {
+    "Performance Optimization": {
+      "coverage": 0,
+      "filesAnalyzed": 0,
+      "totalFiles": 4,
+      "threshold": "critical"
+    },
+    "Core Engines": {
+      "coverage": 0,
+      "filesAnalyzed": 0,
+      "totalFiles": 4,
+      "threshold": "critical"
+    },
+    "Form Builder Components": {
+      "coverage": 0,
+      "filesAnalyzed": 0,
+      "totalFiles": 3,
+      "threshold": "important"
+    },
+    "Shared Components": {
+      "coverage": 0,
+      "filesAnalyzed": 0,
+      "totalFiles": 3,
+      "threshold": "standard"
+    },
+    "Utilities": {
+      "coverage": 0,
+      "filesAnalyzed": 0,
+      "totalFiles": 4,
+      "threshold": "utility"
+    }
+  },
+  "badge": {
+    "percentage": 40,
+    "color": "red",
+    "url": "https://img.shields.io/badge/coverage-40%25-red"
+  }
+}

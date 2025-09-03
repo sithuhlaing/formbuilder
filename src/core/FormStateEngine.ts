@@ -137,7 +137,7 @@ export class FormStateEngine {
     });
     
     return {
-      isValid: errors.length === 0,
+      valid: errors.length === 0,
       errors,
       message: errors.join('; ')
     };
@@ -261,7 +261,12 @@ export class FormStateEngine {
       id: `page_${Date.now()}`,
       title: payload.title,
       components: [],
-      layout: 'vertical' // Add default layout
+      validationRules: [],
+      navigationSettings: {
+        showNext: true,
+        showPrevious: true,
+        showSubmit: false
+      }
     };
     
     return {

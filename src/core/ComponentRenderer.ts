@@ -4,26 +4,111 @@
  * Business Logic: Exactly what the UI requirements need
  */
 
+import React from 'react';
 import type { FormComponentData } from '../types';
+import { ValidatedFormField } from '../shared/components/ValidatedFormField';
 
 export class ComponentRenderer {
   
   /**
-   * SINGLE method to render ANY component
+   * SINGLE method to render ANY component with validation
    * Replaces: Multiple scattered renderer components
    */
   static renderComponent(
     component: FormComponentData,
-    mode: 'builder' | 'preview' = 'builder'
-  ): string {
+    mode: 'builder' | 'preview' = 'builder',
+    options?: {
+      value?: any;
+      onChange?: (value: any) => void;
+      onValidation?: (fieldId: string, result: any) => void;
+      showValidation?: boolean;
+    }
+  ): React.ReactElement | string {
     
-    // Builder mode: Show component with editing controls
+    // If validation is enabled, wrap in ValidatedFormField
+    if (options?.showValidation && (mode === 'preview' || mode === 'builder')) {
+      return React.createElement(ValidatedFormField, {
+        component,
+        value: options.value,
+        onChange: options.onChange,
+        onValidation: options.onValidation,
+        children: this.renderComponentElement(component, mode)
+      });
+    }
+    
+    // Legacy string rendering for backward compatibility
     if (mode === 'builder') {
       return this.renderBuilderMode(component);
     }
     
-    // Preview mode: Show actual form field
     return this.renderPreviewMode(component);
+  }
+
+  /**
+   * Render component as React element
+   */
+  static renderComponentElement(
+    component: FormComponentData,
+    _mode: 'builder' | 'preview' = 'preview'
+  ): React.ReactElement {
+    const props = {
+      key: component.id,
+      'data-component-id': component.id,
+      'data-component-type': component.type,
+      className: `form-field form-field--${component.type}`,
+      required: component.required
+    };
+
+    switch (component.type) {
+      case 'text_input':
+        return React.createElement('div', props, [
+          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
+            component.label + (component.required ? ' *' : '')
+          ),
+          React.createElement('input', {
+            key: 'input',
+            type: 'text',
+            className: 'form-field__input',
+            placeholder: component.placeholder || '',
+            required: component.required
+          })
+        ]);
+
+      case 'email_input':
+        return React.createElement('div', props, [
+          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
+            component.label + (component.required ? ' *' : '')
+          ),
+          React.createElement('input', {
+            key: 'input',
+            type: 'email',
+            className: 'form-field__input',
+            placeholder: component.placeholder || '',
+            required: component.required
+          })
+        ]);
+
+      case 'textarea':
+        return React.createElement('div', props, [
+          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
+            component.label + (component.required ? ' *' : '')
+          ),
+          React.createElement('textarea', {
+            key: 'textarea',
+            className: 'form-field__textarea',
+            placeholder: component.placeholder || '',
+            rows: component.rows || 4,
+            required: component.required
+          })
+        ]);
+
+      default:
+        return React.createElement('div', props, 
+          React.createElement('span', { className: 'form-field__error' }, 
+            `Unknown component type: ${component.type}`
+          )
+        );
+    }
   }
 
   /**

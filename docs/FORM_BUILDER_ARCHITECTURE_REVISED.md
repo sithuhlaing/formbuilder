@@ -70,6 +70,14 @@ FormStateEngine.executeAction('MOVE_COMPONENT', {
 });
 ```
 
+#### Side-by-Side Arrangement (Horizontal Layouts)
+**Purpose**: Create horizontal row layouts with multiple components
+- **Business Logic**: Components arranged side-by-side are grouped in single `horizontal_layout` containers
+- **Progressive Addition**: New components join existing rows instead of creating new rows
+- **Row Management**: Each row supports 2-4 components with automatic dissolution when empty
+
+> **📋 Detailed Documentation**: See [Side-by-Side Arrangement Business Logic](./SIDE_BY_SIDE_ARRANGEMENT_BUSINESS_LOGIC.md) for comprehensive implementation details.
+
 #### Element Deletion
 **Method**: Hover-based interface with delete button in component's top-right corner
 ```typescript

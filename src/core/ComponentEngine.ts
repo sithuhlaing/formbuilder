@@ -1,17 +1,20 @@
 /**
- * SINGLE SOURCE OF TRUTH for ALL component operations
- * Convergence: All component logic in ONE place
- * Business Logic: Exactly what the requirements need
+ * SOLID PRINCIPLE REFACTORING - Single Responsibility & Open/Closed
+ * ComponentEngine now focuses ONLY on component operations
+ * Uses ComponentRegistry for creation (Open/Closed Principle)
  */
 
-import type { FormComponentData, ComponentType, ValidationResult, ValidationRule } from '../types';
+import type { ComponentType, ValidationResult } from '../types';
+import type { FormComponentData } from './interfaces/ComponentInterfaces';
+import { ComponentRegistry } from './ComponentRegistry';
+import { ComponentValidationEngine } from './ComponentValidationEngine';
 import { generateId } from '../shared/utils';
 
 export class ComponentEngine {
   
   /**
-   * SINGLE method to create ANY component
-   * Replaces: componentOperations, layoutOperations, factories
+   * SOLID REFACTORING - Delegates to ComponentRegistry (Open/Closed Principle)
+   * No more switch statements - new component types can be added without modifying this code
    */
   static createComponent(type: ComponentType): FormComponentData {
     // Defensive programming - ensure we have a valid type
@@ -20,84 +23,19 @@ export class ComponentEngine {
       type = 'text_input'; // fallback
     }
 
-    const baseComponent: FormComponentData = {
+    const baseData = {
       id: generateId(),
-      type,
       label: ComponentEngine.getDefaultLabel(type),
       fieldId: `field_${Date.now()}`,
-      required: false,
-      placeholder: ComponentEngine.getDefaultPlaceholder(type),
-      validationRules: [],
-      conditionalDisplay: {}
+      required: false
     };
 
-    // Type-specific customization in ONE place - keep defaults from getDefaultLabel but add type-specific props
-    switch (type) {
-      case 'email_input':
-        return { ...baseComponent, placeholder: 'Enter email...' };
-      
-      case 'password_input':
-        return { ...baseComponent, placeholder: 'Enter password...' };
-      
-      case 'number_input':
-        return { ...baseComponent, placeholder: 'Enter number...', min: 0, max: 100 };
-      
-      case 'select':
-        return { 
-          ...baseComponent, 
-          options: [
-            { label: 'Option 1', value: 'option1' },
-            { label: 'Option 2', value: 'option2' },
-            { label: 'Option 3', value: 'option3' }
-          ]
-        };
-      
-      case 'multi_select':
-        return { 
-          ...baseComponent, 
-          options: [
-            { label: 'Option 1', value: 'option1' },
-            { label: 'Option 2', value: 'option2' },
-            { label: 'Option 3', value: 'option3' }
-          ]
-        };
-      
-      case 'radio_group':
-        return { 
-          ...baseComponent, 
-          options: [
-            { label: 'Option 1', value: 'option1' },
-            { label: 'Option 2', value: 'option2' },
-            { label: 'Option 3', value: 'option3' }
-          ]
-        };
-      
-      case 'file_upload':
-        return { ...baseComponent, acceptedFileTypes: '*' };
-      
-      case 'rich_text':
-        return { 
-          ...baseComponent, 
-          defaultValue: '<p>Click here to start editing with <strong>bold</strong>, <em>italic</em> and more formatting options!</p>',
-          placeholder: 'Enter rich text content...'
-        };
-      
-      
-      case 'horizontal_layout':
-        return { 
-          ...baseComponent, 
-          children: []
-        };
-      
-      case 'vertical_layout':
-        return { 
-          ...baseComponent, 
-          children: []
-        };
-      
-      
-      default:
-        return baseComponent;
+    try {
+      return ComponentRegistry.createComponent(type, baseData);
+    } catch (error) {
+      console.error('❌ ComponentEngine.createComponent: Failed to create component', error);
+      // Fallback to text input
+      return ComponentRegistry.createComponent('text_input', baseData);
     }
   }
 
@@ -195,66 +133,21 @@ export class ComponentEngine {
   }
 
   /**
-   * Get all available component types
-   * Used by CanvasManager for cross-domain filtering
+   * SOLID REFACTORING - Delegates to ComponentRegistry
+   * Component types are now managed centrally
    */
   static getAllComponentTypes(): ComponentType[] {
-    return [
-      'text_input',
-      'email_input', 
-      'password_input',
-      'number_input',
-      'textarea',
-      'rich_text',
-      'select',
-      'multi_select',
-      'checkbox',
-      'radio_group',
-      'date_picker',
-      'file_upload',
-      'section_divider',
-      'signature',
-      'horizontal_layout',
-      'vertical_layout'
-    ];
+    return ComponentRegistry.getSupportedTypes();
   }
 
   /**
-   * SINGLE method to validate ANY component
-   * Business logic: Exactly what requirements need
+   * SOLID REFACTORING - Delegates to ComponentValidationEngine (Single Responsibility)
+   * Validation logic is now separated for better maintainability
    */
   static validateComponent(component: FormComponentData): ValidationResult {
-    const errors: string[] = [];
-    
-    // Required validation
-    if (!component.label?.trim()) {
-      errors.push('Label is required');
-    }
-    
-    // Type-specific validation
-    switch (component.type) {
-      case 'select':
-      case 'multi_select':
-      case 'radio_group':
-        if (!component.options || component.options.length === 0) {
-          errors.push('At least one option is required');
-        }
-        break;
-        
-      case 'number_input':
-        if (component.min !== undefined && component.max !== undefined) {
-          if (component.min >= component.max) {
-            errors.push('Minimum value must be less than maximum value');
-          }
-        }
-        break;
-    }
-    
-    return {
-      isValid: errors.length === 0,
-      errors,
-      message: errors.join(', ')
-    };
+    // Import here to avoid circular dependency
+     
+    return ComponentValidationEngine.validateComponent(component);
   }
 
   // Private helpers - all in ONE place

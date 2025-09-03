@@ -54,6 +54,74 @@ export class DragDropService {
   }
 
   /**
+   * Handle existing item reordering with horizontal layout creation
+   */
+  static handleExistingItemDrop(
+    components: FormComponentData[],
+    draggedItemId: string,
+    targetId: string,
+    position: 'left' | 'right' | 'before' | 'after' | 'center'
+  ): FormComponentData[] {
+    // Find and remove the dragged item
+    const draggedItem = this.findAndRemoveItem(components, draggedItemId);
+    if (!draggedItem) return components;
+
+    const componentsWithoutDragged = this.removeItem(components, draggedItemId);
+
+    if (position === 'left' || position === 'right') {
+      // Create horizontal layout with existing items
+      return this.insertHorizontal(componentsWithoutDragged, targetId, draggedItem, position);
+    } else {
+      // Regular reordering
+      switch (position) {
+        case 'before':
+          return this.insertBefore(componentsWithoutDragged, targetId, draggedItem);
+        case 'after':
+          return this.insertAfter(componentsWithoutDragged, targetId, draggedItem);
+        default:
+          return [...componentsWithoutDragged, draggedItem];
+      }
+    }
+  }
+
+  /**
+   * Find and extract an item from components array
+   */
+  private static findAndRemoveItem(
+    components: FormComponentData[],
+    itemId: string
+  ): FormComponentData | null {
+    for (const component of components) {
+      if (component.id === itemId) {
+        return component;
+      }
+      if (component.children) {
+        const found = this.findAndRemoveItem(component.children, itemId);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Remove an item from components array
+   */
+  private static removeItem(
+    components: FormComponentData[],
+    itemId: string
+  ): FormComponentData[] {
+    return components.filter(component => {
+      if (component.id === itemId) {
+        return false;
+      }
+      if (component.children) {
+        component.children = this.removeItem(component.children, itemId);
+      }
+      return true;
+    });
+  }
+
+  /**
    * Crystal clear: Insert component before target
    */
   private static insertBefore(
@@ -135,24 +203,38 @@ export class DragDropService {
     newComponent: FormComponentData,
     side: 'left' | 'right'
   ): FormComponentData[] {
-    return components.map(component => {
-      if (component.id === targetId) {
+    const result = [...components];
+    
+    for (let i = 0; i < result.length; i++) {
+      if (result[i].id === targetId) {
         // Create new horizontal layout
         const horizontalLayout: FormComponentData = {
           id: `row_${Date.now()}`,
           type: 'horizontal_layout',
           label: 'Row Layout',
           fieldId: `row_${Date.now()}`,
+          required: false,
           children: side === 'left' 
-            ? [newComponent, component] 
-            : [component, newComponent]
+            ? [newComponent, result[i]] 
+            : [result[i], newComponent]
         };
         
-        return horizontalLayout;
+        // Replace the target component with the new layout
+        result[i] = horizontalLayout;
+        return result;
       }
       
-      return component;
-    });
+      // Check nested children for horizontal layouts
+      if (result[i].children) {
+        const updatedChildren = this.insertHorizontal(result[i].children!, targetId, newComponent, side);
+        if (updatedChildren !== result[i].children) {
+          result[i] = { ...result[i], children: updatedChildren };
+          return result;
+        }
+      }
+    }
+    
+    return result;
   }
 
   /**

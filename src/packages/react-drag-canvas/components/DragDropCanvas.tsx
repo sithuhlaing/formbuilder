@@ -6,7 +6,6 @@
 import React from 'react';
 import { useDrop } from 'react-dnd';
 import { SmartDropZone } from './SmartDropZone';
-import { HorizontalLayout } from './HorizontalLayout';
 import { RowLayout } from './RowLayout';
 import { BetweenElementsDropZone } from './BetweenElementsDropZone';
 import type { DragDropCanvasProps, DragItem } from '../types';
@@ -43,14 +42,17 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
 
   const [{ isOver }, drop] = useDrop({
     accept: ['new-item'],
-    drop: (dragItem: DragItem) => {
+    drop: (dragItem: DragItem, monitor) => {
+      // Only handle drops that haven't been handled by child components
+      if (monitor.didDrop()) return;
+      
       if (dragItem.type === 'new-item' && dragItem.itemType && onItemAdd) {
         // Add to end of canvas when dropped on empty space
         onItemAdd(dragItem.itemType, { type: 'center' });
       }
     },
     collect: (monitor) => ({
-      isOver: monitor.isOver(),
+      isOver: monitor.isOver({ shallow: true }),
     }),
   });
 

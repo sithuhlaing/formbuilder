@@ -87,7 +87,7 @@ export class DragDropLogic {
     }
 
     // Remove source component
-    let updatedComponents = this.removeComponent(components, sourceId);
+    const updatedComponents = this.removeComponent(components, sourceId);
 
     // Insert at new position
     switch (position.type) {

@@ -32,7 +32,7 @@ export interface ValidationRule {
 }
 
 export interface ValidationResult {
-  isValid: boolean;
+  valid: boolean;
   message?: string;
   errors?: string[];
 }
@@ -46,13 +46,13 @@ export interface ConditionalRule {
 
 // ALIGNED WITH DOCUMENTATION - FormComponentData interface
 export interface FormComponentData {
-  helpText: undefined;
   // Core properties - REQUIRED
   id: string;
   type: ComponentType;
   fieldId: string;                    // Unique field identifier for data mapping
   label: string;
   required: boolean;
+  helpText?: string;
   
   // Optional core properties
   placeholder?: string;

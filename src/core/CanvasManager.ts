@@ -268,6 +268,25 @@ export class CanvasManager {
     });
   }
 
+  /**
+   * Handle existing item reordering with horizontal layout creation
+   */
+  onExistingItemDrop(draggedItemId: string, targetId: string, position: 'left' | 'right' | 'before' | 'after' | 'center'): void {
+    if (!this.config.enableDragDrop) return;
+
+    const updatedComponents = DragDropService.handleExistingItemDrop(
+      this.state.components,
+      draggedItemId,
+      targetId,
+      position
+    );
+
+    this.updateState({ 
+      components: updatedComponents,
+      isDragging: false 
+    });
+  }
+
   // ============================================================================
   // CROSS-DOMAIN ADAPTATIONS
   // ============================================================================
@@ -371,10 +390,11 @@ export class CanvasManager {
   }
 
   /**
-   * Validate canvas state
+   * Validate canvas state and form components
    */
-  validate(): { isValid: boolean; errors: string[] } {
+  validate(): { isValid: boolean; errors: string[]; validationResults?: any[] } {
     const errors: string[] = [];
+    const validationResults: any[] = [];
     
     // Check for duplicate IDs
     const ids = this.state.components.map(c => c.id);
@@ -388,9 +408,24 @@ export class CanvasManager {
       errors.push('Form title is required');
     }
 
+    // Validate individual components using ValidationEngine
+    try {
+      const { ValidationEngine } = require('./ValidationEngine');
+      const componentValidation = ValidationEngine.validateForm(this.state.components, {});
+      
+      if (!componentValidation.isValid) {
+        validationResults.push(...componentValidation.results);
+        errors.push('Form contains validation errors');
+      }
+    } catch (error) {
+      // ValidationEngine might not be available in all contexts
+      console.warn('ValidationEngine not available for canvas validation:', error);
+    }
+
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
+      validationResults: validationResults.length > 0 ? validationResults : undefined
     };
   }
 }

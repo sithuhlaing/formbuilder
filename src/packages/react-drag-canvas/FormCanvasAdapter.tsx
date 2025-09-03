@@ -41,7 +41,7 @@ export const FormCanvas: React.FC<FormCanvasProps> = ({
     })),
   }));
 
-  // Create renderer using abstraction layer
+  // Create renderer using abstraction layer with validation support
   const renderer = React.useMemo(() => {
     if (useCspSafeRenderer) {
       // Use CSP-safe renderer for better security and PWA compliance
@@ -83,6 +83,7 @@ export const FormCanvas: React.FC<FormCanvasProps> = ({
       renderItem={renderFormComponent}
       onItemMove={onMove}
       onLayoutCreate={(itemType, targetId, position) => {
+        // Handle both new items and existing items for horizontal layout creation
         onDrop(itemType as ComponentType, targetId, position);
       }}
       onItemDelete={onDelete}

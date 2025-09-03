@@ -13,7 +13,7 @@ export interface FormPage {
   id: string;
   title: string;
   components: FormComponentData[];
-  layout: any;
+  layout: Record<string, unknown>;
   description?: string;
   order: number;
 }
@@ -27,7 +27,7 @@ export interface Template {
   type?: FormTemplateType;
   createdDate?: string;
   modifiedDate?: string;
-  jsonSchema?: any;
+  jsonSchema?: Record<string, unknown>;
 }
 
 export interface FormTemplate {
@@ -38,6 +38,6 @@ export interface FormTemplate {
   pages: FormPage[];
   createdDate: string;
   modifiedDate: string;
-  jsonSchema: any;
+  jsonSchema: Record<string, unknown>;
   currentView?: 'desktop' | 'tablet' | 'mobile';
 }

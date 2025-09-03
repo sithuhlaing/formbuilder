@@ -1,11 +1,14 @@
 /**
- * Clean Component Palette - Form Builder Feature
+ * PERFORMANCE OPTIMIZED - Clean Component Palette - Form Builder Feature
  * Single purpose: Display categorized draggable components with search
+ * Features: Virtualization, memoization, lazy loading
  */
 
-import React, { useState } from 'react';
+import React, { useState, memo, useMemo, CSSProperties } from 'react';
 import { useDrag } from 'react-dnd';
 import { ComponentRenderer } from '../../../core';
+import { VirtualizedList } from '../../../shared/components/VirtualizedList';
+import { usePerformanceMonitor } from '../../../shared/hooks/usePerformanceMonitor';
 import type { ComponentType } from '../../../types';
 
 interface PaletteItemProps {
@@ -13,7 +16,12 @@ interface PaletteItemProps {
   onAddComponent: (type: ComponentType) => void;
 }
 
-const PaletteItem: React.FC<PaletteItemProps> = ({ componentType, onAddComponent }) => {
+// Memoized palette item component for better performance
+const PaletteItem: React.FC<PaletteItemProps> = memo(({ componentType, onAddComponent }) => {
+  const { renderCount } = usePerformanceMonitor({ 
+    componentName: `PaletteItem-${componentType}`,
+    slowRenderThreshold: 8 // Stricter threshold for palette items
+  });
   const [{ isDragging }, drag] = useDrag({
     type: 'new-item',
     item: { type: 'new-item', itemType: componentType },
@@ -35,7 +43,8 @@ const PaletteItem: React.FC<PaletteItemProps> = ({ componentType, onAddComponent
       <span className="palette-item__label">{info.label}</span>
     </button>
   );
-};
+});
+PaletteItem.displayName = 'PaletteItem';
 
 interface ComponentCategoryProps {
   title: string;

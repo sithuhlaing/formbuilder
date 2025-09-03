@@ -30,6 +30,12 @@ const App: React.FC = () => {
     message: string;
   }>({ isOpen: false, title: '', message: '' });
   
+  const [errorModal, setErrorModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+  }>({ isOpen: false, title: '', message: '' });
+  
   const {
     formState,
     currentComponents,
@@ -56,32 +62,58 @@ const App: React.FC = () => {
 
   // Actions for form builder
   const handleSave = () => {
-    if (formState.templateId) {
-      // Update existing template
-      const updated = templateService.updateTemplate(formState.templateId, {
-        name: formState.templateName,
-        pages: formState.pages
-      });
-      console.log('Template updated:', updated);
-      setSuccessModal({
+    try {
+      if (formState.templateId) {
+        // Update existing template - convert pages to template format
+        const templatePages = formState.pages.map((page, index) => ({
+          ...page,
+          layout: page.layoutConfig || {},
+          order: index
+        }));
+        
+        const updated = templateService.updateTemplate(formState.templateId, {
+          name: formState.templateName,
+          pages: templatePages
+        });
+        
+        if (updated) {
+          console.log('Template updated:', updated);
+          setSuccessModal({
+            isOpen: true,
+            title: 'Template Updated',
+            message: `Template "${formState.templateName}" updated successfully!`
+          });
+        } else {
+          throw new Error('Failed to update template');
+        }
+      } else {
+        // Create new template - convert pages to template format
+        const templatePages = formState.pages.map((page, index) => ({
+          ...page,
+          layout: page.layoutConfig || {},
+          order: index
+        }));
+        
+        const saved = templateService.saveTemplate({
+          name: formState.templateName,
+          type: 'other',
+          fields: [],
+          pages: templatePages,
+          jsonSchema: {}
+        });
+        console.log('Template saved:', saved);
+        setSuccessModal({
+          isOpen: true,
+          title: 'Template Saved',
+          message: `Template "${formState.templateName}" saved successfully!`
+        });
+      }
+    } catch (error) {
+      console.error('Template save failed:', error);
+      setErrorModal({
         isOpen: true,
-        title: 'Template Updated',
-        message: `Template "${formState.templateName}" updated successfully!`
-      });
-    } else {
-      // Create new template
-      const saved = templateService.saveTemplate({
-        name: formState.templateName,
-        type: 'other',
-        fields: [],
-        pages: formState.pages,
-        jsonSchema: {}
-      });
-      console.log('Template saved:', saved);
-      setSuccessModal({
-        isOpen: true,
-        title: 'Template Saved',
-        message: `Template "${formState.templateName}" saved successfully!`
+        title: 'Save Failed',
+        message: 'Failed to save template. Please try again.'
       });
     }
   };
@@ -341,6 +373,19 @@ const App: React.FC = () => {
           <div className="text-center py-4">
             <div className="text-green-600 text-4xl mb-4">✅</div>
             <p className="text-gray-700">{successModal.message}</p>
+          </div>
+        </Modal>
+
+        {/* Error Modal */}
+        <Modal
+          isOpen={errorModal.isOpen}
+          onClose={() => setErrorModal({ isOpen: false, title: '', message: '' })}
+          title={errorModal.title}
+          size="small"
+        >
+          <div className="text-center py-4">
+            <div className="text-red-600 text-4xl mb-4">❌</div>
+            <p className="text-gray-700">{errorModal.message}</p>
           </div>
         </Modal>
       </div>

@@ -7,7 +7,6 @@ import React from 'react';
 import { RichTextEditor } from '../../../shared/components/RichTextEditor';
 import { SignatureCanvas } from '../../../shared/components/SignatureCanvas';
 import { ValidatedFormField } from '../../../shared/components/ValidatedFormField';
-import { FieldValidationDisplay } from '../../../shared/components/ValidationErrorDisplay';
 import type { CanvasItem, RenderContext } from '../types';
 import type { FormComponentData } from '../../../types/component';
 
@@ -18,41 +17,93 @@ interface CSPSafeRendererProps {
   readOnly?: boolean;
 }
 
-// PWA-safe form component renderers
+// PWA-safe form component renderers with validation support
 const FormComponents = {
-  text_input: ({ component, readOnly }: { component: FormComponentData; readOnly?: boolean }) => (
-    <div className="form-field">
-      <label className="form-field__label">
-        {component.label}
-        {component.required && <span className="form-field__required">*</span>}
-      </label>
-      <input
-        type="text"
-        className="form-field__input"
-        placeholder={component.placeholder || 'Enter text'}
-        readOnly={readOnly}
-        disabled={readOnly}
-        aria-label={component.label}
-      />
-    </div>
-  ),
+  text_input: ({ component, readOnly, showValidation, value, onChange, onValidation }: { 
+    component: FormComponentData; 
+    readOnly?: boolean;
+    showValidation?: boolean;
+    value?: any;
+    onChange?: (value: any) => void;
+    onValidation?: (fieldId: string, result: any) => void;
+  }) => {
+    const baseComponent = (
+      <div className="form-field">
+        <label className="form-field__label">
+          {component.label}
+          {component.required && <span className="form-field__required">*</span>}
+        </label>
+        <input
+          type="text"
+          className="form-field__input"
+          placeholder={component.placeholder || 'Enter text'}
+          readOnly={readOnly}
+          disabled={readOnly}
+          aria-label={component.label}
+          value={value || ''}
+          onChange={(e) => onChange?.(e.target.value)}
+        />
+      </div>
+    );
 
-  email_input: ({ component, readOnly }: { component: FormComponentData; readOnly?: boolean }) => (
-    <div className="form-field">
-      <label className="form-field__label">
-        {component.label}
-        {component.required && <span className="form-field__required">*</span>}
-      </label>
-      <input
-        type="email"
-        className="form-field__input"
-        placeholder={component.placeholder || 'Enter email'}
-        readOnly={readOnly}
-        disabled={readOnly}
-        aria-label={component.label}
-      />
-    </div>
-  ),
+    if (showValidation && !readOnly) {
+      return (
+        <ValidatedFormField
+          component={component}
+          value={value}
+          onChange={onChange}
+          onValidation={onValidation}
+        >
+          {baseComponent}
+        </ValidatedFormField>
+      );
+    }
+
+    return baseComponent;
+  },
+
+  email_input: ({ component, readOnly, showValidation, value, onChange, onValidation }: { 
+    component: FormComponentData; 
+    readOnly?: boolean;
+    showValidation?: boolean;
+    value?: any;
+    onChange?: (value: any) => void;
+    onValidation?: (fieldId: string, result: any) => void;
+  }) => {
+    const baseComponent = (
+      <div className="form-field">
+        <label className="form-field__label">
+          {component.label}
+          {component.required && <span className="form-field__required">*</span>}
+        </label>
+        <input
+          type="email"
+          className="form-field__input"
+          placeholder={component.placeholder || 'Enter email'}
+          readOnly={readOnly}
+          disabled={readOnly}
+          aria-label={component.label}
+          value={value || ''}
+          onChange={(e) => onChange?.(e.target.value)}
+        />
+      </div>
+    );
+
+    if (showValidation && !readOnly) {
+      return (
+        <ValidatedFormField
+          component={component}
+          value={value}
+          onChange={onChange}
+          onValidation={onValidation}
+        >
+          {baseComponent}
+        </ValidatedFormField>
+      );
+    }
+
+    return baseComponent;
+  },
 
   password_input: ({ component, readOnly }: { component: FormComponentData; readOnly?: boolean }) => (
     <div className="form-field">
@@ -389,25 +440,76 @@ const FormComponents = {
 };
 
 // Main CSP-safe renderer component
-export const CSPSafeComponentRenderer: React.FC<CSPSafeRendererProps> = ({
-  item,
-  readOnly = true
+export const CSPSafeComponentRenderer: React.FC<CSPSafeRendererProps> = ({ 
+  item, 
+  context, 
+  readOnly = false 
 }) => {
   const component = item.data as FormComponentData;
+  
+  // Get the appropriate renderer
   const ComponentRenderer = FormComponents[component.type as keyof typeof FormComponents];
-
+  
   if (!ComponentRenderer) {
     return (
-      <div className="form-field form-field--error">
-        <div className="form-field__error">
-          Unsupported component type: {component.type}
-        </div>
+      <div className="form-field form-field--unknown">
+        <span className="form-field__error">
+          Unknown component type: {component.type}
+        </span>
       </div>
     );
   }
 
-  // Render component directly without extra wrapper
-  return <ComponentRenderer component={component} readOnly={readOnly} />;
+  // Enable validation in preview mode for form fields
+  const showValidation = context.mode === 'preview' && !readOnly;
+  
+  const renderedComponent = ComponentRenderer({ 
+    component, 
+    readOnly,
+    showValidation,
+    value: undefined, // Will be managed by form state
+    onChange: undefined, // Will be managed by form state
+    onValidation: undefined // Will be managed by form state
+  });
+
+  // In builder mode, wrap with selection and editing controls
+  if (context.mode === 'builder') {
+    return (
+      <div 
+        className={`canvas-component ${context.selectedId === component.id ? 'canvas-component--selected' : ''}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          context.onSelect?.(component.id);
+        }}
+        data-component-id={component.id}
+        data-testid={`component-${component.type}`}
+      >
+        {/* Component content */}
+        <div className="canvas-component__content">
+          {renderedComponent}
+        </div>
+        
+        {/* Builder controls */}
+        {context.selectedId === component.id && (
+          <div className="canvas-component__controls">
+            <button
+              className="canvas-component__delete"
+              onClick={(e) => {
+                e.stopPropagation();
+                context.onDelete?.(component.id);
+              }}
+              aria-label="Delete component"
+            >
+              ×
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Preview mode - just return the component
+  return <div className="canvas-component">{renderedComponent}</div>;
 };
 
 // PWA-optimized form canvas adapter using CSP-safe rendering

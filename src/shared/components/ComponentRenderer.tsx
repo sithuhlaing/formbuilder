@@ -1,9 +1,9 @@
 /**
- * Smart Component Renderer
- * Uses reusable components to render form components
+ * PERFORMANCE OPTIMIZED - Smart Component Renderer
+ * Uses reusable components with memoization and lazy loading
  */
 
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { FormField } from './FormField';
 import { 
   TextInput, 
@@ -33,12 +33,23 @@ interface ComponentRendererProps {
   isSelected?: boolean;
 }
 
-export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ 
+// Memoized component renderer for performance
+const ComponentRendererImpl: React.FC<ComponentRendererProps> = ({ 
   component, 
   readOnly = true,
   showControls = false,
   isSelected = false
 }) => {
+  // Memoize component key properties to prevent unnecessary re-renders
+  const componentKey = useMemo(() => ({
+    id: component.id,
+    type: component.type,
+    label: component.label,
+    required: component.required,
+    readOnly,
+    showControls,
+    isSelected
+  }), [component.id, component.type, component.label, component.required, readOnly, showControls, isSelected]);
   // Handle components that don't need FormField wrapper
   const renderWithoutWrapper = () => {
     switch (component.type) {
@@ -247,3 +258,22 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
     </FormField>
   );
 };
+
+// Memoized export with custom comparison function
+export const ComponentRenderer = memo(ComponentRendererImpl, (prevProps, nextProps) => {
+  // Custom comparison for better performance
+  return (
+    prevProps.component.id === nextProps.component.id &&
+    prevProps.component.type === nextProps.component.type &&
+    prevProps.component.label === nextProps.component.label &&
+    prevProps.component.required === nextProps.component.required &&
+    prevProps.readOnly === nextProps.readOnly &&
+    prevProps.showControls === nextProps.showControls &&
+    prevProps.isSelected === nextProps.isSelected &&
+    // Deep compare options if present
+    JSON.stringify(prevProps.component.options) === JSON.stringify(nextProps.component.options) &&
+    // Compare other frequently changing props
+    prevProps.component.placeholder === nextProps.component.placeholder &&
+    prevProps.component.defaultValue === nextProps.component.defaultValue
+  );
+});

@@ -1,0 +1,166 @@
+name: Test Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run coverage analysis daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests with coverage
+      run: npm run test:ci
+      
+    - name: Generate coverage badge
+      uses: tj-actions/coverage-badge-js@v2
+      with:
+        output: coverage/coverage.svg
+        
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        
+    - name: Comment PR with coverage
+      if: github.event_name == 'pull_request'
+      uses: romeovs/lcov-reporter-action@v0.3.1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        lcov-file: ./coverage/lcov.info
+        delete-old-comments: true
+        
+    - name: Archive coverage results
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: |
+          coverage/
+          !coverage/**/*.tmp
+        retention-days: 30
+        
+    - name: Check coverage thresholds
+      run: |
+        echo "Checking coverage thresholds..."
+        node -e "
+          const fs = require('fs');
+          const coverage = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+          const thresholds = {
+            statements: 80,
+            branches: 70, 
+            functions: 75,
+            lines: 80
+          };
+          
+          let passed = true;
+          for (const [metric, threshold] of Object.entries(thresholds)) {
+            const actual = coverage.total[metric].pct;
+            console.log(\`\${metric}: \${actual}% (threshold: \${threshold}%)\`);
+            if (actual < threshold) {
+              console.error(\`❌ \${metric} coverage \${actual}% is below threshold \${threshold}%\`);
+              passed = false;
+            } else {
+              console.log(\`✅ \${metric} coverage \${actual}% meets threshold \${threshold}%\`);
+            }
+          }
+          
+          if (!passed) {
+            process.exit(1);
+          } else {
+            console.log('🎉 All coverage thresholds met!');
+          }
+        "
+        
+  performance-coverage:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run performance optimization tests with coverage
+      run: npm run test:coverage -- performance-optimizations.test.tsx
+      
+    - name: Analyze performance component coverage
+      run: |
+        echo "Performance Optimization Component Coverage Analysis"
+        echo "=================================================="
+        node -e "
+          const fs = require('fs');
+          const coverage = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+          
+          const performanceFiles = [
+            'src/shared/components/LazyFormRenderer.tsx',
+            'src/shared/components/VirtualizedList.tsx', 
+            'src/shared/components/PerformanceTestSuite.tsx',
+            'src/shared/hooks/usePerformanceMonitor.ts'
+          ];
+          
+          console.log('Performance-critical component coverage:');
+          console.log('========================================');
+          
+          let totalStatements = 0;
+          let coveredStatements = 0;
+          
+          for (const file of performanceFiles) {
+            if (coverage[file]) {
+              const fileCov = coverage[file];
+              console.log(\`\${file}:\`);
+              console.log(\`  Statements: \${fileCov.statements.pct}%\`);
+              console.log(\`  Branches: \${fileCov.branches.pct}%\`);
+              console.log(\`  Functions: \${fileCov.functions.pct}%\`);
+              console.log(\`  Lines: \${fileCov.lines.pct}%\`);
+              console.log('');
+              
+              totalStatements += fileCov.statements.total;
+              coveredStatements += fileCov.statements.covered;
+            }
+          }
+          
+          const overallCoverage = (coveredStatements / totalStatements * 100).toFixed(2);
+          console.log(\`Overall performance component coverage: \${overallCoverage}%\`);
+          
+          if (overallCoverage >= 85) {
+            console.log('🚀 Excellent performance component coverage!');
+          } else if (overallCoverage >= 70) {
+            console.log('✅ Good performance component coverage!');
+          } else {
+            console.log('⚠️ Performance component coverage could be improved.');
+          }
+        "
+        
+    - name: Upload performance coverage artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-coverage-report
+        path: coverage/
+        retention-days: 7

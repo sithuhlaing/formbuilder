@@ -5,7 +5,7 @@
 export interface CanvasItem {
   id: string;
   type: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   children?: CanvasItem[];
 }
 
@@ -65,6 +65,8 @@ export interface CanvasUI {
 }
 
 // Combined interface for backward compatibility
+// Composition interface combining all canvas capabilities
+ 
 export interface DragDropCanvasProps extends CanvasCore, CanvasDragDrop, CanvasUI {}
 
 // ============================================================================

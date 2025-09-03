@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import type { ValidationResult } from '../../core/ValidationEngine';
+import type { ValidationResult } from '../../types';
 
 interface ValidationErrorDisplayProps {
   errors?: string[];

@@ -8,49 +8,71 @@ import type { FormTemplate } from '../../../types';
 // Remove local FormTemplate interface - use the global one
 
 class TemplateService {
-  private readonly storageKey = 'form-templates';
+  private readonly storageKey = 'formTemplates';
 
   getAllTemplates(): FormTemplate[] {
     try {
       const stored = localStorage.getItem(this.storageKey);
-      return stored ? JSON.parse(stored) : [];
+      if (!stored) return [];
+      
+      const parsed = JSON.parse(stored);
+      // Ensure we always return an array
+      if (!Array.isArray(parsed)) {
+        console.warn('Invalid templates data in localStorage, resetting to empty array');
+        localStorage.removeItem(this.storageKey);
+        return [];
+      }
+      
+      return parsed;
     } catch (error) {
       console.error('Failed to load templates:', error);
+      // Clear corrupted data
+      localStorage.removeItem(this.storageKey);
       return [];
     }
   }
 
   saveTemplate(template: Omit<FormTemplate, 'templateId' | 'createdDate' | 'modifiedDate'>): FormTemplate {
-    const templates = this.getAllTemplates();
-    const newTemplate: FormTemplate = {
-      ...template,
-      templateId: `template_${Date.now()}`,
-      type: template.type || 'other',
-      fields: template.fields || [],
-      createdDate: new Date().toISOString(),
-      modifiedDate: new Date().toISOString(),
-      jsonSchema: template.jsonSchema || {}
-    };
-    
-    templates.push(newTemplate);
-    localStorage.setItem(this.storageKey, JSON.stringify(templates));
-    return newTemplate;
+    try {
+      const templates = this.getAllTemplates();
+      const newTemplate: FormTemplate = {
+        ...template,
+        templateId: `template_${Date.now()}`,
+        type: template.type || 'other',
+        fields: template.fields || [],
+        createdDate: new Date().toISOString(),
+        modifiedDate: new Date().toISOString(),
+        jsonSchema: template.jsonSchema || {}
+      };
+      
+      templates.push(newTemplate);
+      localStorage.setItem(this.storageKey, JSON.stringify(templates));
+      return newTemplate;
+    } catch (error) {
+      console.error('Failed to save template:', error);
+      throw new Error('Failed to save template to localStorage');
+    }
   }
 
   updateTemplate(templateId: string, updates: Partial<Pick<FormTemplate, 'name' | 'pages'>>): FormTemplate | null {
-    const templates = this.getAllTemplates();
-    const index = templates.findIndex(t => t.templateId === templateId);
-    
-    if (index === -1) return null;
-    
-    templates[index] = {
-      ...templates[index],
-      ...updates,
-      modifiedDate: new Date().toISOString()
-    };
-    
-    localStorage.setItem(this.storageKey, JSON.stringify(templates));
-    return templates[index];
+    try {
+      const templates = this.getAllTemplates();
+      const index = templates.findIndex(t => t.templateId === templateId);
+      
+      if (index === -1) return null;
+      
+      templates[index] = {
+        ...templates[index],
+        ...updates,
+        modifiedDate: new Date().toISOString()
+      };
+      
+      localStorage.setItem(this.storageKey, JSON.stringify(templates));
+      return templates[index];
+    } catch (error) {
+      console.error('Failed to update template:', error);
+      return null;
+    }
   }
 
   deleteTemplate(templateId: string): boolean {

@@ -52,32 +52,61 @@ export const useFormBuilder = () => {
       saveToHistory(currentState); // Save current state before changing
       return {
         ...currentState,
-        ...newState
+        pages: newState.pages,
+        currentPageId: newState.currentPageId,
+        selectedComponentId: newState.selectedComponentId
       };
     });
   }, [saveToHistory]);
 
   // Clean operations using single sources of truth
   const addComponent = useCallback((componentType: ComponentType) => {
-    executeAction({
-      type: 'ADD_COMPONENT',
-      payload: { componentType, pageId: formState.currentPageId }
+    setFormState(currentState => {
+      const newState = FormStateEngine.executeAction(currentState, {
+        type: 'ADD_COMPONENT',
+        payload: { componentType, pageId: currentState.currentPageId }
+      });
+      saveToHistory(currentState); // Save current state before changing
+      return {
+        ...currentState,
+        pages: newState.pages,
+        currentPageId: newState.currentPageId,
+        selectedComponentId: newState.selectedComponentId
+      };
     });
-  }, [executeAction, formState.currentPageId]);
+  }, [saveToHistory]);
 
   const updateComponent = useCallback((componentId: string, updates: Partial<FormComponentData>) => {
-    executeAction({
-      type: 'UPDATE_COMPONENT',
-      payload: { componentId, updates }
+    setFormState(currentState => {
+      const newState = FormStateEngine.executeAction(currentState, {
+        type: 'UPDATE_COMPONENT',
+        payload: { componentId, updates }
+      });
+      saveToHistory(currentState); // Save current state before changing
+      return {
+        ...currentState,
+        pages: newState.pages,
+        currentPageId: newState.currentPageId,
+        selectedComponentId: newState.selectedComponentId
+      };
     });
-  }, [executeAction]);
+  }, [saveToHistory]);
 
   const deleteComponent = useCallback((componentId: string) => {
-    executeAction({
-      type: 'DELETE_COMPONENT',
-      payload: { componentId }
+    setFormState(currentState => {
+      const newState = FormStateEngine.executeAction(currentState, {
+        type: 'DELETE_COMPONENT',
+        payload: { componentId }
+      });
+      saveToHistory(currentState); // Save current state before changing
+      return {
+        ...currentState,
+        pages: newState.pages,
+        currentPageId: newState.currentPageId,
+        selectedComponentId: newState.selectedComponentId
+      };
     });
-  }, [executeAction]);
+  }, [saveToHistory]);
 
   const selectComponent = useCallback((componentId: string | null) => {
     setFormState(prev => ({ ...prev, selectedComponentId: componentId }));
@@ -127,21 +156,15 @@ export const useFormBuilder = () => {
       return;
     }
     
-    // Handle different drop positions for comprehensive drag-drop
+    // Handle horizontal layout creation
     if (position === 'left' || position === 'right') {
-      // Create horizontal layout with the component
       insertHorizontalToComponent(componentType, targetId, position);
-    } else if (position === 'inside') {
-      // Add to container (row layout)
-      insertComponentWithPosition(componentType, targetId, 'inside');
-    } else {
-      // Regular before/after positioning
-      executeAction({
-        type: 'DROP_COMPONENT',
-        payload: { componentType, targetId, position }
-      });
+      return;
     }
-  }, [executeAction, addComponent, insertHorizontalToComponent, insertComponentWithPosition, insertBetweenComponents]);
+    
+    // Handle other positioning
+    insertComponentWithPosition(componentType, targetId, position);
+  }, [addComponent, insertBetweenComponents, insertHorizontalToComponent, insertComponentWithPosition]);
 
   const moveComponent = useCallback((dragIndex: number, hoverIndex: number) => {
     executeAction({
