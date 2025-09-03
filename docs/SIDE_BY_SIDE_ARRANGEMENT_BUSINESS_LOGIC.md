@@ -146,7 +146,129 @@ interface BlockedDropZones {
 }
 ```
 
-### Rule 4: Initial Side-by-Side Creation
+### Rule 4: Dynamic Layout Transformation Rules
+
+#### Rule 4A: Empty Canvas Behavior
+**State**: Empty Canvas (No components)
+**Available Actions**: 
+- Drop component anywhere → Creates single element in Column Layout
+- Only top/bottom drop zones active (vertical arrangement)
+
+```typescript
+// Initial State: [Empty Canvas]
+// Action: Drop Component A anywhere
+// Result: [Canvas: Component A] (Column Layout mode)
+```
+
+#### Rule 4B: Two-Element Choice Point
+**State**: Two elements can be arranged vertically OR horizontally
+
+**Scenario 1: Vertical Arrangement (Top/Bottom Drop)**
+```typescript
+// Before: [Canvas: Component A]  
+// Action: Drop Component B above/below Component A
+// Result: [Canvas: Component A, Component B] (Column Layout maintained)
+```
+
+**Scenario 2: Horizontal Arrangement (Left/Right Drop)**
+```typescript
+// Before: [Canvas: Component A]
+// Action: Drop Component B left/right of Component A  
+// Result: [Canvas: Row Container [Component A, Component B]] (Row Layout created)
+```
+
+#### Rule 4C: Three-Element Layout Transformation
+
+**Path 1: Pure Column Layout (3 Vertical Elements)**
+```typescript
+// State: [Canvas: Component A, Component B, Component C]
+// All components: Top/Bottom drop zones only
+// Layout: Pure vertical arrangement
+```
+
+**Path 2: Mixed Layout (1 Column + 1 Row)**  
+```typescript
+// State: [Canvas: Component A, Row Container [Component B, Component C]]
+// Component A: Top/Bottom zones (as standalone)
+// Row Container: Top/Bottom zones (as single unit)
+// Component B,C: Left/Right zones (within row)
+```
+
+**Path 3: Single Row Layout (3 Horizontal Elements)**
+```typescript
+// State: [Canvas: Row Container [Component A, Component B, Component C]]
+// Row Container: Top/Bottom zones (as single unit)
+// All components: Left/Right zones (within row)
+```
+
+### Rule 5: Element Extraction and Container Dissolution
+
+#### Rule 5A: Extract from Row (3→2+1 Transformation)
+**Scenario**: Remove one element from 3-element row layout
+
+```typescript
+// Before: [Canvas: Row Container [A, B, C]]
+// Action: Drag Component C out (top/bottom drop)
+// After: [Canvas: Component C, Row Container [A, B]] (Mixed layout)
+```
+
+**Implementation Logic**:
+1. Detect component being dragged out of row container
+2. Remove component from row container children
+3. Preserve row container with remaining 2 components
+4. Insert extracted component at canvas level (column position)
+5. Result: Mixed layout (Column + Row hybrid)
+
+#### Rule 5B: Complete Row Dissolution (2→2 Transformation)
+**Scenario**: Remove element from 2-element row layout
+
+```typescript
+// Before: [Canvas: Row Container [A, B]]
+// Action: Drag Component B out (top/bottom drop)  
+// After: [Canvas: Component A, Component B] (Pure column layout)
+```
+
+**Implementation Logic**:
+1. Detect row container reduced to single element
+2. Extract remaining component from dissolving container
+3. Delete empty row container
+4. Convert both components to column layout elements
+5. Result: Pure column layout restored
+
+#### Rule 5C: Progressive Row Expansion (2→3→4 Growth)
+**Scenario**: Add elements to existing row layout
+
+```typescript
+// Before: [Canvas: Row Container [A, B]]
+// Action: Drag Component C to left/right of A or B
+// After: [Canvas: Row Container [A, B, C]] (Expanded row)
+
+// Before: [Canvas: Row Container [A, B, C]]  
+// Action: Drag Component D to left/right position
+// After: [Canvas: Row Container [A, B, C, D]] (Maximum capacity)
+```
+
+### Rule 6: Layout Mode Detection and Enforcement
+
+#### Column Layout Mode (Default/Vertical)
+- **Activation**: Default state, or when no horizontal arrangements exist
+- **Available Drop Zones**: Top, Bottom (vertical positioning)
+- **Element Behavior**: All elements are standalone or row containers
+- **Visual Indicators**: Horizontal drop lines above/below elements
+
+#### Row Layout Mode (Horizontal)  
+- **Activation**: When elements are arranged left-to-right within container
+- **Available Drop Zones**: Left, Right (horizontal positioning within row)
+- **Element Behavior**: Components are children of horizontal layout container
+- **Visual Indicators**: Vertical drop lines left/right of components
+
+#### Mixed Layout Mode (Hybrid)
+- **Activation**: Combination of standalone elements and row containers
+- **Available Drop Zones**: Context-dependent (column zones for canvas, row zones within containers)
+- **Element Behavior**: Mixed standalone and containerized elements
+- **Visual Indicators**: Both horizontal and vertical drop lines based on context
+
+### Rule 7: Initial Side-by-Side Creation
 **Scenario**: Dragging component to the left/right of an existing standalone component
 
 ```typescript
@@ -382,6 +504,151 @@ interface HorizontalLayoutComponent extends FormComponentData {
 }
 ```
 
+## Dynamic Layout Transformation Flow
+
+### Complete Transformation State Machine
+
+The system follows a sophisticated state machine that automatically manages layout transformations based on element count, positioning, and user actions:
+
+```mermaid
+stateDiagram-v2
+    [*] --> EmptyCanvas
+    
+    EmptyCanvas --> SingleElement : Drop Component
+    
+    SingleElement --> TwoVertical : Drop Top/Bottom
+    SingleElement --> TwoHorizontal : Drop Left/Right
+    
+    TwoVertical --> ThreeVertical : Drop Top/Bottom
+    TwoVertical --> MixedLayout : Drop Left/Right on element
+    
+    TwoHorizontal --> ThreeHorizontal : Drop Left/Right
+    TwoHorizontal --> MixedLayout : Drop Top/Bottom outside row
+    TwoHorizontal --> TwoVertical : Extract element (dissolution)
+    
+    ThreeVertical --> FourVertical : Drop Top/Bottom
+    ThreeVertical --> MixedLayout : Drop Left/Right on element
+    
+    ThreeHorizontal --> FourHorizontal : Drop Left/Right (max capacity)
+    ThreeHorizontal --> MixedLayout : Extract element
+    ThreeHorizontal --> TwoVertical : Extract 2 elements (full dissolution)
+    
+    MixedLayout --> ThreeVertical : Dissolve row container
+    MixedLayout --> ThreeHorizontal : Move standalone to row
+    MixedLayout --> FourMixed : Add more elements
+    
+    FourHorizontal --> MixedLayout : Extract element
+    FourVertical --> MixedLayout : Create horizontal grouping
+```
+
+### Detailed Transformation Scenarios
+
+#### Scenario 1: Progressive Column Building (Default Mode)
+```typescript
+// Step 1: Empty Canvas
+Canvas: []
+Available: Anywhere (creates column layout)
+
+// Step 2: Single Element  
+Canvas: [Component A]
+Available: Top/Bottom of A (vertical expansion)
+
+// Step 3: Two Elements (Vertical)
+Canvas: [Component A, Component B] 
+Available: Top/Bottom of each element
+
+// Step 4: Three Elements (Pure Column)
+Canvas: [Component A, Component B, Component C]
+Available: Top/Bottom of each element (pure vertical mode)
+```
+
+#### Scenario 2: Horizontal Layout Creation and Evolution
+```typescript
+// Step 1: Single Element
+Canvas: [Component A]
+Available: Left/Right (horizontal trigger)
+
+// Step 2: Create Row Container
+// Action: Drop Component B to right of A
+Canvas: [Row Container [Component A, Component B]]
+Available: Left/Right within row, Top/Bottom of container
+
+// Step 3: Expand Row
+// Action: Drop Component C to right of B
+Canvas: [Row Container [Component A, Component B, Component C]]
+Available: Left/Right within row, Top/Bottom of container
+
+// Step 4: Maximum Row Capacity  
+// Action: Drop Component D to left/right position
+Canvas: [Row Container [Component A, Component B, Component C, Component D]]
+Available: Only Top/Bottom of container (row full)
+```
+
+#### Scenario 3: Element Extraction and Container Management
+```typescript
+// Starting State: 3-Element Row
+Canvas: [Row Container [A, B, C]]
+
+// Action: Drag Component C above/below the row container
+// Result: Mixed Layout
+Canvas: [
+  Component C,                    // Extracted element (standalone)
+  Row Container [A, B]           // Remaining 2-element row
+]
+
+// Available Drop Zones:
+// Component C: Top/Bottom (column behavior)
+// Row Container: Top/Bottom (as single unit)
+// Components A, B: Left/Right (within row)
+```
+
+#### Scenario 4: Complete Row Dissolution
+```typescript
+// Starting State: 2-Element Row  
+Canvas: [Row Container [A, B]]
+
+// Action: Drag Component B above/below the row container
+// Result: Complete Dissolution → Pure Column Layout
+Canvas: [Component A, Component B]
+
+// Implementation:
+// 1. Remove Component B from row container
+// 2. Row container now has only Component A (< minimum)
+// 3. Extract Component A from dissolving container
+// 4. Delete empty row container
+// 5. Place both A and B as column layout elements
+```
+
+#### Scenario 5: Mixed Layout Complexity
+```typescript
+// State: Complex Mixed Layout
+Canvas: [
+  Component A,                    // Standalone (column element)
+  Row Container [B, C, D],       // 3-element row
+  Component E,                    // Standalone (column element)  
+  Row Container [F, G]           // 2-element row
+]
+
+// Available Drop Zones by Context:
+// Component A: Top/Bottom (column positioning)
+// Row Container [B,C,D]: Top/Bottom (row unit positioning)
+// Components B,C,D: Left/Right (within-row positioning)
+// Component E: Top/Bottom (column positioning)
+// Row Container [F,G]: Top/Bottom (row unit positioning)
+// Components F,G: Left/Right (within-row positioning)
+
+// Extraction Example:
+// Action: Drag Component C above Component A
+// Result: 
+Canvas: [
+  Component C,                    // Extracted element
+  Component A,                    // Existing standalone
+  Row Container [B, D],          // Row reduced to 2 elements
+  Component E,                    // Unchanged
+  Row Container [F, G]           // Unchanged
+]
+```
+
 ## Drag and Drop Flow
 
 ### Hierarchical Drag and Drop Flow Diagram
@@ -613,6 +880,222 @@ interface ExportBehavior {
   includeLayoutStructure: boolean;  // Include in template schema
   excludeFromDataSchema: boolean;   // Exclude from validation schema
   preserveFieldOrder: boolean;      // Maintain field order in export
+}
+```
+
+## Implementation Architecture for Dynamic Transformations
+
+### Layout Transformation Engine
+
+```typescript
+class DynamicLayoutTransformationEngine {
+  
+  /**
+   * Main transformation controller
+   * Determines which transformation to apply based on current state and action
+   */
+  static executeTransformation(
+    currentState: FormComponentData[],
+    action: LayoutTransformationAction
+  ): LayoutTransformationResult {
+    
+    const detector = new LayoutStateDetector(currentState);
+    const currentLayout = detector.detectLayoutState();
+    
+    switch (action.type) {
+      case 'DROP_VERTICAL':
+        return this.handleVerticalDrop(currentState, action, currentLayout);
+      case 'DROP_HORIZONTAL':
+        return this.handleHorizontalDrop(currentState, action, currentLayout);
+      case 'EXTRACT_ELEMENT':
+        return this.handleElementExtraction(currentState, action, currentLayout);
+      case 'DISSOLVE_CONTAINER':
+        return this.handleContainerDissolution(currentState, action, currentLayout);
+    }
+  }
+  
+  /**
+   * Handle vertical drops (top/bottom positioning)
+   * Creates column layout or positions relative to row containers
+   */
+  static handleVerticalDrop(
+    currentState: FormComponentData[],
+    action: VerticalDropAction,
+    layoutState: LayoutState
+  ): LayoutTransformationResult {
+    
+    if (layoutState.type === 'pure_column') {
+      // Simple column insertion
+      return this.insertInColumn(currentState, action.targetId, action.component, action.position);
+    }
+    
+    if (layoutState.type === 'single_row' || layoutState.type === 'mixed') {
+      // Check if dropping relative to row container
+      const targetContainer = this.findRowContainer(currentState, action.targetId);
+      
+      if (targetContainer && action.extractFrom) {
+        // Extract element from row and place in column
+        return this.extractToColumn(currentState, action);
+      } else {
+        // Regular column insertion
+        return this.insertInColumn(currentState, action.targetId, action.component, action.position);
+      }
+    }
+  }
+  
+  /**
+   * Handle horizontal drops (left/right positioning)  
+   * Creates row containers or expands existing ones
+   */
+  static handleHorizontalDrop(
+    currentState: FormComponentData[],
+    action: HorizontalDropAction,
+    layoutState: LayoutState
+  ): LayoutTransformationResult {
+    
+    const targetComponent = this.findComponent(currentState, action.targetId);
+    const existingContainer = this.findParentRowContainer(currentState, action.targetId);
+    
+    if (!existingContainer) {
+      // Create new row container with target and new component
+      return this.createRowContainer(currentState, action.targetId, action.component, action.position);
+    } else {
+      // Add to existing row container (if capacity allows)
+      if (existingContainer.children.length >= 4) {
+        return { success: false, error: 'Row container at maximum capacity' };
+      }
+      return this.expandRowContainer(currentState, existingContainer.id, action.component, action.position);
+    }
+  }
+  
+  /**
+   * Handle element extraction from containers
+   * Manages container dissolution when necessary
+   */
+  static handleElementExtraction(
+    currentState: FormComponentData[],
+    action: ExtractElementAction,
+    layoutState: LayoutState
+  ): LayoutTransformationResult {
+    
+    const sourceContainer = this.findParentRowContainer(currentState, action.elementId);
+    
+    if (!sourceContainer) {
+      return { success: false, error: 'Element not in container' };
+    }
+    
+    const remainingElements = sourceContainer.children.filter(child => child.id !== action.elementId);
+    
+    if (remainingElements.length === 1) {
+      // Dissolve container - only one element remaining
+      return this.dissolveRowContainer(currentState, sourceContainer.id, action.targetPosition);
+    } else if (remainingElements.length >= 2) {
+      // Preserve container with remaining elements
+      return this.extractElementPreserveContainer(currentState, action);
+    }
+  }
+}
+
+/**
+ * Layout state detection utility
+ * Analyzes current form structure and determines layout patterns
+ */
+class LayoutStateDetector {
+  constructor(private components: FormComponentData[]) {}
+  
+  detectLayoutState(): LayoutState {
+    const rowContainers = this.components.filter(c => c.type === 'horizontal_layout');
+    const standaloneComponents = this.components.filter(c => c.type !== 'horizontal_layout');
+    
+    if (rowContainers.length === 0) {
+      return {
+        type: 'pure_column',
+        elementCount: standaloneComponents.length,
+        availableActions: ['vertical_drop', 'horizontal_creation']
+      };
+    }
+    
+    if (rowContainers.length === 1 && standaloneComponents.length === 0) {
+      return {
+        type: 'single_row', 
+        elementCount: rowContainers[0].children?.length || 0,
+        availableActions: ['horizontal_expansion', 'element_extraction', 'vertical_positioning']
+      };
+    }
+    
+    return {
+      type: 'mixed',
+      rowContainers: rowContainers.length,
+      standaloneComponents: standaloneComponents.length,
+      availableActions: ['all_operations']
+    };
+  }
+}
+
+/**
+ * Container lifecycle management
+ * Handles creation, expansion, and dissolution of row containers
+ */
+class RowContainerLifecycleManager {
+  
+  /**
+   * Create new row container from two components
+   */
+  static createRowContainer(
+    components: FormComponentData[],
+    targetComponentId: string,
+    newComponent: FormComponentData,
+    position: 'left' | 'right'
+  ): FormComponentData[] {
+    
+    const targetIndex = components.findIndex(c => c.id === targetComponentId);
+    const targetComponent = components[targetIndex];
+    
+    // Create horizontal layout container
+    const rowContainer: FormComponentData = {
+      id: generateId(),
+      type: 'horizontal_layout',
+      label: 'Row Layout',
+      fieldId: `row_${Date.now()}`,
+      required: false,
+      children: position === 'left' 
+        ? [newComponent, targetComponent]
+        : [targetComponent, newComponent]
+    };
+    
+    // Replace target component with new row container
+    const result = [...components];
+    result[targetIndex] = rowContainer;
+    
+    return result;
+  }
+  
+  /**
+   * Dissolve row container when reduced to single element
+   */
+  static dissolveRowContainer(
+    components: FormComponentData[],
+    containerID: string,
+    targetPosition: InsertPosition
+  ): FormComponentData[] {
+    
+    const containerIndex = components.findIndex(c => c.id === containerID);
+    const container = components[containerIndex] as FormComponentData;
+    
+    // Extract remaining child component
+    const remainingChild = container.children?.[0];
+    
+    if (!remainingChild) {
+      // Empty container - just remove it
+      return components.filter(c => c.id !== containerID);
+    }
+    
+    // Replace container with remaining child component
+    const result = [...components];
+    result[containerIndex] = remainingChild;
+    
+    return result;
+  }
 }
 ```
 

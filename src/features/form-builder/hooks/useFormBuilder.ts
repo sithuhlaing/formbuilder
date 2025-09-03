@@ -346,6 +346,49 @@ export const useFormBuilder = () => {
     });
   }, [formState.pages.length, executeAction]);
 
+
+  // Complex layout helper functions for testing
+  const addToRowLayout = useCallback((componentType: ComponentType, rowLayoutId: string) => {
+    executeAction({
+      type: 'ADD_TO_ROW_LAYOUT',
+      payload: {
+        pageId: formState.currentPageId,
+        componentType,
+        rowLayoutId
+      }
+    });
+  }, [executeAction, formState.currentPageId]);
+
+  const dissolveRowLayout = useCallback((rowLayoutId: string) => {
+    executeAction({
+      type: 'DISSOLVE_ROW_LAYOUT',
+      payload: {
+        pageId: formState.currentPageId,
+        rowLayoutId
+      }
+    });
+  }, [executeAction, formState.currentPageId]);
+
+  const pullElementFromRow = useCallback((rowLayoutId: string, elementIndex: number, targetPosition: 'column') => {
+    executeAction({
+      type: 'PULL_ELEMENT_FROM_ROW',
+      payload: {
+        pageId: formState.currentPageId,
+        rowLayoutId,
+        elementIndex,
+        targetPosition
+      }
+    });
+  }, [executeAction, formState.currentPageId]);
+
+  // Expose test helpers on window object for automated testing
+  if (typeof window !== 'undefined') {
+    (window as any).__testAddToRowLayout__ = addToRowLayout;
+    (window as any).__testDissolveRowLayout__ = dissolveRowLayout;
+    (window as any).__testPullElementFromRow__ = pullElementFromRow;
+    (window as any).__testInsertHorizontalToComponent__ = insertHorizontalToComponent;
+  }
+
   return {
     formState,
     currentComponents,
@@ -360,6 +403,10 @@ export const useFormBuilder = () => {
     insertComponentWithPosition,
     insertHorizontalToComponent,
     moveComponent,
+    // Complex layout methods
+    addToRowLayout,
+    dissolveRowLayout,
+    pullElementFromRow,
     setTemplateName: (name: string) => 
       setFormState(prev => ({ ...prev, templateName: name })),
     // Undo/Redo

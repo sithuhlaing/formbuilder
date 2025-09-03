@@ -65,6 +65,15 @@ export class FormStateEngine {
       case 'INSERT_HORIZONTAL_LAYOUT':
         return this.insertHorizontalLayout(currentState, action.payload);
       
+      case 'ADD_TO_ROW_LAYOUT':
+        return this.addToRowLayout(currentState, action.payload);
+      
+      case 'DISSOLVE_ROW_LAYOUT':
+        return this.dissolveRowLayout(currentState, action.payload);
+      
+      case 'PULL_ELEMENT_FROM_ROW':
+        return this.pullElementFromRow(currentState, action.payload);
+      
       default:
         console.warn('❌ Unknown action type:', (action as any).type);
         return currentState;
@@ -382,6 +391,7 @@ export class FormStateEngine {
       horizontalLayout.children = [targetComponent, newComponent];
     }
 
+    // Replace the target component with the horizontal layout
     const updatedComponents = [...currentPage.components];
     updatedComponents[targetIndex] = horizontalLayout;
 
@@ -396,6 +406,116 @@ export class FormStateEngine {
       ...state, 
       pages: updatedPages,
       selectedComponentId: newComponent.id
+    };
+  }
+
+  /**
+   * Add component to existing row layout
+   */
+  private static addToRowLayout(
+    state: any,
+    payload: { pageId: string; componentType: string; rowLayoutId: string }
+  ) {
+    const newComponent = ComponentEngine.createComponent(payload.componentType as any);
+    
+    const updatedPages = state.pages.map((page: FormPage) => {
+      if (page.id !== payload.pageId) return page;
+      
+      const updatedComponents = page.components.map((component: FormComponentData) => {
+        if (component.id === payload.rowLayoutId && component.type === 'horizontal_layout') {
+          return {
+            ...component,
+            children: [...(component.children || []), newComponent]
+          };
+        }
+        return component;
+      });
+      
+      return { ...page, components: updatedComponents };
+    });
+
+    return { 
+      ...state, 
+      pages: updatedPages,
+      selectedComponentId: newComponent.id
+    };
+  }
+
+  /**
+   * Dissolve row layout - convert all children back to column layout
+   */
+  private static dissolveRowLayout(
+    state: any,
+    payload: { pageId: string; rowLayoutId: string }
+  ) {
+    const updatedPages = state.pages.map((page: FormPage) => {
+      if (page.id !== payload.pageId) return page;
+      
+      let rowChildren: FormComponentData[] = [];
+      const updatedComponents = page.components.filter((component: FormComponentData) => {
+        if (component.id === payload.rowLayoutId && component.type === 'horizontal_layout') {
+          rowChildren = component.children || [];
+          return false; // Remove the row layout
+        }
+        return true;
+      });
+      
+      // Add the row children back to the main components array
+      return { ...page, components: [...updatedComponents, ...rowChildren] };
+    });
+
+    return { 
+      ...state, 
+      pages: updatedPages,
+      selectedComponentId: null
+    };
+  }
+
+  /**
+   * Pull element from row layout to column layout
+   */
+  private static pullElementFromRow(
+    state: any,
+    payload: { pageId: string; rowLayoutId: string; elementIndex: number; targetPosition: string }
+  ) {
+    let pulledElement: FormComponentData | null = null;
+    
+    const updatedPages = state.pages.map((page: FormPage) => {
+      if (page.id !== payload.pageId) return page;
+      
+      const updatedComponents = page.components.map((component: FormComponentData) => {
+        if (component.id === payload.rowLayoutId && component.type === 'horizontal_layout') {
+          const children = component.children || [];
+          if (payload.elementIndex < children.length) {
+            pulledElement = children[payload.elementIndex];
+            const newChildren = children.filter((_, index) => index !== payload.elementIndex);
+            
+            // If only one element left, dissolve the row layout
+            if (newChildren.length <= 1) {
+              return null; // Mark for removal
+            }
+            
+            return {
+              ...component,
+              children: newChildren
+            };
+          }
+        }
+        return component;
+      }).filter(Boolean) as FormComponentData[];
+      
+      // Add the pulled element to the main components array if it exists
+      if (pulledElement) {
+        updatedComponents.push(pulledElement);
+      }
+      
+      return { ...page, components: updatedComponents };
+    });
+
+    return { 
+      ...state, 
+      pages: updatedPages,
+      selectedComponentId: pulledElement?.id || null
     };
   }
 }
@@ -416,4 +536,7 @@ export type FormStateAction =
   | { type: 'UPDATE_PAGE_TITLE'; payload: { pageId: string; title: string } }
   | { type: 'INSERT_COMPONENT_AT_INDEX'; payload: { componentType: string; insertIndex: number } }
   | { type: 'INSERT_COMPONENT_WITH_POSITION'; payload: { componentType: string; targetId: string; position: string } }
-  | { type: 'INSERT_HORIZONTAL_LAYOUT'; payload: { componentType: string; targetId: string; side?: 'left' | 'right' } };
+  | { type: 'INSERT_HORIZONTAL_LAYOUT'; payload: { componentType: string; targetId: string; side?: 'left' | 'right' } }
+  | { type: 'ADD_TO_ROW_LAYOUT'; payload: { pageId: string; componentType: string; rowLayoutId: string } }
+  | { type: 'DISSOLVE_ROW_LAYOUT'; payload: { pageId: string; rowLayoutId: string } }
+  | { type: 'PULL_ELEMENT_FROM_ROW'; payload: { pageId: string; rowLayoutId: string; elementIndex: number; targetPosition: string } };
