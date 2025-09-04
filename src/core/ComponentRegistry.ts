@@ -93,7 +93,9 @@ class RichTextFactory extends BaseComponentFactory {
       type: 'rich_text' as ComponentType,
       placeholder: 'Enter rich text content...',
       defaultValue: '<p>Click here to start editing with <strong>bold</strong>, <em>italic</em> and more formatting options!</p>',
-      height: '200px',
+      styling: {
+        height: '200px'
+      },
       validationRules: []
     };
   }

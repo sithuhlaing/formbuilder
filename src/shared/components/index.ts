@@ -34,7 +34,7 @@ export {
 } from './SpecializedFormComponents';
 
 // Component Renderer
-export { ComponentRenderer } from './ComponentRenderer';
+export { ComponentRenderer } from '../../core/ComponentRenderer';
 
 // Drop Zone Components - Legacy Pattern
 // NOTE: These use legacy callback patterns for backward compatibility

@@ -11,6 +11,10 @@
 /* Import Clean Feature Styles */
 @import './features/form-builder.css';
 @import './features/template-management.css';
+@import './form-builder-layout.css';
+@import './responsive-drawers.css';
+@import './mobile-drag-drop.css';
+@import './touch-drag-preview.css';
 
 /* Custom Application Styles */
 

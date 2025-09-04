@@ -274,7 +274,7 @@ describe('🧪 TDD: Drag & Drop Core Behaviors', () => {
       expect(getCanvasElementCount()).toBe(2);
       
       // For now, just test that elements exist and can be found
-      // TODO: Implement actual drag-drop reordering mechanics
+      // FUTURE: Implement actual drag-drop reordering mechanics with react-dnd testing utils
       const firstElement = screen.getByTestId('canvas-item-0');
       const secondElement = screen.getByTestId('canvas-item-1');
       
@@ -297,7 +297,7 @@ describe('🧪 TDD: Drag & Drop Core Behaviors', () => {
       expect(initialElements).toHaveLength(2);
       
       // For now, just verify elements exist and structure is correct
-      // TODO: Implement actual reordering logic
+      // FUTURE: Implement actual reordering logic with drag simulation
       expect(initialElements[0]).toHaveTextContent('Text Input Field');
       expect(initialElements[1]).toHaveTextContent('Textarea Field');
       
@@ -317,7 +317,7 @@ describe('🧪 TDD: Drag & Drop Core Behaviors', () => {
       expect(initialElements).toHaveLength(2);
       
       // For now, just verify elements exist and can be referenced
-      // TODO: Implement actual after-insertion logic
+      // FUTURE: Implement actual after-insertion logic with drop simulation
       expect(initialElements[0]).toHaveTextContent('Text Input Field');
       expect(initialElements[1]).toHaveTextContent('Textarea Field');
       
@@ -1175,7 +1175,7 @@ describe('🧪 TDD: Drag & Drop Core Behaviors', () => {
       ]);
       
       // This test validates the behavior when unknown components exist
-      // TODO: Implement unknown component creation mechanism
+      // FUTURE: Implement unknown component creation mechanism for testing edge cases
       expect(getCanvasElementCount()).toBe(0); // Initially empty
       
       // After implementing unknown component handling, this would be:
@@ -1189,7 +1189,7 @@ describe('🧪 TDD: Drag & Drop Core Behaviors', () => {
       // Add a known component first
       await dragFromPalette('Text Input', 'canvas');
       
-      // TODO: Add logic to inject unknown component for testing
+      // FUTURE: Add logic to inject unknown component for testing error handling
       // For now, this test verifies the structure is in place
       const elements = getCanvasElements();
       expect(elements).toHaveLength(1);
@@ -1203,7 +1203,7 @@ describe('🧪 TDD: Drag & Drop Core Behaviors', () => {
     it('✅ J3: Remove unknown component works correctly', async () => {
       const { getCanvasElementCount } = await renderAppWithDragDrop();
       
-      // TODO: Test removal of unknown components
+      // FUTURE: Test removal of unknown components and cleanup behavior
       // Should work exactly like normal component removal
       expect(getCanvasElementCount()).toBe(0);
       
@@ -1218,7 +1218,7 @@ describe('🧪 TDD: Drag & Drop Core Behaviors', () => {
       
       await dragFromPalette('Text Input', 'canvas');
       
-      // TODO: Test schema export with unknown components
+      // FUTURE: Test schema export with unknown components (should handle gracefully)
       // Schema should include:
       // {
       //   "type": "unknown",

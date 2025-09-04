@@ -3,7 +3,9 @@
  * Combines all drag-drop operations into a single logic module
  */
 
-import type { FormComponentData, ComponentType } from '../types/component';
+import type { FormComponentData } from './interfaces/ComponentInterfaces';
+import type { ComponentType } from '../types';
+import { generateId } from '../shared/utils';
 
 export interface DropPosition {
   type: 'before' | 'after' | 'inside' | 'left' | 'right' | 'center';
@@ -239,7 +241,7 @@ export class DragDropLogic {
       const horizontalLayout: FormComponentData = {
         id: `horizontal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         type: 'horizontal_layout',
-        fieldId: `horizontal_field_${Date.now()}`,
+        fieldId: generateId('horizontal_field'),
         label: 'Row Layout',
         required: false,
         helpText: undefined,
@@ -309,7 +311,7 @@ export class DragDropLogic {
       const verticalLayout: FormComponentData = {
         id: `vertical_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         type: 'vertical_layout',
-        fieldId: `vertical_field_${Date.now()}`,
+        fieldId: generateId('vertical_field'),
         label: 'Column Layout',
         required: false,
         helpText: undefined,

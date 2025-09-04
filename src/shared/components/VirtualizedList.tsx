@@ -12,11 +12,10 @@ import React, {
   useRef, 
   useCallback, 
   useMemo,
-  useEffect,
   forwardRef,
-  useImperativeHandle,
-  CSSProperties 
+  useImperativeHandle
 } from 'react';
+import type { CSSProperties } from 'react';
 
 interface VirtualizedListProps<T> {
   items: T[];
@@ -49,7 +48,7 @@ export const VirtualizedList = forwardRef<VirtualizedListRef, VirtualizedListPro
   overscan = 5,
   className = '',
   onScroll
-}: VirtualizedListProps<T>, ref) {
+}: VirtualizedListProps<T>, ref: React.ForwardedRef<VirtualizedListRef>) {
   const [scrollTop, setScrollTop] = useState(0);
   const scrollElementRef = useRef<HTMLDivElement>(null);
   

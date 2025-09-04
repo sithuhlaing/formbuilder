@@ -1,9 +1,17 @@
-/* Form Builder Layout Styles */
+/* Form Builder Layout Styles - Updated */
 .form-builder {
   display: flex;
   flex-direction: column;
   height: 100vh;
   background-color: var(--color-gray-50);
+}
+
+/* Top Navigation */
+.form-builder__top-nav {
+  background: white;
+  border-bottom: 1px solid var(--color-gray-200);
+  padding: var(--space-3) var(--space-6);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Form Title Section - Separate from canvas */
@@ -49,11 +57,12 @@
   font-weight: var(--font-weight-normal);
 }
 
-/* Main Layout */
+/* Main Layout - Three Column Structure */
 .form-builder__layout {
   display: flex;
   flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 
 /* Component Palette Sidebar */
@@ -76,8 +85,9 @@
 
 .canvas-container {
   flex: 1;
-  padding: var(--space-6);
+  padding: var(--space-4);
   overflow-y: auto;
+  background: var(--color-gray-50);
 }
 
 /* Enhanced Canvas Drop Zone Styling */

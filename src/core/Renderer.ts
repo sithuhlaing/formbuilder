@@ -233,7 +233,7 @@ export class Renderer {
         return React.createElement('div', {
           style: {
             ...commonProps.style,
-            minHeight: component.height || '120px',
+            minHeight: component.styling?.height || '120px',
             backgroundColor: '#f9fafb',
             display: 'flex',
             alignItems: 'center',
@@ -509,7 +509,7 @@ export class Renderer {
       borderRadius: '6px',
       backgroundColor: isSelected ? '#eff6ff' : '#fff',
       transition: 'all 0.2s ease',
-      width: component.width || 'auto',
+      width: component.styling?.width || 'auto',
       textAlign: component.alignment || 'left'
     };
   }

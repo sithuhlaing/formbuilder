@@ -9,9 +9,7 @@
  */
 
 import React, { useState, useCallback, useRef } from 'react';
-import { LazyFormRenderer } from './LazyFormRenderer';
 import { usePerformanceMonitor, useGlobalPerformance } from '../hooks/usePerformanceMonitor';
-import { ComponentRenderer } from './ComponentRenderer';
 import type { FormComponentData } from '../../core/interfaces/ComponentInterfaces';
 
 interface PerformanceTestSuiteProps {
@@ -34,7 +32,7 @@ export const PerformanceTestSuite: React.FC<PerformanceTestSuiteProps> = ({ onCl
   const testRef = useRef<HTMLDivElement>(null);
 
   const { summary, getSlowComponents } = useGlobalPerformance();
-  const { getPerformanceSummary } = usePerformanceMonitor({ 
+  usePerformanceMonitor({ 
     componentName: 'PerformanceTestSuite' 
   });
 
@@ -149,46 +147,10 @@ export const PerformanceTestSuite: React.FC<PerformanceTestSuiteProps> = ({ onCl
     }
   }, [generateTestComponents, performanceTests, runPerformanceTest]);
 
-  // Test component that renders forms with different optimizations
-  const TestRenderer: React.FC<{ 
-    components: FormComponentData[]; 
-    useOptimizations: boolean;
-    testId: string;
-  }> = ({ components, useOptimizations, testId }) => {
-    const renderComponent = useCallback((component: FormComponentData, index: number) => (
-      <div key={component.id} className="test-component">
-        <ComponentRenderer 
-          component={component}
-          readOnly={true}
-        />
-      </div>
-    ), []);
-
-    if (useOptimizations && components.length > 20) {
-      return (
-        <LazyFormRenderer
-          components={components}
-          renderComponent={renderComponent}
-          chunkSize={10}
-          className={`performance-test-${testId}`}
-        />
-      );
-    }
-
-    // Standard rendering for comparison
-    return (
-      <div className={`performance-test-standard-${testId}`}>
-        {components.map((component, index) => renderComponent(component, index))}
-      </div>
-    );
-  };
 
   // Format performance results
   const formatResults = () => {
     if (testResults.length === 0) return null;
-
-    const optimizedResults = testResults.filter(r => r.testName.includes('Optimized'));
-    const standardResults = testResults.filter(r => r.testName.includes('Standard'));
 
     return (
       <div className="performance-results">

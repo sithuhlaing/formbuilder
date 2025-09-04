@@ -42,7 +42,7 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
   // ============================================================================
 
   const [{ isOver }, drop] = useDrop({
-    accept: ['new-item'],
+    accept: ['new-item', 'existing-item'],
     drop: (dragItem: DragItem, monitor) => {
       // Only handle drops that haven't been handled by child components
       if (monitor.didDrop()) return;

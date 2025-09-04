@@ -280,7 +280,7 @@ export const PropertiesEditor: React.FC<PropertiesEditorProps> = ({
                   )}
                   
                   {selectedComponent.type === 'rich_text' && renderPropertyGroup('Height', 
-                    renderPropertyInput('height', selectedComponent.height, 'text')
+                    renderPropertyInput('height', selectedComponent.styling?.height, 'text')
                   )}
                 </>
               ))
@@ -336,7 +336,7 @@ export const PropertiesEditor: React.FC<PropertiesEditorProps> = ({
             {renderSection('layout', 'Layout', (
               <>
                 {renderPropertyGroup('Width', 
-                  renderPropertyInput('width', selectedComponent.width || 'auto', 'select', 
+                  renderPropertyInput('width', selectedComponent.styling?.width || 'auto', 'select', 
                     ['auto', '25%', '33%', '50%', '66%', '75%', '100%'])
                 )}
                 

@@ -7,7 +7,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { expect, test, describe, vi, beforeEach } from 'vitest';
 import { LazyFormRenderer } from '../shared/components/LazyFormRenderer';
 import { VirtualizedList } from '../shared/components/VirtualizedList';
-import { ComponentRenderer } from '../shared/components/ComponentRenderer';
+import { ComponentRenderer } from '../core/ComponentRenderer';
 import { usePerformanceMonitor } from '../shared/hooks/usePerformanceMonitor';
 import type { FormComponentData } from '../core/interfaces/ComponentInterfaces';
 

@@ -4,6 +4,7 @@
  */
 
 import type { FormComponentData, ComponentType } from '../../../types/component';
+import { generateId } from '../../../shared/utils';
 
 export interface DropPosition {
   type: 'before' | 'after' | 'inside' | 'left' | 'right' | 'center';
@@ -212,7 +213,7 @@ export class DragDropService {
           id: `row_${Date.now()}`,
           type: 'horizontal_layout',
           label: 'Row Layout',
-          fieldId: `row_${Date.now()}`,
+          fieldId: generateId('row'),
           required: false,
           children: side === 'left' 
             ? [newComponent, result[i]] 

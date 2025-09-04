@@ -4,10 +4,10 @@
  * Features: Virtualization, memoization, lazy loading
  */
 
-import React, { useState, memo, useMemo, CSSProperties } from 'react';
+import React, { useState, memo, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
+import { getEmptyImage } from 'react-dnd-html5-backend';
 import { ComponentRenderer } from '../../../core';
-import { VirtualizedList } from '../../../shared/components/VirtualizedList';
 import { usePerformanceMonitor } from '../../../shared/hooks/usePerformanceMonitor';
 import type { ComponentType } from '../../../types';
 
@@ -18,17 +18,23 @@ interface PaletteItemProps {
 
 // Memoized palette item component for better performance
 const PaletteItem: React.FC<PaletteItemProps> = memo(({ componentType, onAddComponent }) => {
-  const { renderCount } = usePerformanceMonitor({ 
+  usePerformanceMonitor({ 
     componentName: `PaletteItem-${componentType}`,
     slowRenderThreshold: 8 // Stricter threshold for palette items
   });
-  const [{ isDragging }, drag] = useDrag({
+  
+  const [{ isDragging }, drag, preview] = useDrag({
     type: 'new-item',
     item: { type: 'new-item', itemType: componentType },
     collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
+      isDragging: monitor.isDragging(),
     }),
   });
+
+  // Hide the default drag preview and use a custom one
+  useEffect(() => {
+    preview(getEmptyImage(), { captureDraggingState: true });
+  }, [preview]);
 
   const info = ComponentRenderer.getComponentInfo(componentType);
 

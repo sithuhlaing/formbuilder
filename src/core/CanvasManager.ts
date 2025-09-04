@@ -3,7 +3,6 @@
  * Simplifies architecture by consolidating logic and coordinating between layers
  */
 
-import { FormStateEngine } from './FormStateEngine';
 import { DragDropService } from '../features/drag-drop/services/DragDropService';
 import { ComponentEngine } from './ComponentEngine';
 import type { FormComponentData, ComponentType } from '../types/component';
@@ -27,7 +26,6 @@ export interface CanvasState {
 export class CanvasManager {
   private config: Required<CanvasManagerConfig>;
   private state: CanvasState;
-  private stateEngine: typeof FormStateEngine;
   private listeners: Set<(state: CanvasState) => void> = new Set();
 
   constructor(config: CanvasManagerConfig = {}) {
@@ -47,8 +45,6 @@ export class CanvasManager {
       components: [],
       formTitle: 'Untitled Form'
     };
-
-    this.stateEngine = FormStateEngine;
   }
 
   // ============================================================================

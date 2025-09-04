@@ -32,17 +32,17 @@ class TemplateService {
     }
   }
 
-  saveTemplate(template: Omit<FormTemplate, 'templateId' | 'createdDate' | 'modifiedDate'>): FormTemplate {
+  saveTemplate(template: Pick<FormTemplate, 'name' | 'pages'>): FormTemplate {
     try {
       const templates = this.getAllTemplates();
       const newTemplate: FormTemplate = {
         ...template,
         templateId: `template_${Date.now()}`,
-        type: template.type || 'other',
-        fields: template.fields || [],
+        type: 'other',
+        fields: [],
         createdDate: new Date().toISOString(),
         modifiedDate: new Date().toISOString(),
-        jsonSchema: template.jsonSchema || {}
+        jsonSchema: {}
       };
       
       templates.push(newTemplate);

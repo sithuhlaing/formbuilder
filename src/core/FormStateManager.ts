@@ -7,15 +7,22 @@
 import type { IFormState, IFormAction, IFormStateEngine, FormAction } from './interfaces/StateInterfaces';
 import type { FormPage } from './interfaces/StateInterfaces';
 import { ComponentEngine } from './ComponentEngine';
-import { ComponentValidationEngine } from './ComponentValidationEngine';
 
 // Concrete implementation of FormState
 export class FormState implements IFormState {
+  public currentPageIndex: number;
+  public pages: FormPage[];
+  public selectedComponentId: string | null;
+
   constructor(
-    public currentPageIndex: number = 0,
-    public pages: FormPage[] = [],
-    public selectedComponentId: string | null = null
-  ) {}
+    currentPageIndex: number = 0,
+    pages: FormPage[] = [],
+    selectedComponentId: string | null = null
+  ) {
+    this.currentPageIndex = currentPageIndex;
+    this.pages = pages;
+    this.selectedComponentId = selectedComponentId;
+  }
 
   get isMultiPage(): boolean {
     return this.pages.length > 1;

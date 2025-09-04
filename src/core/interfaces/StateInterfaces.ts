@@ -4,6 +4,7 @@
  */
 
 import type { FormComponentData } from './ComponentInterfaces';
+import type { PageValidationRule } from '../../types/form-schema';
 
 // Base state interface - what all form states must have
 export interface IFormState {
@@ -15,10 +16,20 @@ export interface IFormState {
 
 // Page structure interface
 export interface FormPage {
-  layoutConfig: {};
   id: string;
   title: string;
   components: FormComponentData[];
+  validationRules?: PageValidationRule[];
+  layoutConfig?: {
+    columns: number;
+    spacing: string;
+    alignment: 'left' | 'center' | 'right';
+  };
+  navigationSettings?: {
+    showNext: boolean;
+    showPrevious: boolean;
+    showSubmit: boolean;
+  };
 }
 
 // Action interface - what all actions must implement

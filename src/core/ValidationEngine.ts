@@ -36,6 +36,8 @@ export class ValidationEngine {
     
     return {
       isValid: errors.length === 0,
+      valid: errors.length === 0,
+      warnings: errors.length === 0 ? undefined : errors,
       errors,
       message: errors.join(', ')
     };
@@ -70,6 +72,8 @@ export class ValidationEngine {
     
     return {
       isValid: errors.length === 0,
+      valid: errors.length === 0,
+      warnings: errors.length === 0 ? undefined : errors,
       errors,
       message: errors.join('; ')
     };
@@ -105,6 +109,8 @@ export class ValidationEngine {
     
     return {
       isValid: errors.length === 0,
+      valid: errors.length === 0,
+      warnings: errors.length === 0 ? undefined : errors,
       errors,
       message: errors.join('; ')
     };
@@ -115,11 +121,50 @@ export class ValidationEngine {
    * Data structure validation
    */
   static validateDataStructure(data: any, expectedStructure: any): ValidationResult {
-    // TODO: Implement comprehensive data structure validation
-    return {
-      isValid: true,
-      message: 'Schema validation not yet implemented'
-    };
+    try {
+      // Basic data structure validation
+      const errors: string[] = [];
+      
+      // Check if data exists
+      if (data === null || data === undefined) {
+        errors.push('Data is null or undefined');
+      }
+      
+      // Check expected structure if provided
+      if (expectedStructure && typeof expectedStructure === 'object') {
+        for (const key of Object.keys(expectedStructure)) {
+          if (!(key in data)) {
+            errors.push(`Missing required field: ${key}`);
+          }
+        }
+      }
+      
+      // Basic type validation for common structures
+      if (data && typeof data === 'object') {
+        // Check for common form data structure
+        if ('pages' in data && !Array.isArray(data.pages)) {
+          errors.push('Pages must be an array');
+        }
+        
+        if ('templateName' in data && typeof data.templateName !== 'string') {
+          errors.push('Template name must be a string');
+        }
+      }
+      
+      return {
+        isValid: errors.length === 0,
+        valid: errors.length === 0,
+        warnings: errors.length === 0 ? undefined : errors,
+        message: errors.length > 0 ? errors.join(', ') : 'Data structure is valid'
+      };
+    } catch (error) {
+      return {
+        isValid: false,
+        valid: false,
+        warnings: [`Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`],
+        message: `Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
   }
   
   /**
@@ -128,8 +173,11 @@ export class ValidationEngine {
   private static validateRule(rule: ValidationRule, value: any, component: FormComponentData | null): ValidationResult {
     switch (rule.type) {
       case 'required':
+        const isValid = value !== null && value !== undefined && value !== '';
         return {
-          isValid: value !== null && value !== undefined && value !== '',
+          isValid,
+          valid: isValid,
+          warnings: isValid ? undefined : [rule.message || 'This field is required'],
           message: rule.message || 'This field is required'
         };
         
@@ -138,20 +186,24 @@ export class ValidationEngine {
           const isValid = value.length >= (rule.value || 0);
           return {
             isValid,
+            valid: isValid,
+            warnings: isValid ? undefined : [rule.message || `Minimum length is ${rule.value}`],
             message: isValid ? undefined : rule.message || `Minimum length is ${rule.value}`
           };
         }
-        return { isValid: true };
+        return { isValid: true, valid: true, warnings: undefined };
         
       case 'maxLength':
         if (typeof value === 'string') {
           const isValid = value.length <= (rule.value || Infinity);
           return {
             isValid,
+            valid: isValid,
+            warnings: isValid ? undefined : [rule.message || `Maximum length is ${rule.value}`],
             message: isValid ? undefined : rule.message || `Maximum length is ${rule.value}`
           };
         }
-        return { isValid: true };
+        return { isValid: true, valid: true, warnings: undefined };
         
       case 'pattern':
         if (typeof value === 'string' && rule.value) {
@@ -159,10 +211,12 @@ export class ValidationEngine {
           const isValid = regex.test(value);
           return {
             isValid,
+            valid: isValid,
+            warnings: isValid ? undefined : [rule.message || 'Invalid format'],
             message: isValid ? undefined : rule.message || 'Invalid format'
           };
         }
-        return { isValid: true };
+        return { isValid: true, valid: true, warnings: undefined };
         
       case 'email':
         if (typeof value === 'string') {
@@ -170,20 +224,22 @@ export class ValidationEngine {
           const isValid = emailRegex.test(value);
           return {
             isValid,
+            valid: isValid,
+            warnings: isValid ? undefined : [rule.message || 'Invalid email address'],
             message: isValid ? undefined : rule.message || 'Invalid email address'
           };
         }
-        return { isValid: true };
+        return { isValid: true, valid: true, warnings: undefined };
         
       case 'custom':
         if (rule.validator) {
           return rule.validator(value);
         }
-        return { isValid: true };
+        return { isValid: true, valid: true, warnings: undefined };
         
       default:
         console.warn('Unknown validation rule type:', rule.type);
-        return { isValid: true };
+        return { isValid: true, valid: true, warnings: undefined };
     }
   }
   

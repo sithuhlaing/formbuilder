@@ -1,4 +1,4 @@
-import type { ComponentType } from './component';
+import type { ComponentType } from '../../types/component';
 
 export interface DragItem {
   type: ComponentType | 'existing-component' | 'component';

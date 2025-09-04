@@ -36,7 +36,9 @@ export class ComponentValidationEngine {
     this.validateUIComponent(component, errors);
     
     return {
+      isValid: errors.length === 0,
       valid: errors.length === 0,
+      warnings: [],
       errors,
       message: errors.join(', ')
     };
@@ -99,6 +101,11 @@ export class ComponentValidationEngine {
     if (component.type === 'file_upload') {
       // acceptedFileTypes validation could be added here
       // For now, we accept any value including '*'
+      
+      // Example validation that could be added:
+      // if (component.acceptedFileTypes && component.acceptedFileTypes.length === 0) {
+      //   errors.push('File upload must specify accepted file types');
+      // }
     }
   }
   
@@ -179,6 +186,8 @@ export class ComponentValidationEngine {
     
     return {
       isValid: allValid,
+      valid: allValid,
+      warnings: [],
       errors: allErrors,
       message: allErrors.join('; ')
     };
@@ -218,7 +227,9 @@ export class ComponentValidationEngine {
     validateRequired(components);
     
     return {
+      isValid: errors.length === 0,
       valid: errors.length === 0,
+      warnings: [],
       errors,
       message: errors.join(', ')
     };

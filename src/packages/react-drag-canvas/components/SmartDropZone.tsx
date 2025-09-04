@@ -34,7 +34,7 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
     dropZoneThresholds
   } = config;
 
-  // Calculate drop position based on mouse coordinates
+  // Enhanced position calculation with intelligent layout detection
   const calculateDropPosition = useCallback((clientOffset: { x: number; y: number } | null) => {
     if (!ref.current || !clientOffset) return 'center';
 
@@ -43,50 +43,89 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
     const y = clientOffset.y - rect.top;
     const { width, height } = rect;
 
-    // Horizontal zones (left/right) - configurable threshold
+    // Enhanced zone detection with priority system
+    // Priority 1: Vertical zones (top/bottom) - always available for column layout
+    if (enableVerticalLayouts) {
+      if (y < height * dropZoneThresholds.vertical) return 'top';
+      if (y > height * (1 - dropZoneThresholds.vertical)) return 'bottom';
+    }
+
+    // Priority 2: Horizontal zones (left/right) - for row layout creation/extension
     if (enableHorizontalLayouts) {
       if (x < width * dropZoneThresholds.horizontal) return 'left';
       if (x > width * (1 - dropZoneThresholds.horizontal)) return 'right';
     }
 
-    // Vertical zones for remaining middle area - configurable threshold
-    if (enableVerticalLayouts) {
-      if (y < height * dropZoneThresholds.vertical) return 'before';
-      if (y > height * (1 - dropZoneThresholds.vertical)) return 'after';
-    }
-
+    // Priority 3: Center zone for direct replacement/insertion
     return 'center';
   }, [enableHorizontalLayouts, enableVerticalLayouts, dropZoneThresholds]);
 
-  // Apply row layout drag-drop constraints based on business rules
-  const applyRowLayoutConstraints = useCallback((position: string, dragItem: DragItem, targetItem: any) => {
-    // Rule 1: Row Layout as Single Unit - Row layouts can only be dragged vertically
-    if (dragItem.dragType === 'row-layout') {
-      // Row layouts can only be positioned before/after (vertically)
-      if (position === 'left' || position === 'right') {
-        return 'center'; // Convert horizontal to center drop
-      }
-      return position; // Allow before/after/center
-    }
+  // Detect if target or siblings are row layout containers
+  const detectRowLayoutContext = useCallback(() => {
+    // Check if current item is a row layout
+    const isCurrentRowLayout = item.type === 'horizontal_layout';
+    
+    // Check if parent container has row layouts
+    // Note: This requires sibling context which would need to be passed as props
+    // For now, we'll use a simple heuristic based on the current index and item type
+    const hasRowLayoutSiblings = false; // Will be true when parent context is available
+    
+    return {
+      isCurrentRowLayout,
+      hasRowLayoutSiblings,
+      canFormRowLayout: !isCurrentRowLayout,
+      canExtendRowLayout: isCurrentRowLayout
+    };
+  }, [item.type]);
 
-    // Rule 2: Internal Row Arrangement - Inside row layouts, only left-right allowed
+  // Enhanced layout constraints with intelligent row layout handling
+  const applyEnhancedLayoutConstraints = useCallback((position: string, dragItem: DragItem, targetItem: any) => {
+    const layoutContext = detectRowLayoutContext();
+    
+    // ENHANCED RULE 1: Vertical Layout Priority (Top/Bottom zones)
+    if (position === 'top' || position === 'bottom') {
+      // Always allow vertical positioning for column layout
+      return position;
+    }
+    
+    // ENHANCED RULE 2: Horizontal Layout Intelligence (Left/Right zones)
+    if (position === 'left' || position === 'right') {
+      if (layoutContext.isCurrentRowLayout) {
+        // Target IS a row layout container - add as member
+        return position; // Add to existing row layout
+      } else {
+        // Target is regular element - form new row layout
+        return `form-row-${position}`; // Signal to create new row layout
+      }
+    }
+    
+    // ENHANCED RULE 3: Within Row Layout Constraints
     if (targetItem.type === 'horizontal_layout') {
-      // Within row layouts, only horizontal positioning allowed
-      if (position === 'before' || position === 'after') {
-        return 'right'; // Convert vertical to horizontal positioning
+      // Inside row layout: only left/right/center allowed
+      if (position === 'top' || position === 'bottom') {
+        // Convert vertical to horizontal within row layout
+        return 'right'; // Default to right side
       }
       return position; // Allow left/right/center
     }
-
-    // Rule 3: No Nested Row Layouts - Prevent row layouts inside row layouts
-    if (dragItem.item?.type === 'horizontal_layout' && targetItem.type === 'horizontal_layout') {
-      // Prevent dropping row layout into another row layout
-      return 'center'; // Convert to safe center drop
+    
+    // ENHANCED RULE 4: Row Layout Dragging Constraints
+    if (dragItem.dragType === 'row-layout') {
+      // Row layouts can only move vertically (top/bottom)
+      if (position === 'left' || position === 'right') {
+        return 'center'; // Prevent horizontal row layout movement
+      }
+      return position;
     }
-
-    // Rule 4: Root Level Container Behavior - Normal positioning for individual components
+    
+    // ENHANCED RULE 5: Prevent Nested Row Layouts
+    if (dragItem.item?.type === 'horizontal_layout' && targetItem.type === 'horizontal_layout') {
+      // Row layout onto row layout - convert to vertical positioning
+      return 'bottom'; // Place below existing row layout
+    }
+    
     return position;
-  }, []);
+  }, [detectRowLayoutContext]);
 
   // Drag functionality for existing items
   const [{ isDragging }, drag] = useDrag({
@@ -108,8 +147,8 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
     hover: (dragItem: DragItem, monitor) => {
       const position = calculateDropPosition(monitor.getClientOffset());
       
-      // Apply row layout constraints
-      const constrainedPosition = applyRowLayoutConstraints(position, dragItem, item);
+      // Apply enhanced layout constraints
+      const constrainedPosition = applyEnhancedLayoutConstraints(position, dragItem, item);
       setDropPosition(constrainedPosition);
     },
     drop: (dragItem: DragItem, monitor) => {
@@ -117,7 +156,7 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
       if (monitor.didDrop()) return;
       
       const position = calculateDropPosition(monitor.getClientOffset());
-      const constrainedPosition = applyRowLayoutConstraints(position, dragItem, item);
+      const constrainedPosition = applyEnhancedLayoutConstraints(position, dragItem, item);
       console.log('SmartDropZone drop:', { dragItem, position: constrainedPosition, targetId: item.id });
       
       if (dragItem.type === 'existing-item') {
@@ -156,42 +195,100 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
       setDropPosition('');
     },
     collect: (monitor) => ({
-      isOver: monitor.isOver(),
+      isOver: monitor.isOver(), // Enhanced visual highlighting zones
     }),
   });
 
-  // Combine drag and drop refs
-  drag(drop(ref));
+  const renderDropZoneHighlights = () => {
+    if (!isOver || !dropPosition) return null;
 
-  const isSelected = selectedItemId === item.id;
-  const isHover = isOver && dropPosition !== '';
+    const layoutContext = detectRowLayoutContext();
+    
+    return (
+      <>
+        {/* Top zone highlight - always available for vertical layout */}
+        {(dropPosition === 'top' || dropPosition.includes('top')) && (
+          <div className={`${cssPrefix}__drop-highlight ${cssPrefix}__drop-highlight--top`}>
+            <span className={`${cssPrefix}__drop-label`}>Drop Above (Column Layout)</span>
+          </div>
+        )}
+        
+        {/* Bottom zone highlight - always available for vertical layout */}
+        {(dropPosition === 'bottom' || dropPosition.includes('bottom')) && (
+          <div className={`${cssPrefix}__drop-highlight ${cssPrefix}__drop-highlight--bottom`}>
+            <span className={`${cssPrefix}__drop-label`}>Drop Below (Column Layout)</span>
+          </div>
+        )}
+        
+        {/* Left zone highlight - intelligent row layout handling */}
+        {(dropPosition === 'left' || dropPosition.includes('left')) && (
+          <div className={`${cssPrefix}__drop-highlight ${cssPrefix}__drop-highlight--left`}>
+            <span className={`${cssPrefix}__drop-label`}>
+              {layoutContext.isCurrentRowLayout 
+                ? 'Add to Row Layout (Left)' 
+                : 'Create Row Layout (Left)'}
+            </span>
+          </div>
+        )}
+        
+        {/* Right zone highlight - intelligent row layout handling */}
+        {(dropPosition === 'right' || dropPosition.includes('right')) && (
+          <div className={`${cssPrefix}__drop-highlight ${cssPrefix}__drop-highlight--right`}>
+            <span className={`${cssPrefix}__drop-label`}>
+              {layoutContext.isCurrentRowLayout 
+                ? 'Add to Row Layout (Right)' 
+                : 'Create Row Layout (Right)'}
+            </span>
+          </div>
+        )}
+        
+        {/* Center zone highlight */}
+        {dropPosition === 'center' && (
+          <div className={`${cssPrefix}__drop-highlight ${cssPrefix}__drop-highlight--center`}>
+            <span className={`${cssPrefix}__drop-label`}>Replace/Insert</span>
+          </div>
+        )}
+        
+        {/* Special row layout formation highlights */}
+        {dropPosition.startsWith('form-row-') && (
+          <div className={`${cssPrefix}__drop-highlight ${cssPrefix}__drop-highlight--form-row`}>
+            <span className={`${cssPrefix}__drop-label`}>
+              Form New Row Layout ({dropPosition.replace('form-row-', '').toUpperCase()})
+            </span>
+          </div>
+        )}
+      </>
+    );
+  };
 
   return (
     <div
-      ref={ref}
+      ref={(node) => {
+        ref.current = node;
+        drag(drop(node));
+      }}
+      className={[
+        `${cssPrefix}__item`,
+        selectedItemId === item.id && `${cssPrefix}__item--selected`,
+        isDragging && `${cssPrefix}__item--dragging`,
+        isOver && `${cssPrefix}__item--hover`,
+        dropPosition && `${cssPrefix}__item--drop-${dropPosition.replace('form-row-', 'form-row-')}`
+      ].filter(Boolean).join(' ')}
       data-testid={`canvas-item-${index}`}
-      data-component-id={item.id}
-      data-component-type={item.type}
-      className={`
-        form-canvas__item 
-        smart-drop-zone
-        form-component
-        ${isSelected ? 'form-component--selected is-selected' : ''}
-        ${isDragging ? 'form-component--dragging is-dragging' : ''}
-        ${isHover ? 'form-component--hover' : ''}
-        ${isHover ? `hover-${dropPosition}` : ''}
-        ${isHover ? 'is-drop-target' : ''}
-      `.trim()}
-      style={{ opacity: isDragging ? 0.5 : 1 }}
+      data-item-id={item.id}
+      data-item-type={item.type}
     >
+      {/* Enhanced drop zone highlights */}
+      {renderDropZoneHighlights()}
+      
       {/* Drop position indicator */}
-      {isHover && dropPosition && (
+      {isOver && dropPosition && (
         <div className={`form-canvas__drop-indicator form-canvas__drop-indicator--${dropPosition}`}>
           <span className="drop-indicator">
             {dropPosition === 'left' ? '← Drop Left' : 
              dropPosition === 'right' ? 'Drop Right →' :
-             dropPosition === 'before' ? '↑ Drop Before' :
-             dropPosition === 'after' ? '↓ Drop After' : 
+             dropPosition === 'top' ? '↑ Drop Above' :
+             dropPosition === 'bottom' ? '↓ Drop Below' : 
              'Drop Here'}
           </span>
         </div>
@@ -212,23 +309,20 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
           className="form-component__hover-action form-component__hover-action--delete"
           onClick={(e) => {
             e.stopPropagation();
-            onItemDelete(item.id);
+            onItemDelete?.(item.id);
           }}
           aria-label="Delete item"
         >
           ×
         </button>
       </div>
-
-      {/* Render item content using provided render function */}
-      <div className="form-component__content">
-        {renderItem(item, {
-          isSelected,
-          isDragging,
-          isHover,
-          cssPrefix
-        })}
-      </div>
+      
+      {renderItem(item, {
+        isSelected: selectedItemId === item.id,
+        isDragging,
+        isHover: isOver,
+        cssPrefix
+      })}
     </div>
   );
 };

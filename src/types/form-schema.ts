@@ -294,17 +294,55 @@ export interface FieldStatistics {
   };
 }
 
-// Supporting interfaces (placeholders for now)
+// Supporting interfaces for analytics and data visualization
 export interface DropoffAnalysis {
-  // TODO: Implement dropoff analysis logic
+  totalStarted: number;
+  totalCompleted: number;
+  dropoffByPage: Array<{
+    pageId: string;
+    pageTitle: string;
+    started: number;
+    completed: number;
+    dropoffRate: number;
+  }>;
+  overallCompletionRate: number;
 }
 
 export interface QualityMetrics {
-  // TODO: Implement quality metrics logic
+  averageTimeToComplete: number; // in seconds
+  validationErrorRate: number; // percentage
+  mostProblematicFields: Array<{
+    fieldId: string;
+    fieldName: string;
+    errorCount: number;
+    errorRate: number;
+  }>;
+  userSatisfactionScore?: number; // 1-5 rating if available
 }
 
 export interface DemographicBreakdown {
-  // TODO: Implement demographic breakdown logic
+  ageGroups?: Array<{
+    range: string; // e.g., "18-25", "26-35"
+    count: number;
+    percentage: number;
+  }>;
+  genderDistribution?: Array<{
+    gender: string;
+    count: number;
+    percentage: number;
+  }>;
+  locationData?: Array<{
+    country?: string;
+    region?: string;
+    city?: string;
+    count: number;
+    percentage: number;
+  }>;
+  deviceTypes?: Array<{
+    device: 'desktop' | 'mobile' | 'tablet';
+    count: number;
+    percentage: number;
+  }>;
 }
 
 export interface TimeDistribution {
@@ -325,15 +363,65 @@ export interface ChartDataset {
 }
 
 export interface GraphDataset {
-  // TODO: Implement graph dataset
+  nodes: Array<{
+    id: string;
+    label: string;
+    value?: number;
+    category?: string;
+    metadata?: Record<string, any>;
+  }>;
+  edges?: Array<{
+    source: string;
+    target: string;
+    weight?: number;
+    label?: string;
+  }>;
+  graphType: 'network' | 'tree' | 'flowchart';
 }
 
 export interface TableDataset {
-  // TODO: Implement table dataset
+  columns: Array<{
+    key: string;
+    label: string;
+    dataType: 'string' | 'number' | 'date' | 'boolean';
+    sortable?: boolean;
+    filterable?: boolean;
+  }>;
+  rows: Array<Record<string, any>>;
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    pageSize: number;
+    totalRows: number;
+  };
 }
 
 export interface ChartStyleConfig {
-  // TODO: Implement chart style config
+  colorScheme: string[]; // Array of hex colors
+  theme: 'light' | 'dark' | 'auto';
+  chartType: 'bar' | 'line' | 'pie' | 'scatter' | 'area' | 'radar';
+  responsive: boolean;
+  animation: {
+    enabled: boolean;
+    duration: number; // in ms
+    easing: 'linear' | 'easeIn' | 'easeOut' | 'easeInOut';
+  };
+  legend: {
+    show: boolean;
+    position: 'top' | 'bottom' | 'left' | 'right';
+  };
+  axis?: {
+    x: {
+      label?: string;
+      showGrid: boolean;
+    };
+    y: {
+      label?: string;
+      showGrid: boolean;
+      min?: number;
+      max?: number;
+    };
+  };
 }
 
 import type { ValidationResult } from './component';

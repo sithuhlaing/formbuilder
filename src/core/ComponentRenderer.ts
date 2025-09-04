@@ -62,65 +62,83 @@ export class ComponentRenderer {
     switch (component.type) {
       case 'text_input':
         return React.createElement('div', props, [
-          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
-            component.label + (component.required ? ' *' : '')
-          ),
+          React.createElement('label', { 
+            key: 'label', 
+            className: 'form-field__label',
+            htmlFor: component.fieldId
+          }, component.label + (component.required ? ' *' : '')),
           React.createElement('input', {
             key: 'input',
             type: 'text',
             className: 'form-field__input',
             placeholder: component.placeholder || '',
-            required: component.required
+            required: component.required,
+            id: component.fieldId,
+            name: component.fieldId
           })
         ]);
 
       case 'email_input':
         return React.createElement('div', props, [
-          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
-            component.label + (component.required ? ' *' : '')
-          ),
+          React.createElement('label', { 
+            key: 'label', 
+            className: 'form-field__label',
+            htmlFor: component.fieldId
+          }, component.label + (component.required ? ' *' : '')),
           React.createElement('input', {
             key: 'input',
             type: 'email',
             className: 'form-field__input',
             placeholder: component.placeholder || '',
-            required: component.required
+            required: component.required,
+            id: component.fieldId,
+            name: component.fieldId
           })
         ]);
 
       case 'textarea':
         return React.createElement('div', props, [
-          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
-            component.label + (component.required ? ' *' : '')
-          ),
+          React.createElement('label', { 
+            key: 'label', 
+            className: 'form-field__label',
+            htmlFor: component.fieldId
+          }, component.label + (component.required ? ' *' : '')),
           React.createElement('textarea', {
             key: 'textarea',
             className: 'form-field__textarea',
             placeholder: component.placeholder || '',
             rows: component.rows || 4,
-            required: component.required
+            required: component.required,
+            id: component.fieldId,
+            name: component.fieldId
           })
         ]);
 
       case 'password_input':
         return React.createElement('div', props, [
-          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
-            component.label + (component.required ? ' *' : '')
-          ),
+          React.createElement('label', { 
+            key: 'label', 
+            className: 'form-field__label',
+            htmlFor: component.fieldId
+          }, component.label + (component.required ? ' *' : '')),
           React.createElement('input', {
             key: 'input',
             type: 'password',
             className: 'form-field__input',
             placeholder: component.placeholder || '',
-            required: component.required
+            required: component.required,
+            id: component.fieldId,
+            name: component.fieldId
           })
         ]);
 
       case 'number_input':
         return React.createElement('div', props, [
-          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
-            component.label + (component.required ? ' *' : '')
-          ),
+          React.createElement('label', { 
+            key: 'label', 
+            className: 'form-field__label',
+            htmlFor: component.fieldId
+          }, component.label + (component.required ? ' *' : '')),
           React.createElement('input', {
             key: 'input',
             type: 'number',
@@ -129,23 +147,29 @@ export class ComponentRenderer {
             min: component.min,
             max: component.max,
             step: component.step,
-            required: component.required
+            required: component.required,
+            id: component.fieldId,
+            name: component.fieldId
           })
         ]);
 
       case 'select':
         return React.createElement('div', props, [
-          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
-            component.label + (component.required ? ' *' : '')
-          ),
+          React.createElement('label', { 
+            key: 'label', 
+            className: 'form-field__label',
+            htmlFor: component.fieldId
+          }, component.label + (component.required ? ' *' : '')),
           React.createElement('select', {
             key: 'select',
             className: 'form-field__select',
-            required: component.required
+            required: component.required,
+            id: component.fieldId,
+            name: component.fieldId
           }, [
             React.createElement('option', { key: 'placeholder', value: '' }, 'Choose an option'),
             ...(component.options || []).map((option, idx) => 
-              React.createElement('option', { key: idx, value: option }, option)
+              React.createElement('option', { key: idx, value: option.value }, option.label)
             )
           ])
         ]);
@@ -156,41 +180,50 @@ export class ComponentRenderer {
             key: 'input',
             type: 'checkbox',
             className: 'form-field__checkbox',
-            id: component.id,
+            id: component.fieldId,
+            name: component.fieldId,
             required: component.required
           }),
           React.createElement('label', {
             key: 'label',
-            htmlFor: component.id,
+            htmlFor: component.fieldId,
             className: 'form-field__checkbox-label'
           }, component.label + (component.required ? ' *' : ''))
         ]);
 
       case 'date_picker':
         return React.createElement('div', props, [
-          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
-            component.label + (component.required ? ' *' : '')
-          ),
+          React.createElement('label', { 
+            key: 'label', 
+            className: 'form-field__label',
+            htmlFor: component.fieldId
+          }, component.label + (component.required ? ' *' : '')),
           React.createElement('input', {
             key: 'input',
             type: 'date',
             className: 'form-field__input',
-            required: component.required
+            required: component.required,
+            id: component.fieldId,
+            name: component.fieldId
           })
         ]);
 
       case 'file_upload':
         return React.createElement('div', props, [
-          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
-            component.label + (component.required ? ' *' : '')
-          ),
+          React.createElement('label', { 
+            key: 'label', 
+            className: 'form-field__label',
+            htmlFor: component.fieldId
+          }, component.label + (component.required ? ' *' : '')),
           React.createElement('input', {
             key: 'input',
             type: 'file',
             className: 'form-field__file',
             accept: component.acceptedFileTypes,
             multiple: component.multiple,
-            required: component.required
+            required: component.required,
+            id: component.fieldId,
+            name: component.fieldId
           })
         ]);
 

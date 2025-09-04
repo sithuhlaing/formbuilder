@@ -170,10 +170,12 @@ export class ComponentTransformer {
       defaultValue: raw.defaultValue,
       validationRules: raw.validationRules || [],
       options: raw.options || [],
-      children: raw.children?.map(child => this.normalize(child)) || [],
+      children: raw.children?.map((child: any) => this.normalize(child)) || [],
       helpText: raw.helpText,
-      width: raw.width,
-      height: raw.height,
+      styling: raw.width || raw.height ? {
+        width: raw.width,
+        height: raw.height
+      } : undefined,
       pattern: raw.pattern,
       min: raw.min,
       max: raw.max,
@@ -295,7 +297,8 @@ export class FormDataTransformer {
       const parsed = JSON.parse(json);
       return this.validateFormState(parsed);
     } catch (error) {
-      throw new Error(`Invalid JSON format: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Invalid JSON format: ${errorMessage}`);
     }
   }
 

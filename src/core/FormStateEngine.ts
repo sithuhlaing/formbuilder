@@ -72,7 +72,7 @@ export class FormStateEngine {
         return this.dissolveRowLayout(currentState, action.payload);
       
       case 'PULL_ELEMENT_FROM_ROW':
-        return this.pullElementFromRow(currentState, action.payload);
+        return this.pullFromRowLayout(currentState, action.payload);
       
       default:
         console.warn('❌ Unknown action type:', (action as any).type);
@@ -146,8 +146,10 @@ export class FormStateEngine {
     });
     
     return {
+      isValid: errors.length === 0,
       valid: errors.length === 0,
       errors,
+      warnings: [],
       message: errors.join('; ')
     };
   }
@@ -474,7 +476,7 @@ export class FormStateEngine {
   /**
    * Pull element from row layout to column layout
    */
-  private static pullElementFromRow(
+  private static pullFromRowLayout(
     state: any,
     payload: { pageId: string; rowLayoutId: string; elementIndex: number; targetPosition: string }
   ) {
@@ -486,19 +488,22 @@ export class FormStateEngine {
       const updatedComponents = page.components.map((component: FormComponentData) => {
         if (component.id === payload.rowLayoutId && component.type === 'horizontal_layout') {
           const children = component.children || [];
-          if (payload.elementIndex < children.length) {
-            pulledElement = children[payload.elementIndex];
-            const newChildren = children.filter((_, index) => index !== payload.elementIndex);
-            
-            // If only one element left, dissolve the row layout
-            if (newChildren.length <= 1) {
-              return null; // Mark for removal
+          if (payload.elementIndex >= 0 && payload.elementIndex < children.length) {
+            const elementToRemove = children[payload.elementIndex];
+            if (elementToRemove && elementToRemove.id) {
+              pulledElement = elementToRemove;
+              const newChildren = children.filter((_, index) => index !== payload.elementIndex);
+              
+              // If only one element left, dissolve the row layout
+              if (newChildren.length <= 1) {
+                return null; // Mark for removal
+              }
+              
+              return {
+                ...component,
+                children: newChildren
+              };
             }
-            
-            return {
-              ...component,
-              children: newChildren
-            };
           }
         }
         return component;
@@ -515,7 +520,7 @@ export class FormStateEngine {
     return { 
       ...state, 
       pages: updatedPages,
-      selectedComponentId: pulledElement?.id || null
+      selectedComponentId: (pulledElement as FormComponentData | null)?.id || null
     };
   }
 }

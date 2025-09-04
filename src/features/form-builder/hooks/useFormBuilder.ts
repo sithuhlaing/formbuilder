@@ -21,7 +21,12 @@ export const useFormBuilder = () => {
       id: 'page1', 
       title: 'Page 1', 
       components: [],
-      layout: {} 
+      validationRules: [],
+      navigationSettings: {
+        showPrevious: true,
+        showNext: true,
+        showSubmit: false
+      }
     }],
     currentPageId: 'page1',
     selectedComponentId: null,
@@ -314,6 +319,23 @@ export const useFormBuilder = () => {
     }));
   }, [formState, saveToHistory]);
 
+  // Export JSON method
+  const exportJSON = useCallback(() => {
+    const exportData = {
+      templateName: formState.templateName,
+      pages: formState.pages,
+      createdAt: new Date().toISOString(),
+      version: '1.0.0'
+    };
+    return JSON.stringify(exportData, null, 2);
+  }, [formState]);
+
+  // Preview mode state
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const togglePreview = useCallback(() => {
+    setIsPreviewMode(prev => !prev);
+  }, []);
+
   const selectedComponent = currentComponents.find(
     c => c.id === formState.selectedComponentId
   ) || null;
@@ -424,7 +446,11 @@ export const useFormBuilder = () => {
     clearAll,
     loadFromJSON,
     loadTemplate,
+    exportJSON,
     updatePageTitle,
+    // Preview mode
+    isPreviewMode,
+    togglePreview,
     // Page navigation
     getCurrentPageIndex,
     navigateToNextPage,

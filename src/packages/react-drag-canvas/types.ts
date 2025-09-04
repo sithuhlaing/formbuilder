@@ -100,14 +100,3 @@ export interface SmartDropZoneProps {
   config: Required<CanvasConfig>;
 }
 
-export interface HorizontalLayoutProps {
-  item: CanvasItem;
-  index: number;
-  renderItem: (item: CanvasItem, context: RenderContext) => React.ReactNode;
-  onItemDelete: (itemId: string) => void;
-  onItemMove?: (fromIndex: number, toIndex: number) => void;
-  onLayoutCreate?: (itemType: string, targetId: string, position: 'left' | 'right') => void;
-  selectedItemId?: string;
-  cssPrefix: string;
-  config: Required<CanvasConfig>;
-}

@@ -290,14 +290,62 @@
   box-shadow: 0 0 0 3px var(--color-primary-100);
 }
 
-.form-component.is-dragging {
-  opacity: 0.7;
-  background: white;
-  border: 2px dashed #3b82f6;
-  border-radius: var(--radius-lg);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
-  transform: rotate(2deg) scale(1.05);
+.form-component.is-dragging,
+.form-canvas__item--dragging {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Custom Drag Preview Styles */
+.drag-preview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
   z-index: 1000;
+  transform: translate(-50%, -50%);
+}
+
+.drag-preview__container {
+  background: white;
+  border: 2px solid var(--color-primary-500);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  max-width: 300px;
+  animation: dragPreviewFloat 2s ease-in-out infinite alternate;
+}
+
+.drag-preview__field {
+  margin-bottom: var(--space-2);
+  opacity: 0.9;
+}
+
+.drag-preview__label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary-600);
+  text-align: center;
+  padding: var(--space-1);
+  background: var(--color-primary-50);
+  border-radius: var(--radius-sm);
+}
+
+@keyframes dragPreviewFloat {
+  0% { 
+    transform: translate(-50%, -50%) rotate(-1deg) scale(1);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  }
+  100% { 
+    transform: translate(-50%, -50%) rotate(1deg) scale(1.02);
+    box-shadow: 0 12px 35px rgba(59, 130, 246, 0.6);
+  }
+}
+
+/* Ensure drag cursor is visible */
+.form-canvas__item--dragging * {
+  cursor: grabbing !important;
 }
 
 /* Hover Controls */
@@ -365,10 +413,78 @@
   position: absolute;
   z-index: 20;
   pointer-events: none;
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(59, 130, 246, 0.2);
   border: 2px solid var(--color-primary-500);
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
+  animation: dropIndicatorPulse 1s infinite alternate;
+}
+
+/* Enhanced drop highlight visibility */
+.form-canvas__drop-highlight {
+  position: absolute;
+  z-index: 25;
+  pointer-events: none;
+  background: rgba(59, 130, 246, 0.15);
+  border: 2px solid var(--color-primary-500);
+  border-radius: var(--radius-sm);
+  animation: dropHighlightPulse 0.8s infinite alternate;
+}
+
+@keyframes dropHighlightPulse {
+  0% { opacity: 0.8; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.02); }
+}
+
+.form-canvas__drop-highlight--top {
+  top: -8px;
+  left: 0;
+  right: 0;
+  height: 8px;
+}
+
+.form-canvas__drop-highlight--bottom {
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 8px;
+}
+
+.form-canvas__drop-highlight--left {
+  top: 0;
+  bottom: 0;
+  left: -8px;
+  width: 8px;
+}
+
+.form-canvas__drop-highlight--right {
+  top: 0;
+  bottom: 0;
+  right: -8px;
+  width: 8px;
+}
+
+.form-canvas__drop-highlight--center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 80%;
+  background: rgba(59, 130, 246, 0.1);
+  border: 3px dashed var(--color-primary-500);
+}
+
+.form-canvas__drop-label {
+  position: absolute;
+  background: var(--color-primary-600);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 30;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .form-canvas__drop-indicator--before {
@@ -440,29 +556,41 @@
 }
 
 /* Enhanced hover states for drop zones */
-.smart-drop-zone.is-drop-target {
+.smart-drop-zone.is-drop-target,
+.form-canvas__item--hover {
   background: rgba(59, 130, 246, 0.05);
   border: 2px dashed var(--color-primary-400);
   border-radius: var(--radius-lg);
 }
 
-.smart-drop-zone.hover-before {
+.smart-drop-zone.hover-before,
+.form-canvas__item--drop-top {
   border-top: 4px solid var(--color-primary-500);
+  box-shadow: inset 0 4px 0 rgba(59, 130, 246, 0.2);
 }
 
-.smart-drop-zone.hover-after {
+.smart-drop-zone.hover-after,
+.form-canvas__item--drop-bottom {
   border-bottom: 4px solid var(--color-primary-500);
   box-shadow: inset 0 -4px 0 rgba(59, 130, 246, 0.2);
 }
 
-.smart-drop-zone.hover-left {
+.smart-drop-zone.hover-left,
+.form-canvas__item--drop-left {
   border-left: 4px solid var(--color-primary-500);
-  /* Removed box-shadow to show only vertical line */
+  box-shadow: inset 4px 0 0 rgba(59, 130, 246, 0.2);
 }
 
-.smart-drop-zone.hover-right {
+.smart-drop-zone.hover-right,
+.form-canvas__item--drop-right {
   border-right: 4px solid var(--color-primary-500);
-  /* Removed box-shadow to show only vertical line */
+  box-shadow: inset -4px 0 0 rgba(59, 130, 246, 0.2);
+}
+
+.form-canvas__item--drop-center {
+  background: rgba(59, 130, 246, 0.1);
+  border: 2px solid var(--color-primary-500);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
 }
 
 /* Row Layout Container Styles */
@@ -708,16 +836,18 @@
   line-height: var(--line-height-relaxed);
 }
 
-/* Drag Preview Styles - Consistent for both palette and canvas */
+/* Drag Preview Styles - Hide dragged components */
 .palette-item.palette-item--dragging,
-.form-component.is-dragging {
-  opacity: 0.7;
-  background: white;
-  border: 2px dashed #3b82f6;
-  border-radius: var(--radius-lg);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
-  transform: rotate(2deg) scale(1.05);
-  z-index: 1000;
+.form-component.is-dragging,
+.form-canvas__item--dragging {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Ensure drag cursor is visible */
+.form-canvas__item--dragging * {
+  cursor: grabbing !important;
 }
 
 /* Drop Indicators */

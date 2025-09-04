@@ -3,7 +3,41 @@
  * Segregated interfaces following ISP - components only depend on what they need
  */
 
-import type { ComponentType, ValidationRule, ConditionalRule } from '../../types';
+import type { ValidationRule, ConditionalRule } from '../../types/component';
+
+// Component type definitions
+export type ComponentType = 
+  // Input Components
+  | "text_input"
+  | "email_input"
+  | "password_input"
+  | "number_input"
+  | "textarea"
+  | "rich_text"
+  
+  // Selection Components  
+  | "select"
+  | "multi_select"
+  | "checkbox"
+  | "checkbox_group"
+  | "radio_group"
+  
+  // Special Components
+  | "date_picker"
+  | "file_upload"
+  | "signature"
+  
+  // Layout Components
+  | "horizontal_layout"
+  | "vertical_layout"
+  
+  // UI Components
+  | "section_divider"
+  | "button"
+  | "heading"
+  | "paragraph"
+  | "divider"
+  | "card";
 
 // Base interface - only essential properties all components need
 export interface BaseComponent {
@@ -18,7 +52,10 @@ export interface BaseComponent {
 // Input-specific interface
 export interface InputComponent extends BaseComponent {
   placeholder?: string;
-  defaultValue?: string | number | boolean;
+  defaultValue?: string | number | boolean | string[];
+  pattern?: string;
+  readOnly?: boolean;
+  disabled?: boolean;
 }
 
 // Validation interface - only for components that need validation
@@ -54,7 +91,16 @@ export interface ConditionalComponent {
 // File upload interface - only for file components
 export interface FileComponent extends InputComponent {
   acceptedFileTypes?: string;
+  accept?: string;
   multiple?: boolean;
+}
+
+// Textarea interface - only for textarea components
+export interface TextareaComponent extends InputComponent {
+  rows?: number;
+  cols?: number;
+  minLength?: number;
+  maxLength?: number;
 }
 
 // Styled interface - only for components with custom styling
@@ -64,6 +110,7 @@ export interface StyledComponent {
     customCSS?: string;
     width?: string;
     height?: string;
+    theme?: string;
   };
 }
 
@@ -77,6 +124,18 @@ export interface PositionedComponent {
   };
 }
 
+// Heading interface - only for heading components
+export interface HeadingComponent extends BaseComponent {
+  level?: 1 | 2 | 3 | 4 | 5 | 6;
+}
+
+// Additional properties for compatibility with types/component.ts
+export interface CompatibilityComponent {
+  content: string;
+  description: (arg0: string, description: any, arg2: string) => React.ReactNode;
+  alignment: 'left' | 'center' | 'right' | 'justify';
+}
+
 // Composite type for full component data - intersection of needed interfaces
 export type FormComponentData = BaseComponent & 
   Partial<InputComponent> & 
@@ -86,8 +145,11 @@ export type FormComponentData = BaseComponent &
   Partial<ContainerComponent> & 
   Partial<ConditionalComponent> & 
   Partial<FileComponent> & 
+  Partial<TextareaComponent> & 
   Partial<StyledComponent> & 
-  Partial<PositionedComponent>;
+  Partial<PositionedComponent> & 
+  Partial<HeadingComponent> & 
+  Partial<CompatibilityComponent>;
 
 // Specific component type definitions - composition interfaces
 // These interfaces combine multiple base interfaces for type safety

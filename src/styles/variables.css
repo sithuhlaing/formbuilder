@@ -101,4 +101,17 @@
   --properties-width: 20rem;  /* 320px */
   --header-height: 4rem;      /* 64px */
   --max-content-width: 1200px;
+
+  /* Additional Color Variables */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-tertiary: #f1f5f9;
+  --color-bg-hover: #f3f4f6;
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #6b7280;
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+  --color-primary: #3b82f6;
+  --color-primary-light: #dbeafe;
+  --color-primary-25: #f0f9ff;
 }

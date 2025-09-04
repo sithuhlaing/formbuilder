@@ -26,7 +26,7 @@ export class ComponentEngine {
     const baseData = {
       id: generateId(),
       label: ComponentEngine.getDefaultLabel(type),
-      fieldId: `field_${Date.now()}`,
+      fieldId: generateId('field'),
       required: false
     };
 
@@ -167,6 +167,7 @@ export class ComponentEngine {
       select: 'Select',
       multi_select: 'Multi Select',
       checkbox: 'Checkbox',
+      checkbox_group: 'Checkbox Group',
       radio_group: 'Radio Group',
       date_picker: 'Date Picker',
       file_upload: 'File Upload',
@@ -176,6 +177,8 @@ export class ComponentEngine {
       vertical_layout: 'Vertical Layout',
       button: 'Button',
       heading: 'Heading',
+      paragraph: 'Paragraph',
+      divider: 'Divider',
       card: 'Card'
     };
     
@@ -188,19 +191,4 @@ export class ComponentEngine {
     return label;
   }
 
-  private static getDefaultPlaceholder(type: ComponentType): string {
-    const placeholders: Partial<Record<ComponentType, string>> = {
-      text_input: 'Enter text...',
-      email_input: 'Enter email address...',
-      password_input: 'Enter password...',
-      number_input: 'Enter a number...',
-      textarea: 'Enter your message...',
-      select: 'Choose an option...',
-      multi_select: 'Choose options...',
-      date_picker: 'Select date...',
-      file_upload: 'Click to upload files...'
-    };
-    
-    return placeholders[type] || 'Enter value...';
-  }
 }

@@ -1,0 +1,380 @@
+/* Mobile Drag & Drop Optimizations */
+
+/* Touch-friendly drag handles and controls */
+@media (max-width: 768px) {
+  /* Larger touch targets for mobile */
+  .form-component__hover-controls {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    display: flex;
+    gap: 8px;
+    opacity: 1; /* Always visible on mobile */
+    z-index: 20;
+  }
+
+  .form-component__hover-action {
+    width: 44px; /* WCAG minimum touch target */
+    height: 44px;
+    background: white;
+    border: 2px solid var(--color-gray-300);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .form-component__hover-action:active {
+    transform: scale(0.95);
+    background: var(--color-gray-50);
+  }
+
+  .form-component__hover-action--drag {
+    color: var(--color-primary-600);
+    border-color: var(--color-primary-300);
+  }
+
+  .form-component__hover-action--delete {
+    color: var(--color-error-600);
+    border-color: var(--color-error-300);
+  }
+
+  /* Enhanced drag feedback for touch */
+  .form-component.is-dragging {
+    opacity: 0.8;
+    transform: scale(1.05) rotate(3deg);
+    box-shadow: 0 12px 30px rgba(59, 130, 246, 0.4);
+    z-index: 1000;
+  }
+
+  /* Larger drop zones for easier targeting */
+  .canvas-item__drop-zone--active {
+    height: 60px; /* Increased from 40px */
+    border-width: 3px;
+    font-size: 16px;
+  }
+
+  /* Enhanced drop indicators */
+  .form-canvas__drop-indicator {
+    border-width: 4px;
+    border-radius: 8px;
+  }
+
+  .form-canvas__drop-indicator--before,
+  .form-canvas__drop-indicator--after {
+    height: 12px; /* Increased from 8px */
+  }
+
+  .form-canvas__drop-indicator--left,
+  .form-canvas__drop-indicator--right {
+    width: 12px; /* Increased from 8px */
+  }
+
+  .drop-indicator {
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 6px;
+  }
+
+  /* Touch-friendly palette items */
+  .draggable-item {
+    padding: 16px;
+    margin-bottom: 12px;
+    border-width: 2px;
+    min-height: 60px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .draggable-item:active {
+    transform: scale(0.98);
+    background: var(--color-gray-50);
+  }
+
+  /* Mobile canvas optimizations */
+  .form-builder-canvas {
+    padding: 12px;
+  }
+
+  .form-canvas__container {
+    padding: 16px 12px;
+  }
+
+  .form-component {
+    padding: 16px;
+    margin-bottom: 16px;
+    border-width: 2px;
+    min-height: 60px;
+  }
+
+  /* Enhanced empty state for mobile */
+  .canvas-empty-state {
+    padding: 32px 16px;
+  }
+
+  .canvas-empty-state__icon {
+    font-size: 4rem;
+    margin-bottom: 16px;
+  }
+
+  .canvas-empty-state__title {
+    font-size: 1.25rem;
+    margin-bottom: 8px;
+  }
+
+  .canvas-empty-state__description {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  /* Mobile-specific drop zone styling */
+  .canvas-drop-zone {
+    min-height: 300px;
+    padding: 24px 16px;
+    border-width: 3px;
+    border-radius: 12px;
+  }
+
+  .canvas-drop-zone.is-drop-target {
+    border-width: 4px;
+    background: var(--color-primary-25);
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+  }
+
+  /* Bottom drop zone enhancements */
+  .canvas-bottom-drop-zone {
+    margin-top: 16px;
+    padding: 20px;
+    border-width: 3px;
+    border-radius: 12px;
+    min-height: 80px;
+  }
+
+  .canvas-bottom-drop-zone.is-active {
+    border-width: 4px;
+    background: var(--color-primary-50);
+  }
+
+  .drop-zone-text {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  /* Row layout mobile optimizations */
+  .row-layout-container {
+    padding: 16px;
+    border-width: 2px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+
+  .row-layout-container__content {
+    gap: 16px;
+    min-height: 80px;
+    flex-direction: column; /* Stack horizontally on mobile */
+  }
+
+  .row-layout-container__delete {
+    width: 44px;
+    height: 44px;
+    top: -12px;
+    right: -12px;
+    border-radius: 8px;
+    font-size: 20px;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+
+  /* Mobile drawer integration */
+  .form-builder__sidebar {
+    /* Hidden on mobile - handled by drawers */
+    display: none;
+  }
+
+  .form-builder__main {
+    /* Full width on mobile */
+    width: 100%;
+    margin: 0;
+  }
+
+  /* Touch scroll improvements */
+  .form-canvas__container {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Prevent text selection during drag */
+  .form-component.is-dragging * {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Enhanced visual feedback */
+  .smart-drop-zone.is-drop-target {
+    background: rgba(59, 130, 246, 0.1);
+    border: 3px dashed var(--color-primary-500);
+    border-radius: 12px;
+    transform: scale(1.02);
+  }
+
+  /* Mobile-specific animations */
+  @keyframes mobileDropPulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    }
+    50% {
+      box-shadow: 0 0 0 15px rgba(59, 130, 246, 0);
+    }
+  }
+
+  .canvas-drop-zone.is-drop-target {
+    animation: mobileDropPulse 2s infinite;
+  }
+
+  /* Touch-friendly between elements drop zones */
+  .between-elements-drop-zone {
+    min-height: 60px;
+    margin: 8px 0;
+    border-radius: 8px;
+  }
+
+  .between-elements-drop-zone.is-active {
+    background: rgba(59, 130, 246, 0.15);
+    border: 2px dashed var(--color-primary-500);
+  }
+
+  /* Mobile delete zone */
+  .delete-zone--active {
+    background-color: rgba(239, 68, 68, 0.15);
+  }
+
+  .delete-zone__indicator {
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(239, 68, 68, 0.5);
+  }
+
+  .delete-zone__icon {
+    font-size: 4rem;
+  }
+
+  .delete-zone__text {
+    font-size: 1.125rem;
+    margin-top: 8px;
+  }
+}
+
+/* Landscape mobile optimizations */
+@media (max-width: 768px) and (orientation: landscape) {
+  .row-layout-container__content {
+    flex-direction: row; /* Restore horizontal layout in landscape */
+  }
+
+  .canvas-empty-state {
+    padding: 24px 16px;
+  }
+
+  .canvas-empty-state__icon {
+    font-size: 3rem;
+  }
+}
+
+/* Very small screens (phones in portrait) */
+@media (max-width: 480px) {
+  .form-component__hover-controls {
+    gap: 6px;
+  }
+
+  .form-component__hover-action {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .form-component {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .draggable-item {
+    padding: 12px;
+    min-height: 56px;
+  }
+
+  .canvas-drop-zone {
+    min-height: 250px;
+    padding: 20px 12px;
+  }
+
+  .canvas-empty-state__title {
+    font-size: 1.125rem;
+  }
+
+  .canvas-empty-state__description {
+    font-size: 0.875rem;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .form-component__hover-action {
+    border-width: 1px; /* Thinner borders on high DPI */
+  }
+
+  .drop-indicator {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .form-component.is-dragging {
+    transform: scale(1.02) rotate(1deg);
+    transition: none;
+  }
+
+  .canvas-drop-zone.is-drop-target {
+    animation: none;
+  }
+
+  .form-component__hover-action:active {
+    transform: none;
+  }
+}
+
+/* Dark mode support for mobile */
+@media (prefers-color-scheme: dark) and (max-width: 768px) {
+  .form-component__hover-action {
+    background: var(--color-gray-800);
+    border-color: var(--color-gray-600);
+    color: var(--color-gray-100);
+  }
+
+  .form-component__hover-action--drag {
+    border-color: var(--color-primary-400);
+    color: var(--color-primary-400);
+  }
+
+  .form-component__hover-action--delete {
+    border-color: var(--color-error-400);
+    color: var(--color-error-400);
+  }
+
+  .canvas-drop-zone {
+    background: var(--color-gray-900);
+    border-color: var(--color-gray-600);
+  }
+
+  .canvas-drop-zone.is-drop-target {
+    background: var(--color-primary-900);
+    border-color: var(--color-primary-400);
+  }
+}
