@@ -3,7 +3,7 @@
  * Comprehensive performance benchmarking with memory profiling
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import { FormBuilder } from '../../features/form-builder/components/FormBuilder';
 import { performance } from 'perf_hooks';

@@ -135,7 +135,7 @@ describe('🛡️ Error Recovery Testing', () => {
       }
       
       // Simulate state corruption by directly manipulating internal state
-      const corruptState = { pages: null, components: undefined };
+      const _corruptState = { pages: null, components: undefined };
       
       // Trigger state corruption through invalid operation
       await act(async () => {
@@ -151,7 +151,7 @@ describe('🛡️ Error Recovery Testing', () => {
           });
           
           fireEvent.drop(screen.getByTestId('canvas'));
-        } catch (error) {
+        } catch {
           // Expected error due to corruption
         }
       });
@@ -180,7 +180,7 @@ describe('🛡️ Error Recovery Testing', () => {
           invalidButton.setAttribute('data-component-type', 'invalid_type');
           
           fireEvent.click(invalidButton);
-        } catch (error) {
+        } catch {
           // Expected error
         }
       });
@@ -222,7 +222,7 @@ describe('🛡️ Error Recovery Testing', () => {
           fireEvent.change(labelInput, {
             target: { value: JSON.stringify(mockCircularData) }
           });
-        } catch (error) {
+        } catch {
           // Expected error due to circular reference
         }
       });
@@ -255,7 +255,7 @@ describe('🛡️ Error Recovery Testing', () => {
       
       // Should show error but remain functional
       const errors = errorSimulator.getErrors();
-      const hasNetworkError = errors.some(e => e.message.includes('Network') || e.message.includes('export'));
+      const _hasNetworkError = errors.some(e => e.message.includes('Network') || e.message.includes('export'));
       
       // Application should still be responsive
       expect(screen.getByTestId('canvas')).toBeInTheDocument();
@@ -324,7 +324,7 @@ describe('🛡️ Error Recovery Testing', () => {
         try {
           // Trigger auto-save
           fireEvent.click(screen.getAllByText('Text Input Field')[0]);
-        } catch (error) {
+        } catch {
           // Expected storage error
         }
       });
@@ -395,7 +395,7 @@ describe('🛡️ Error Recovery Testing', () => {
         
         // Should handle error gracefully
         const errors = errorSimulator.getErrors();
-        const hasParsingError = errors.some(e => 
+        const _hasParsingError = errors.some(e => 
           e.message.includes('JSON') || 
           e.message.includes('parse') || 
           e.message.includes('invalid')
@@ -431,7 +431,7 @@ describe('🛡️ Error Recovery Testing', () => {
           });
           
           window.dispatchEvent(importEvent);
-        } catch (error) {
+        } catch {
           // Expected validation error
         }
       });
@@ -441,7 +441,7 @@ describe('🛡️ Error Recovery Testing', () => {
       
       // Should show appropriate error message
       const errors = errorSimulator.getErrors();
-      const hasValidationError = errors.some(e => 
+      const _hasValidationError = errors.some(e => 
         e.message.includes('invalid') || 
         e.message.includes('validation')
       );
@@ -476,7 +476,7 @@ describe('🛡️ Error Recovery Testing', () => {
           
           // Trigger re-render
           fireEvent.click(problematicComponent);
-        } catch (error) {
+        } catch {
           // Expected component error
         }
       });
@@ -520,7 +520,7 @@ describe('🛡️ Error Recovery Testing', () => {
           });
           
           fireEvent.drop(canvas);
-        } catch (error) {
+        } catch {
           // Expected drag error
         }
       });
@@ -544,7 +544,7 @@ describe('🛡️ Error Recovery Testing', () => {
       const ErrorBoundaryComponent = ({ children }: { children: React.ReactNode }) => {
         try {
           return <>{children}</>;
-        } catch (error) {
+        } catch {
           return <div data-testid="error-fallback">Error occurred, but recovered</div>;
         }
       };
@@ -563,7 +563,7 @@ describe('🛡️ Error Recovery Testing', () => {
         try {
           // Simulate React error
           throw new Error('React component error');
-        } catch (error) {
+        } catch {
           // Error boundary should catch this
         }
       });
@@ -590,7 +590,7 @@ describe('🛡️ Error Recovery Testing', () => {
           };
           
           invalidOperation();
-        } catch (error) {
+        } catch {
           // Error should be caught and recovery initiated
         }
       });
@@ -626,7 +626,7 @@ describe('🛡️ Error Recovery Testing', () => {
             action: 'component_click',
             componentType: 'text_input',
             timestamp: Date.now(),
-            error: error.message
+            error: (error as Error).message
           });
         }
       });
@@ -645,7 +645,7 @@ describe('🛡️ Error Recovery Testing', () => {
         await act(async () => {
           try {
             throw new Error('Repeated error');
-          } catch (error) {
+          } catch {
             console.error('Repeated error occurred');
           }
         });

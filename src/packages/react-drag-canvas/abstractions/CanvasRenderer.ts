@@ -30,7 +30,7 @@ export class HTMLStringRenderer extends AbstractCanvasRenderer {
     this.htmlGenerator = htmlGenerator;
   }
 
-  render(item: CanvasItem, context: RenderContext): React.ReactNode {
+  render(item: CanvasItem, _context: RenderContext): React.ReactNode {
     const htmlContent = this.htmlGenerator(item, 'builder');
     
     return React.createElement('div', {

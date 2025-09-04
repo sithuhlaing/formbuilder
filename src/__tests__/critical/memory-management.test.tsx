@@ -56,8 +56,8 @@ class MemoryTracker {
 }
 
 // Mock WeakMap and WeakSet for leak detection
-const mockWeakMap = vi.fn();
-const mockWeakSet = vi.fn();
+const _mockWeakMap = vi.fn();
+const _mockWeakSet = vi.fn();
 
 beforeEach(() => {
   // Mock performance.memory
@@ -303,7 +303,7 @@ describe('🧠 Memory Management Testing', () => {
       memoryTracker.takeSnapshot('first-batch');
       
       // Delete all and add 10 more
-      let deleteButtons = screen.getAllByText('×');
+      const deleteButtons = screen.getAllByText('×');
       for (const button of deleteButtons) {
         await act(async () => {
           fireEvent.click(button);

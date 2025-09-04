@@ -91,7 +91,7 @@ const App: React.FC = () => {
         'An error occurred while saving. Please try again.'
       );
     }
-  }, [actions]);
+  }, [formBuilderHook, actions]);
 
 
   const handleJSONUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,7 +111,7 @@ const App: React.FC = () => {
   // Export template layout JSON (headless JSON for form data)
   const handleExportJSON = useCallback(() => {
     try {
-      const { formState } = useFormBuilder();
+      const { formState } = formBuilderHook;
       const templateData = {
         templateName: formState.templateName,
         pages: formState.pages
@@ -140,7 +140,7 @@ const App: React.FC = () => {
         'Failed to export template. Please try again.'
       );
     }
-  }, [actions]);
+  }, [formBuilderHook, actions]);
 
   const handleBackToList = useCallback(() => {
     actions.setView('list');

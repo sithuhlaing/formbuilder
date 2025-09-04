@@ -31,7 +31,7 @@ export const PerformanceTestSuite: React.FC<PerformanceTestSuiteProps> = ({ onCl
   const [currentTest, setCurrentTest] = useState<string>('');
   const testRef = useRef<HTMLDivElement>(null);
 
-  const { summary, getSlowComponents } = useGlobalPerformance();
+  const { getSlowComponents } = useGlobalPerformance();
   usePerformanceMonitor({ 
     componentName: 'PerformanceTestSuite' 
   });
@@ -87,14 +87,13 @@ export const PerformanceTestSuite: React.FC<PerformanceTestSuiteProps> = ({ onCl
   // Run individual test
   const runPerformanceTest = useCallback(async (
     testName: string, 
-    components: FormComponentData[],
-    useOptimizations: boolean = true
+    components: FormComponentData[]
   ) => {
     const startTime = performance.now();
     const startMemory = (performance as any).memory?.usedJSHeapSize || 0;
-
+  
     setCurrentTest(testName);
-
+  
     // Force a render cycle
     await new Promise(resolve => {
       requestAnimationFrame(() => {
@@ -110,7 +109,7 @@ export const PerformanceTestSuite: React.FC<PerformanceTestSuiteProps> = ({ onCl
             averageRenderTime: (endTime - startTime) / components.length,
             timestamp: Date.now()
           };
-
+  
           setTestResults(prev => [...prev, result]);
           resolve(undefined);
         });
@@ -128,13 +127,14 @@ export const PerformanceTestSuite: React.FC<PerformanceTestSuiteProps> = ({ onCl
         const components = generateTestComponents(test.componentCount);
         
         // Test with optimizations
-        await runPerformanceTest(`${test.name} (Optimized)`, components, true);
+        await runPerformanceTest(`${test.name} (Optimized)`, components);
         
         // Wait between tests
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Test without optimizations (for comparison)
-        await runPerformanceTest(`${test.name} (Standard)`, components, false);
+        await runPerformanceTest(`${test.name} (Standard)`, components);
+
         
         // Wait between tests
         await new Promise(resolve => setTimeout(resolve, 1000));

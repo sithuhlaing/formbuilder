@@ -51,7 +51,7 @@ class TouchSimulator {
     });
   }
 
-  simulateSwipe(element: Element, startX: number, startY: number, endX: number, endY: number, duration = 300) {
+  simulateSwipe(element: Element, startX: number, startY: number, endX: number, endY: number, _duration = 300) {
     const startTouch = this.createTouch(startX, startY, element);
     const startTouchList = this.createTouchList(startTouch);
 
@@ -322,7 +322,7 @@ describe('📱 Mobile/Touch Interface Testing', () => {
       
       // On mobile, components should stack vertically
       const canvas = screen.getByTestId('canvas');
-      const computedStyle = window.getComputedStyle(canvas);
+      const _computedStyle = window.getComputedStyle(canvas);
       
       // Should use mobile-friendly layout
       expect(canvas).toBeInTheDocument();
@@ -333,7 +333,7 @@ describe('📱 Mobile/Touch Interface Testing', () => {
       
       // Check if sidebars are adapted for mobile
       const sidebar = document.querySelector('.sidebar');
-      const propertiesPanel = document.querySelector('.properties-panel');
+      const _propertiesPanel = document.querySelector('.properties-panel');
       
       if (sidebar) {
         const sidebarStyle = window.getComputedStyle(sidebar);

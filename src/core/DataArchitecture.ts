@@ -3,7 +3,7 @@
  * Provides comprehensive data management, transformation, and persistence
  */
 
-import type { FormComponentData, ComponentType } from '../types/component';
+import type { FormComponentData } from '../types/component';
 
 // Core Data Interfaces
 export interface FormState {
@@ -267,16 +267,16 @@ export class LayoutTransformer {
     return components.map(component => {
       if (component.children) {
         const optimizedChildren = this.optimizeLayout(component.children);
-        
+
         // Remove empty layouts
-        if ((component.type === 'horizontal_layout' || component.type === 'vertical_layout') && 
-            optimizedChildren.length === 0) {
+        if ((component.type === 'horizontal_layout' || component.type === 'vertical_layout') &&
+          optimizedChildren.length === 0) {
           return null;
         }
 
         // Flatten single-child layouts
-        if ((component.type === 'horizontal_layout' || component.type === 'vertical_layout') && 
-            optimizedChildren.length === 1) {
+        if ((component.type === 'horizontal_layout' || component.type === 'vertical_layout') &&
+          optimizedChildren.length === 1) {
           return optimizedChildren[0];
         }
 
@@ -411,7 +411,7 @@ export class SubmissionProcessor {
     if (submissions.length === 0) return '';
 
     const headers = Object.keys(submissions[0].formData);
-    const rows = submissions.map(sub => 
+    const rows = submissions.map(sub =>
       headers.map(header => sub.formData[header] || '').join(',')
     );
 
@@ -421,9 +421,9 @@ export class SubmissionProcessor {
   private static toXML(submission: FormSubmission): string {
     return `<?xml version="1.0" encoding="UTF-8"?>
 <submission id="${submission.submissionId}" templateId="${submission.templateId}">
-  ${Object.entries(submission.formData).map(([key, value]) => 
-    `<field name="${key}">${value}</field>`
-  ).join('\n  ')}
+  ${Object.entries(submission.formData).map(([key, value]) =>
+      `<field name="${key}">${value}</field>`
+    ).join('\n  ')}
 </submission>`;
   }
 }
@@ -447,7 +447,7 @@ export class StorageManager {
   static saveTemplate(template: Template): void {
     const templates = this.getTemplates();
     const existingIndex = templates.findIndex(t => t.templateId === template.templateId);
-    
+
     if (existingIndex >= 0) {
       templates[existingIndex] = template;
     } else {

@@ -1,6 +1,6 @@
-import { render, screen, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderAppWithDragDrop, mockFormBuilderState } from './utils/testUtils';
+import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { mockFormBuilderState } from './utils/testUtils';
 
 // Mock the form builder hook
 vi.mock('../hooks/useFormBuilder', () => ({
@@ -141,7 +141,7 @@ describe('🔍 Drag-and-Drop Validation', () => {
   });
 
   it('✅ Canvas accepts drops correctly', async () => {
-    const { } = await renderAppWithDragDrop();
+    await renderAppWithDragDrop();
     
     // Verify canvas has proper drop zone setup
     const canvas = screen.getByTestId('canvas');

@@ -12,11 +12,11 @@ import { FormStateEngine } from '../core/FormStateEngine';
 describe('🎯 Business Logic Tests - Core Requirements', () => {
 
   describe('Form Builder Workflow - Complete User Journey', () => {
-    let formBuilder: ReturnType<typeof useFormBuilder>;
+    let _formBuilder: ReturnType<typeof useFormBuilder>;
 
     beforeEach(() => {
       const { result } = renderHook(() => useFormBuilder());
-      formBuilder = result.current;
+      _formBuilder = result.current;
     });
 
     it('should support complete form building workflow', () => {
@@ -93,8 +93,6 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
       expect(result.current.canUndo).toBe(true);
       expect(result.current.canRedo).toBe(false);
       expect(result.current.currentComponents).toHaveLength(1);
-      
-      const firstComponentId = result.current.currentComponents[0].id;
 
       // Test undo after one addition
       act(() => {

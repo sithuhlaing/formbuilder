@@ -56,7 +56,7 @@ class AccessibilityTester {
       'button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])'
     );
     
-    focusableElements.forEach((element, index) => {
+    focusableElements.forEach((element, _index) => {
       const tabIndex = element.getAttribute('tabindex');
       
       if (tabIndex && parseInt(tabIndex) > 0) {
@@ -576,7 +576,7 @@ describe('♿ Accessibility Testing', () => {
 
   describe('Language and Internationalization', () => {
     it('should have proper lang attributes', async () => {
-      const { container } = render(<FormBuilder />);
+      render(<FormBuilder />);
       
       const htmlElement = document.documentElement;
       expect(htmlElement.getAttribute('lang')).toBeTruthy();

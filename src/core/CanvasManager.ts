@@ -231,7 +231,7 @@ export class CanvasManager {
   /**
    * Handle drag start
    */
-  onDragStart(componentId?: string): void {
+  onDragStart(_componentId?: string): void {
     this.updateState({ isDragging: true });
   }
 

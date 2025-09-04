@@ -98,7 +98,7 @@ const renderAppWithDragDrop = async () => {
           await userEvent.click(inputsAccordion);
           await new Promise<void>(resolve => setTimeout(resolve, 100));
         }
-      } catch (e) {
+      } catch {
         console.log('Could not find Input Fields accordion button, continuing...');
       }
       

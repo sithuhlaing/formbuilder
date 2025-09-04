@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DragDropLogic } from '../core/DragDropLogic';
 import { ComponentEngine } from '../core/ComponentEngine';
-import type { FormComponentData, DropPosition } from '../types/component';
+import type { FormComponentData } from '../types/component';
 
 describe('🎯 Drag-Drop Operations - Complete Coverage', () => {
 
@@ -584,7 +584,7 @@ describe('🎯 Drag-Drop Operations - Complete Coverage', () => {
   describe('Performance and Optimization', () => {
 
     it('should handle large component arrays efficiently', () => {
-      const largeComponentArray = Array.from({ length: 1000 }, (_, i) => 
+      const largeComponentArray = Array.from({ length: 1000 }, () => 
         ComponentEngine.createComponent('text_input')
       );
 

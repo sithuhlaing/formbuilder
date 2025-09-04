@@ -31,7 +31,7 @@ describe('🔍 Debug Component Palette', () => {
     try {
       const textInput = screen.getByText('Text Input Field');
       console.log('Found Text Input Field element:', textInput.tagName, textInput.textContent);
-    } catch (e) {
+    } catch {
       console.log('Text Input Field not found directly');
     }
     
@@ -52,7 +52,7 @@ describe('🔍 Debug Component Palette', () => {
       textElements.forEach((el, i) => {
         console.log(`Text element ${i}:`, el.textContent, 'TagName:', el.tagName);
       });
-    } catch (e) {
+    } catch {
       console.log('No elements with "text" found');
     }
   });

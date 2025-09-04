@@ -69,14 +69,14 @@ describe('🔍 Debug A3 and A4 Issues', () => {
     try {
       const textField = screen.getByText('Text Input Field');
       console.log('Found "Text Input Field":', textField.textContent);
-    } catch (e) {
+    } catch {
       console.log('Could not find "Text Input Field"');
     }
     
     try {
       const emailField = screen.getByText('Email Field');
       console.log('Found "Email Field":', emailField.textContent);
-    } catch (e) {
+    } catch {
       console.log('Could not find "Email Field"');
     }
     

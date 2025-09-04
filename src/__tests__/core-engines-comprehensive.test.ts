@@ -6,10 +6,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentEngine } from '../core/ComponentEngine';
 import { FormStateEngine } from '../core/FormStateEngine';
-import { ComponentRenderer } from '../core/ComponentRenderer';
 import { ComponentValidationEngine } from '../core/ComponentValidationEngine';
 import { DragDropLogic } from '../core/DragDropLogic';
-import type { FormComponentData, ComponentType, ValidationResult } from '../types/component';
+import type { FormComponentData, ComponentType } from '../types/component';
 
 describe('🏗️ Core Engines - Comprehensive Coverage', () => {
 

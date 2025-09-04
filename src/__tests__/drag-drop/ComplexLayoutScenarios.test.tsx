@@ -38,7 +38,7 @@ const renderAppWithComplexDragDrop = async () => {
         await userEvent.click(inputsAccordion);
         await new Promise<void>(resolve => setTimeout(resolve, 100));
       }
-    } catch (e) {
+    } catch {
       // Accordion might already be expanded
     }
     

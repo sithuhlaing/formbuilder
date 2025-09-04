@@ -97,7 +97,7 @@ export class ComponentValidationEngine {
   /**
    * Validates file upload components
    */
-  private static validateFileComponent(component: FormComponentData, errors: string[]): void {
+  private static validateFileComponent(component: FormComponentData, _errors: string[]): void {
     if (component.type === 'file_upload') {
       // acceptedFileTypes validation could be added here
       // For now, we accept any value including '*'

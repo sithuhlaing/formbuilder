@@ -9,7 +9,6 @@ import type {
   FormSchema, 
   ValidationResult, 
   ValidationRule,
-  ConditionalRule 
 } from '../types';
 
 export class ValidationEngine {
@@ -85,7 +84,7 @@ export class ValidationEngine {
    */
   static validateForm(formSchema: FormSchema, formData: any): ValidationResult {
     const errors: string[] = [];
-    const fieldErrors: Record<string, string[]> = {};
+    // const fieldErrors: Record<string, string[]> = {};
     
     // Validate each page
     formSchema.pages.forEach((page, pageIndex) => {
@@ -170,7 +169,7 @@ export class ValidationEngine {
   /**
    * Private helper methods
    */
-  private static validateRule(rule: ValidationRule, value: any, component: FormComponentData | null): ValidationResult {
+  private static validateRule(rule: ValidationRule, value: any, _component: FormComponentData | null): ValidationResult {
     switch (rule.type) {
       case 'required':
         const isValid = value !== null && value !== undefined && value !== '';

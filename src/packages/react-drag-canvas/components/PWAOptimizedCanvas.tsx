@@ -8,9 +8,7 @@ import { useDrop, useDrag } from 'react-dnd';
 import type { 
   CanvasItem, 
   DragDropCanvasProps, 
-  DragItem, 
-  RenderContext,
-  DropPosition 
+  DragItem
 } from '../types';
 
 // PWA-specific configuration
@@ -203,12 +201,11 @@ export const PWADragDropCanvas: React.FC<PWADragDropCanvasProps> = ({
 
   const {
     touchOptimized = true,
-    offlineMode = false,
     minTouchTarget = 44
   } = pwaConfig;
 
   // PWA hooks
-  const { isOnline, isOffline } = useOfflineDetection(onOfflineStateChange);
+  const { isOffline } = useOfflineDetection(onOfflineStateChange);
   const systemReducedMotion = useReducedMotion();
   const reducedMotion = pwaConfig.reducedMotion ?? systemReducedMotion;
 

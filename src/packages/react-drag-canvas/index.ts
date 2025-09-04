@@ -6,7 +6,7 @@
 // Main exports for react-drag-canvas package
 export { DragDropCanvas } from './components/DragDropCanvas';
 export { SmartDropZone } from './components/SmartDropZone';
-export { HorizontalLayout } from './components/HorizontalLayout';
+// export { HorizontalLayout } from './components/HorizontalLayout';
 export { RowLayout } from './components/RowLayout';
 export { VerticalLayout } from './components/VerticalLayout';
 export { PWADragDropCanvas } from './components/PWAOptimizedCanvas';
@@ -40,6 +40,5 @@ export type {
   CanvasCore,
   CanvasDragDrop,
   CanvasUI,
-  SmartDropZoneProps,
-  HorizontalLayoutProps
+  SmartDropZoneProps
 } from './types';
