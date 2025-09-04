@@ -15,6 +15,7 @@ export interface IFormState {
 
 // Page structure interface
 export interface FormPage {
+  layoutConfig: {};
   id: string;
   title: string;
   components: FormComponentData[];

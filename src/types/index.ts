@@ -40,7 +40,6 @@ export type {
 // Re-export form schema types - DOCUMENTATION ALIGNED
 export type {
   FormSchema,
-  FormPage,
   FormSettings,
   FormTheme,
   PageNavigationSettings,

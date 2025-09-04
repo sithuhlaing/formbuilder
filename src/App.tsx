@@ -47,6 +47,7 @@ const App: React.FC = () => {
     clearAll,
     handleDrop,
     moveComponent,
+    addToRowLayout,
     getCurrentPageIndex,
     navigateToNextPage,
     navigateToPreviousPage,
@@ -335,6 +336,7 @@ const App: React.FC = () => {
                 onSelect={selectComponent}
                 onMove={moveComponent}
                 onDelete={deleteComponent}
+                onAddToLayout={addToRowLayout}
                 selectedId={formState.selectedComponentId || undefined}
               />
             </div>

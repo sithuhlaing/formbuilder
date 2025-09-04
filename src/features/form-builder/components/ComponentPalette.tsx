@@ -89,20 +89,28 @@ interface ComponentPaletteProps {
 
 export const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddComponent }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['input-fields']));
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['input-components', 'selection-components']));
 
-  // ALIGNED WITH DOCUMENTATION - Properly categorized components
-  const inputFieldTypes: ComponentType[] = [
+  // EXACTLY AS DOCUMENTED - Fixed component categorization
+  const inputComponentTypes: ComponentType[] = [
     'text_input', 'email_input', 'password_input', 'number_input',
-    'textarea', 'rich_text', 'date_picker', 'file_upload', 'signature'
+    'textarea', 'rich_text'
   ];
 
-  const selectionControlTypes: ComponentType[] = [
+  const selectionComponentTypes: ComponentType[] = [
     'select', 'multi_select', 'checkbox', 'radio_group'
   ];
 
-  const layoutTypes: ComponentType[] = [
-    'section_divider', 'horizontal_layout', 'vertical_layout'
+  const specialComponentTypes: ComponentType[] = [
+    'date_picker', 'file_upload', 'signature'
+  ];
+
+  const layoutComponentTypes: ComponentType[] = [
+    'horizontal_layout', 'vertical_layout'
+  ];
+
+  const uiComponentTypes: ComponentType[] = [
+    'section_divider', 'button', 'heading', 'card'
   ];
 
   // Filter components based on search
@@ -126,9 +134,11 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddCompone
     setExpandedCategories(newExpanded);
   };
 
-  const filteredInputFields = filterComponents(inputFieldTypes);
-  const filteredSelectionControls = filterComponents(selectionControlTypes);
-  const filteredLayoutComponents = filterComponents(layoutTypes);
+  const filteredInputComponents = filterComponents(inputComponentTypes);
+  const filteredSelectionComponents = filterComponents(selectionComponentTypes);
+  const filteredSpecialComponents = filterComponents(specialComponentTypes);
+  const filteredLayoutComponents = filterComponents(layoutComponentTypes);
+  const filteredUIComponents = filterComponents(uiComponentTypes);
 
   return (
     <div className="component-palette-container">
@@ -147,14 +157,14 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddCompone
         />
       </div>
 
-      {/* Input Fields Category */}
+      {/* Input Components Category */}
       <ComponentCategory
-        title="Input Fields"
+        title="Input Components"
         icon="📝"
-        isExpanded={expandedCategories.has('input-fields')}
-        onToggle={() => toggleCategory('input-fields')}
+        isExpanded={expandedCategories.has('input-components')}
+        onToggle={() => toggleCategory('input-components')}
       >
-        {filteredInputFields.map(type => (
+        {filteredInputComponents.map(type => (
           <PaletteItem
             key={type}
             componentType={type}
@@ -163,14 +173,30 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddCompone
         ))}
       </ComponentCategory>
 
-      {/* Selection Controls Category */}
+      {/* Selection Components Category */}
       <ComponentCategory
-        title="Selection Controls"
-        icon="⚙️"
-        isExpanded={expandedCategories.has('selection-controls')}
-        onToggle={() => toggleCategory('selection-controls')}
+        title="Selection Components"
+        icon="☑️"
+        isExpanded={expandedCategories.has('selection-components')}
+        onToggle={() => toggleCategory('selection-components')}
       >
-        {filteredSelectionControls.map(type => (
+        {filteredSelectionComponents.map(type => (
+          <PaletteItem
+            key={type}
+            componentType={type}
+            onAddComponent={onAddComponent}
+          />
+        ))}
+      </ComponentCategory>
+
+      {/* Special Components Category */}
+      <ComponentCategory
+        title="Special Components"
+        icon="⭐"
+        isExpanded={expandedCategories.has('special-components')}
+        onToggle={() => toggleCategory('special-components')}
+      >
+        {filteredSpecialComponents.map(type => (
           <PaletteItem
             key={type}
             componentType={type}
@@ -182,7 +208,7 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddCompone
       {/* Layout Components Category */}
       <ComponentCategory
         title="Layout Components"
-        icon="🏗️"
+        icon="📐"
         isExpanded={expandedCategories.has('layout-components')}
         onToggle={() => toggleCategory('layout-components')}
       >
@@ -195,11 +221,29 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddCompone
         ))}
       </ComponentCategory>
 
+      {/* UI Components Category */}
+      <ComponentCategory
+        title="UI Components"
+        icon="🎨"
+        isExpanded={expandedCategories.has('ui-components')}
+        onToggle={() => toggleCategory('ui-components')}
+      >
+        {filteredUIComponents.map(type => (
+          <PaletteItem
+            key={type}
+            componentType={type}
+            onAddComponent={onAddComponent}
+          />
+        ))}
+      </ComponentCategory>
+
       {/* No results */}
       {searchTerm && 
-       filteredInputFields.length === 0 && 
-       filteredSelectionControls.length === 0 && 
-       filteredLayoutComponents.length === 0 && (
+       filteredInputComponents.length === 0 && 
+       filteredSelectionComponents.length === 0 && 
+       filteredSpecialComponents.length === 0 &&
+       filteredLayoutComponents.length === 0 &&
+       filteredUIComponents.length === 0 && (
         <div style={{ 
           padding: '2rem', 
           textAlign: 'center', 

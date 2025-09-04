@@ -143,8 +143,11 @@ export const useFormBuilder = () => {
     targetId: string,
     position: 'before' | 'after' | 'left' | 'right' | 'inside'
   ) => {
+    console.log('useFormBuilder handleDrop:', { componentType, targetId, position });
+    
     // Handle empty canvas case
     if (targetId === 'empty-canvas') {
+      console.log('Adding component to empty canvas');
       addComponent(componentType);
       return;
     }
@@ -152,17 +155,20 @@ export const useFormBuilder = () => {
     // Handle between-element insertion (from BetweenElementsDropZone)
     if (targetId.startsWith('index-') && position === 'before') {
       const insertIndex = parseInt(targetId.replace('index-', ''), 10);
+      console.log('Inserting between components at index:', insertIndex);
       insertBetweenComponents(componentType, insertIndex);
       return;
     }
     
     // Handle horizontal layout creation
     if (position === 'left' || position === 'right') {
+      console.log('Creating horizontal layout:', { componentType, targetId, position });
       insertHorizontalToComponent(componentType, targetId, position);
       return;
     }
     
     // Handle other positioning
+    console.log('Inserting with position:', { componentType, targetId, position });
     insertComponentWithPosition(componentType, targetId, position);
   }, [addComponent, insertBetweenComponents, insertHorizontalToComponent, insertComponentWithPosition]);
 
@@ -369,7 +375,7 @@ export const useFormBuilder = () => {
     });
   }, [executeAction, formState.currentPageId]);
 
-  const pullElementFromRow = useCallback((rowLayoutId: string, elementIndex: number, targetPosition: 'column') => {
+  const pullElementFromRow = useCallback((rowLayoutId: string, elementIndex: number, targetPosition: string) => {
     executeAction({
       type: 'PULL_ELEMENT_FROM_ROW',
       payload: {

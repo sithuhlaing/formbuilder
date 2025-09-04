@@ -26,7 +26,11 @@ export const ValidatedFormField: React.FC<ValidatedFormFieldProps> = ({
   className = '',
   children
 }) => {
-  const [validationResult, setValidationResult] = useState<ValidationResult>({ isValid: true });
+  const [validationResult, setValidationResult] = useState<ValidationResult>({ 
+    isValid: true, 
+    warnings: [], 
+    valid: true 
+  });
   const [isDirty, setIsDirty] = useState(false);
 
   // Validate field value

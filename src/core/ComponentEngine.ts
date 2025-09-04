@@ -173,7 +173,10 @@ export class ComponentEngine {
       section_divider: 'Section Divider',
       signature: 'Signature',
       horizontal_layout: 'Horizontal Layout',
-      vertical_layout: 'Vertical Layout'
+      vertical_layout: 'Vertical Layout',
+      button: 'Button',
+      heading: 'Heading',
+      card: 'Card'
     };
     
     const label = labels[type];

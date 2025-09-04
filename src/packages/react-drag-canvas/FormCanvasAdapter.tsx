@@ -16,6 +16,7 @@ interface FormCanvasProps {
   onSelect: (componentId: string) => void;
   onDelete: (componentId: string) => void;
   onMove: (fromIndex: number, toIndex: number) => void;
+  onAddToLayout?: (componentType: ComponentType, layoutId: string) => void;
   selectedId?: string;
   useCspSafeRenderer?: boolean; // Allow choosing renderer type
 }
@@ -26,6 +27,7 @@ export const FormCanvas: React.FC<FormCanvasProps> = ({
   onSelect,
   onDelete,
   onMove,
+  onAddToLayout,
   selectedId,
   useCspSafeRenderer = true, // Default to CSP-safe for better security
 }) => {
@@ -33,11 +35,11 @@ export const FormCanvas: React.FC<FormCanvasProps> = ({
   const canvasItems: CanvasItem[] = components.map(component => ({
     id: component.id,
     type: component.type,
-    data: component,
+    data: component as unknown as Record<string, unknown>,
     children: component.children?.map(child => ({
       id: child.id,
       type: child.type,
-      data: child,
+      data: child as unknown as Record<string, unknown>,
     })),
   }));
 
@@ -66,16 +68,25 @@ export const FormCanvas: React.FC<FormCanvasProps> = ({
     
     // Wrap with click handler for selection
     return (item: CanvasItem, context: RenderContext): React.ReactNode => {
-      const component = item.data as FormComponentData;
-      const renderedContent = baseRenderFunction(item, context);
+      const component = item.data as unknown as FormComponentData;
+      
+      // Enhanced context with selection handlers
+      const enhancedContext = {
+        ...context,
+        selectedId: selectedId,
+        onSelect: onSelect,
+        onDelete: onDelete
+      };
+      
+      const renderedContent = baseRenderFunction(item, enhancedContext);
       
       return (
-        <div onClick={() => onSelect(component.id)}>
+        <div onClick={() => onSelect && onSelect(component.id)}>
           {renderedContent}
         </div>
       );
     };
-  }, [renderer, onSelect]);
+  }, [renderer, onSelect, onDelete, selectedId]);
 
   return (
     <DragDropCanvas
@@ -84,16 +95,23 @@ export const FormCanvas: React.FC<FormCanvasProps> = ({
       onItemMove={onMove}
       onLayoutCreate={(itemType, targetId, position) => {
         // Handle both new items and existing items for horizontal layout creation
+        console.log('FormCanvasAdapter onLayoutCreate:', { itemType, targetId, position });
         onDrop(itemType as ComponentType, targetId, position);
       }}
       onItemDelete={onDelete}
       onItemAdd={(itemType, position) => {
-        if (position.type === 'between' && position.targetIndex !== undefined) {
+        if ((position as any).type === 'between' && (position as any).targetId !== undefined) {
           // Handle between-element insertion
-          onDrop(itemType as ComponentType, `index-${position.targetIndex}`, 'before');
+          onDrop(itemType as ComponentType, (position as any).targetId || 'empty-canvas', 'before');
         } else {
           const mappedPosition = position.type === 'center' ? 'inside' : position.type;
           onDrop(itemType as ComponentType, position.targetId || 'empty-canvas', mappedPosition as 'before' | 'after' | 'left' | 'right' | 'inside');
+        }
+      }}
+      onAddToLayout={(itemType, layoutId) => {
+        console.log('FormCanvasAdapter onAddToLayout:', { itemType, layoutId });
+        if (onAddToLayout) {
+          onAddToLayout(itemType as ComponentType, layoutId);
         }
       }}
       selectedItemId={selectedId}

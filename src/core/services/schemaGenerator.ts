@@ -101,7 +101,9 @@ export class SchemaGenerator {
           baseProperty.type = "array";
           baseProperty.items = {
             type: "string",
-            enum: component.options
+            enum: component.options.map(option => 
+              typeof option === 'string' ? option : option.value
+            )
           };
         } else {
           // Single checkbox - boolean

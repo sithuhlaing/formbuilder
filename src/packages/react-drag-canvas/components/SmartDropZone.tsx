@@ -15,6 +15,7 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
   onLayoutCreate,
   onItemDelete,
   onItemAdd,
+  onAddToLayout,
   selectedItemId,
   config = {
     cssPrefix: 'canvas',
@@ -57,6 +58,36 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
     return 'center';
   }, [enableHorizontalLayouts, enableVerticalLayouts, dropZoneThresholds]);
 
+  // Apply row layout drag-drop constraints based on business rules
+  const applyRowLayoutConstraints = useCallback((position: string, dragItem: DragItem, targetItem: any) => {
+    // Rule 1: Row Layout as Single Unit - Row layouts can only be dragged vertically
+    if (dragItem.dragType === 'row-layout') {
+      // Row layouts can only be positioned before/after (vertically)
+      if (position === 'left' || position === 'right') {
+        return 'center'; // Convert horizontal to center drop
+      }
+      return position; // Allow before/after/center
+    }
+
+    // Rule 2: Internal Row Arrangement - Inside row layouts, only left-right allowed
+    if (targetItem.type === 'horizontal_layout') {
+      // Within row layouts, only horizontal positioning allowed
+      if (position === 'before' || position === 'after') {
+        return 'right'; // Convert vertical to horizontal positioning
+      }
+      return position; // Allow left/right/center
+    }
+
+    // Rule 3: No Nested Row Layouts - Prevent row layouts inside row layouts
+    if (dragItem.item?.type === 'horizontal_layout' && targetItem.type === 'horizontal_layout') {
+      // Prevent dropping row layout into another row layout
+      return 'center'; // Convert to safe center drop
+    }
+
+    // Rule 4: Root Level Container Behavior - Normal positioning for individual components
+    return position;
+  }, []);
+
   // Drag functionality for existing items
   const [{ isDragging }, drag] = useDrag({
     type: 'existing-item',
@@ -71,25 +102,35 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
     }),
   });
 
-  // Drop functionality
+  // Drop functionality with row layout constraints
   const [{ isOver }, drop] = useDrop({
     accept: ['new-item', 'existing-item'],
     hover: (dragItem: DragItem, monitor) => {
       const position = calculateDropPosition(monitor.getClientOffset());
-      setDropPosition(position);
+      
+      // Apply row layout constraints
+      const constrainedPosition = applyRowLayoutConstraints(position, dragItem, item);
+      setDropPosition(constrainedPosition);
     },
     drop: (dragItem: DragItem, monitor) => {
       // Prevent event bubbling to parent drop zones
       if (monitor.didDrop()) return;
       
       const position = calculateDropPosition(monitor.getClientOffset());
+      const constrainedPosition = applyRowLayoutConstraints(position, dragItem, item);
+      console.log('SmartDropZone drop:', { dragItem, position: constrainedPosition, targetId: item.id });
       
       if (dragItem.type === 'existing-item') {
         // Handle existing items - create horizontal layout for left/right drops
-        if (position === 'left' || position === 'right') {
-          // Create horizontal layout with existing item
-          if (onLayoutCreate && dragItem.item) {
-            onLayoutCreate(dragItem.item.type, item.id, position);
+        if (constrainedPosition === 'left' || constrainedPosition === 'right') {
+          // Check if target is already a horizontal layout
+          if (item.type === 'horizontal_layout' && onAddToLayout && dragItem.item) {
+            console.log('Adding existing item to horizontal layout:', dragItem.item.type, item.id);
+            onAddToLayout(dragItem.item.type, item.id);
+          } else if (onLayoutCreate && dragItem.item && item.type !== 'horizontal_layout') {
+            // Only create horizontal layout if target is NOT already a horizontal layout
+            console.log('Creating horizontal layout for existing item:', dragItem.item.type, item.id, constrainedPosition);
+            onLayoutCreate(dragItem.item.type, item.id, constrainedPosition);
           }
         } else if (dragItem.index !== undefined && dragItem.index !== index) {
           // Regular reordering for before/after/center drops
@@ -97,10 +138,18 @@ export const SmartDropZone: React.FC<SmartDropZoneProps> = ({
         }
       } else if (dragItem.type === 'new-item' && dragItem.itemType) {
         // Handle new items from palette
-        if (position === 'left' || position === 'right') {
-          onLayoutCreate(dragItem.itemType, item.id, position);
+        if (constrainedPosition === 'left' || constrainedPosition === 'right') {
+          // Check if target is already a horizontal layout
+          if (item.type === 'horizontal_layout' && onAddToLayout) {
+            console.log('Adding new item to horizontal layout:', dragItem.itemType, item.id);
+            onAddToLayout(dragItem.itemType, item.id);
+          } else if (item.type !== 'horizontal_layout') {
+            // Only create horizontal layout if target is NOT already a horizontal layout
+            console.log('Creating horizontal layout for new item:', dragItem.itemType, item.id, constrainedPosition);
+            onLayoutCreate(dragItem.itemType, item.id, constrainedPosition);
+          }
         } else if (onItemAdd) {
-          onItemAdd(dragItem.itemType, { type: position as any, targetId: item.id });
+          onItemAdd(dragItem.itemType, { type: constrainedPosition as any, targetId: item.id });
         }
       }
       

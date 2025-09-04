@@ -3,7 +3,7 @@
  * Uses reusable components with memoization and lazy loading
  */
 
-import React, { memo, useMemo } from 'react';
+import React, { memo } from 'react';
 import { FormField } from './FormField';
 import { 
   TextInput, 
@@ -17,14 +17,12 @@ import {
 import {
   SectionDivider,
   SignatureField,
-  ButtonPreview,
   HeadingPreview,
-  CardPreview,
   DatePicker,
   UnknownComponent,
   RichTextEditor
 } from './SpecializedFormComponents';
-import type { FormComponentData } from '../../types';
+import type { FormComponentData } from '../../types/component';
 
 interface ComponentRendererProps {
   component: FormComponentData;
@@ -40,16 +38,6 @@ const ComponentRendererImpl: React.FC<ComponentRendererProps> = ({
   showControls = false,
   isSelected = false
 }) => {
-  // Memoize component key properties to prevent unnecessary re-renders
-  const componentKey = useMemo(() => ({
-    id: component.id,
-    type: component.type,
-    label: component.label,
-    required: component.required,
-    readOnly,
-    showControls,
-    isSelected
-  }), [component.id, component.type, component.label, component.required, readOnly, showControls, isSelected]);
   // Handle components that don't need FormField wrapper
   const renderWithoutWrapper = () => {
     switch (component.type) {
@@ -60,40 +48,14 @@ const ComponentRendererImpl: React.FC<ComponentRendererProps> = ({
         return (
           <FormField>
             <HeadingPreview 
-              level={component.level}
-              text={component.text}
+              text={component.content || component.label}
               label={component.label}
             />
           </FormField>
         );
       
-      case 'button':
-        return (
-          <FormField>
-            <ButtonPreview
-              buttonType={component.buttonType}
-              buttonText={component.buttonText}
-              label={component.label}
-              disabled={readOnly}
-            />
-          </FormField>
-        );
-      
-      case 'card':
-        return (
-          <FormField>
-            <CardPreview label={component.label}>
-              {component.children?.map((child, index) => (
-                <ComponentRenderer 
-                  key={child.id || index} 
-                  component={child} 
-                  readOnly={readOnly}
-                  showControls={showControls}
-                />
-              ))}
-            </CardPreview>
-          </FormField>
-        );
+      case 'divider':
+        return <SectionDivider label={component.label} />;
       
       default:
         return null;
@@ -111,7 +73,7 @@ const ComponentRendererImpl: React.FC<ComponentRendererProps> = ({
     <FormField
       label={component.label}
       required={component.required}
-      helpText={component.description || component.helpText}
+      helpText={component.helpText}
     >
       {(() => {
         switch (component.type) {
@@ -170,7 +132,7 @@ const ComponentRendererImpl: React.FC<ComponentRendererProps> = ({
           case 'rich_text':
             return (
               <RichTextEditor
-                value={component.defaultValue || ''}
+                value={component.content || ''}
                 placeholder={component.placeholder || 'Enter rich text content...'}
                 readOnly={readOnly}
                 height={component.height || '200px'}
@@ -187,9 +149,7 @@ const ComponentRendererImpl: React.FC<ComponentRendererProps> = ({
               <Select
                 required={component.required}
                 disabled={readOnly}
-                options={(component.options || []).map(option => 
-                  typeof option === 'string' ? option : option.label
-                )}
+                options={component.options || []}
               />
             );
           
@@ -198,9 +158,7 @@ const ComponentRendererImpl: React.FC<ComponentRendererProps> = ({
               <Select
                 required={component.required}
                 disabled={readOnly}
-                options={(component.options || []).map(option => 
-                  typeof option === 'string' ? option : option.label
-                )}
+                options={component.options || []}
                 multiple
               />
             );
@@ -219,13 +177,29 @@ const ComponentRendererImpl: React.FC<ComponentRendererProps> = ({
               </div>
             );
           
+          case 'checkbox_group':
+            return (
+              <div className="form-field__checkbox-group">
+                {(component.options || []).map((option, index) => (
+                  <div key={index} className="form-field__checkbox-item">
+                    <Checkbox
+                      id={`${component.id}-${index}`}
+                      required={component.required}
+                      disabled={readOnly}
+                    />
+                    <label htmlFor={`${component.id}-${index}`} className="form-field__checkbox-label">
+                      {option}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            );
+          
           case 'radio_group':
             return (
               <RadioGroup
                 name={component.id}
-                options={(component.options || []).map(option => 
-                  typeof option === 'string' ? option : option.label
-                )}
+                options={component.options || []}
                 required={component.required}
                 disabled={readOnly}
               />
@@ -250,6 +224,28 @@ const ComponentRendererImpl: React.FC<ComponentRendererProps> = ({
           
           case 'signature':
             return <SignatureField />;
+
+          case 'paragraph':
+            return (
+              <div className="form-field__paragraph">
+                {component.content || component.label}
+              </div>
+            );
+
+          case 'horizontal_layout':
+          case 'vertical_layout':
+            return (
+              <div className={`form-field__${component.type.replace('_', '-')}`}>
+                {component.children?.map((child, index) => (
+                  <ComponentRenderer 
+                    key={child.id || index} 
+                    component={child} 
+                    readOnly={readOnly}
+                    showControls={showControls}
+                  />
+                ))}
+              </div>
+            );
           
           default:
             return <UnknownComponent type={component.type} />;
@@ -274,6 +270,6 @@ export const ComponentRenderer = memo(ComponentRendererImpl, (prevProps, nextPro
     JSON.stringify(prevProps.component.options) === JSON.stringify(nextProps.component.options) &&
     // Compare other frequently changing props
     prevProps.component.placeholder === nextProps.component.placeholder &&
-    prevProps.component.defaultValue === nextProps.component.defaultValue
+    prevProps.component.content === nextProps.component.content
   );
 });

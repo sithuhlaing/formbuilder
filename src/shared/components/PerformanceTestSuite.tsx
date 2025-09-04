@@ -8,9 +8,8 @@
  * 4. Comparison between optimized and unoptimized components
  */
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { LazyFormRenderer } from './LazyFormRenderer';
-import { VirtualizedList } from './VirtualizedList';
 import { usePerformanceMonitor, useGlobalPerformance } from '../hooks/usePerformanceMonitor';
 import { ComponentRenderer } from './ComponentRenderer';
 import type { FormComponentData } from '../../core/interfaces/ComponentInterfaces';

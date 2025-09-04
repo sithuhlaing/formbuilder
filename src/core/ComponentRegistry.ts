@@ -247,6 +247,56 @@ class VerticalLayoutFactory extends BaseComponentFactory {
   }
 }
 
+// UI Component factories
+class ButtonFactory extends BaseComponentFactory {
+  create(baseData: { id: string; label: string; fieldId: string; required: boolean }): FormComponentData {
+    return {
+      ...baseData,
+      type: 'button' as ComponentType,
+      required: false, // Buttons are not form inputs
+      defaultValue: baseData.label || 'Click Me',
+      styling: {
+        className: 'form-button',
+        customCSS: '',
+        theme: 'primary'
+      }
+    };
+  }
+}
+
+class HeadingFactory extends BaseComponentFactory {
+  create(baseData: { id: string; label: string; fieldId: string; required: boolean }): FormComponentData {
+    return {
+      ...baseData,
+      type: 'heading' as ComponentType,
+      required: false, // Headings are not form inputs
+      defaultValue: baseData.label || 'Section Heading',
+      styling: {
+        className: 'form-heading',
+        customCSS: '',
+        theme: 'default'
+      }
+    };
+  }
+}
+
+class CardFactory extends BaseComponentFactory {
+  create(baseData: { id: string; label: string; fieldId: string; required: boolean }): FormComponentData {
+    return {
+      ...baseData,
+      type: 'card' as ComponentType,
+      required: false, // Cards are containers, not form inputs
+      children: [],
+      styling: {
+        className: 'form-card',
+        customCSS: 'padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px; background: white;',
+        width: '100%',
+        height: 'auto'
+      }
+    };
+  }
+}
+
 // Component Registry - Open/Closed Principle implementation
 export class ComponentRegistry {
   private static factories = new Map<ComponentType, ComponentFactory>([
@@ -265,7 +315,10 @@ export class ComponentRegistry {
     ['signature', new SignatureFactory()],
     ['section_divider', new SectionDividerFactory()],
     ['horizontal_layout', new HorizontalLayoutFactory()],
-    ['vertical_layout', new VerticalLayoutFactory()]
+    ['vertical_layout', new VerticalLayoutFactory()],
+    ['button', new ButtonFactory()],
+    ['heading', new HeadingFactory()],
+    ['card', new CardFactory()]
   ]);
 
   static registerFactory(type: ComponentType, factory: ComponentFactory): void {

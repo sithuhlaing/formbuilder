@@ -452,7 +452,9 @@ function generateValidationSchema(components: FormComponentData[]): ValidationSc
         case 'multi_select':
           fieldSchema.type = 'array';
           fieldSchema.items = { type: 'string' };
-          if (component.options) fieldSchema.items.enum = component.options;
+          if (component.options) {
+            (fieldSchema.items as Record<string, unknown>).enum = component.options;
+          }
           break;
         case 'date_picker':
           fieldSchema.type = 'string';

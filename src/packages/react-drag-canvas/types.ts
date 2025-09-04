@@ -29,6 +29,10 @@ export interface RenderContext {
   isDragging: boolean;
   isHover: boolean;
   cssPrefix: string;
+  mode?: string;
+  selectedId?: string;
+  onSelect?: (componentId: string) => void;
+  onDelete?: (componentId: string) => void;
 }
 
 export interface DragItem {
@@ -37,6 +41,7 @@ export interface DragItem {
   index?: number;
   itemType?: string;
   item?: CanvasItem;
+  dragType?: 'row-layout' | 'component'; // Added for row layout constraints
 }
 
 // ============================================================================
@@ -55,6 +60,7 @@ export interface CanvasDragDrop {
   onLayoutCreate: (itemType: string, targetId: string, position: 'left' | 'right') => void;
   onItemDelete: (itemId: string) => void;
   onItemAdd?: (itemType: string, position: DropPosition) => void;
+  onAddToLayout?: (itemType: string, layoutId: string) => void;
 }
 
 // UI and styling configuration
@@ -89,6 +95,7 @@ export interface SmartDropZoneProps {
   onLayoutCreate: (itemType: string, targetId: string, position: 'left' | 'right') => void;
   onItemDelete: (itemId: string) => void;
   onItemAdd?: (itemType: string, position: DropPosition) => void;
+  onAddToLayout?: (itemType: string, layoutId: string) => void;
   selectedItemId?: string;
   config: Required<CanvasConfig>;
 }

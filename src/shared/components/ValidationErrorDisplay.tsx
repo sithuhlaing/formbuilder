@@ -14,7 +14,7 @@ interface ValidationErrorDisplayProps {
 }
 
 interface FieldValidationProps {
-  fieldId: string;
+  fieldId?: string; // Made optional since it's not used in the component
   validationResult?: ValidationResult;
   className?: string;
 }
@@ -37,7 +37,7 @@ export const ValidationErrorDisplay: React.FC<ValidationErrorDisplayProps> = ({
         <div className="validation-errors">
           {errors.map((error, index) => (
             <div key={index} className="validation-error">
-              <span className="validation-icon error-icon">⚠️</span>
+              <span className="validation-icon error-icon">❌</span>
               <span className="validation-message">{error}</span>
             </div>
           ))}
@@ -59,7 +59,6 @@ export const ValidationErrorDisplay: React.FC<ValidationErrorDisplayProps> = ({
 };
 
 export const FieldValidationDisplay: React.FC<FieldValidationProps> = ({
-  fieldId,
   validationResult,
   className = ''
 }) => {
@@ -70,6 +69,7 @@ export const FieldValidationDisplay: React.FC<FieldValidationProps> = ({
   return (
     <ValidationErrorDisplay
       errors={validationResult.errors}
+      warnings={validationResult.warnings} // Added warnings support
       className={`field-validation ${className}`}
       inline={true}
     />
@@ -97,7 +97,7 @@ export const FormValidationSummary: React.FC<FormValidationSummaryProps> = ({
   return (
     <div className="form-validation-summary">
       <div className="validation-summary-header">
-        <span className="validation-icon error-icon">⚠️</span>
+        <span className="validation-icon error-icon">❌</span>
         <h4>Please fix the following errors:</h4>
       </div>
       
@@ -117,3 +117,5 @@ export const FormValidationSummary: React.FC<FormValidationSummaryProps> = ({
     </div>
   );
 };
+
+export default ValidationErrorDisplay;

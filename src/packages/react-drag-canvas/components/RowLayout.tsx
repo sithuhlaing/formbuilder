@@ -5,7 +5,7 @@
  */
 
 import React, { useRef } from 'react';
-import { useDrop } from 'react-dnd';
+import { useDrop, useDrag } from 'react-dnd';
 import { SmartDropZone } from './SmartDropZone';
 import type { CanvasItem, DragItem } from '../types';
 
@@ -15,7 +15,8 @@ interface RowLayoutProps {
   renderItem: (item: CanvasItem, context: any) => React.ReactNode;
   onItemDelete: (itemId: string) => void;
   onItemMove?: (dragIndex: number, hoverIndex: number) => void;
-  onLayoutCreate?: (componentType: string, targetId: string, side: 'left' | 'right' | 'top' | 'bottom') => void;
+  onLayoutCreate?: (componentType: string, targetId: string, side: 'left' | 'right') => void;
+  onAddToLayout?: (itemType: string, layoutId: string) => void;
   selectedItemId?: string;
   cssPrefix?: string;
   config?: any;
@@ -28,6 +29,7 @@ export const RowLayout: React.FC<RowLayoutProps> = ({
   onItemDelete,
   onItemMove,
   onLayoutCreate,
+  onAddToLayout,
   selectedItemId,
   cssPrefix = 'canvas',
   config
@@ -35,16 +37,33 @@ export const RowLayout: React.FC<RowLayoutProps> = ({
   const children = item.children || [];
   const ref = useRef<HTMLDivElement>(null);
 
+  // Drag functionality for the entire row layout - constrained to vertical movement only
+  const [{ isDragging }, drag] = useDrag({
+    type: 'existing-item',
+    item: {
+      type: 'existing-item',
+      id: item.id,
+      sourceId: item.id,
+      item: item,
+      dragType: 'row-layout', // This identifies it as a row layout for constraint application
+      index: index
+    },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging()
+    })
+  });
+
   // Drop functionality for the row layout container
   const [{ isOver }, drop] = useDrop({
     accept: ['new-item', 'existing-item'],
     drop: (dragItem: DragItem, monitor) => {
       if (monitor.didDrop()) return; // Prevent duplicate drops
       
-      // Handle drops within row layout
-      const componentType = dragItem.itemType || dragItem.type;
-      if (componentType && onLayoutCreate) {
-        onLayoutCreate(componentType, item.id, 'right');
+      // Handle drops within row layout - add to existing layout instead of creating new one
+      const componentType = dragItem.itemType || (dragItem.item && dragItem.item.type);
+      if (componentType && onAddToLayout) {
+        console.log('RowLayout: Adding component to existing layout:', componentType, item.id);
+        onAddToLayout(componentType, item.id);
       }
     },
     collect: (monitor) => ({
@@ -52,13 +71,13 @@ export const RowLayout: React.FC<RowLayoutProps> = ({
     })
   });
 
-  // Combine drop ref with the component ref
-  drop(ref);
+  // Combine drag and drop refs with the component ref
+  drag(drop(ref));
 
   return (
     <div 
       ref={ref}
-      className={`${cssPrefix}__row-layout row-layout ${isOver ? 'is-drop-target' : ''}`}
+      className={`${cssPrefix}__row-layout row-layout ${isOver ? 'is-drop-target' : ''} ${isDragging ? 'is-dragging' : ''}`}
       data-testid="row-layout"
       data-component-id={item.id}
       data-component-type={item.type}
@@ -73,10 +92,12 @@ export const RowLayout: React.FC<RowLayoutProps> = ({
         backgroundColor: isOver ? '#f0f9ff' : '#fafafa',
         minHeight: '60px',
         alignItems: 'stretch',
-        position: 'relative'
+        position: 'relative',
+        opacity: isDragging ? 0.7 : 1,
+        cursor: 'move'
       }}
     >
-      {/* Layout header */}
+      {/* Layout header with drag handle */}
       <div className={`${cssPrefix}__layout-header`} style={{
         position: 'absolute',
         top: '-8px',
@@ -91,6 +112,15 @@ export const RowLayout: React.FC<RowLayoutProps> = ({
         alignItems: 'center',
         gap: '8px'
       }}>
+        <span className={`${cssPrefix}__drag-handle`} style={{
+          cursor: 'move',
+          color: '#9ca3af',
+          fontSize: '14px',
+          lineHeight: 1,
+          userSelect: 'none'
+        }}>
+          ⋮⋮
+        </span>
         <span className={`${cssPrefix}__layout-label`}>
           Row Layout ({children.length} items)
         </span>

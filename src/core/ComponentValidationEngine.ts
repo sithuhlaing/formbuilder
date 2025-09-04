@@ -33,6 +33,7 @@ export class ComponentValidationEngine {
     this.validateNumericComponent(component, errors);
     this.validateFileComponent(component, errors);
     this.validateContainerComponent(component, errors);
+    this.validateUIComponent(component, errors);
     
     return {
       valid: errors.length === 0,
@@ -102,17 +103,52 @@ export class ComponentValidationEngine {
   }
   
   /**
-   * Validates container components (layouts)
+   * Validates container components (layouts and cards)
    */
   private static validateContainerComponent(component: FormComponentData, errors: string[]): void {
-    if (component.type === 'horizontal_layout' || component.type === 'vertical_layout') {
+    if (component.type === 'horizontal_layout' || component.type === 'vertical_layout' || component.type === 'card') {
       // Container components should have children array
       if ('children' in component) {
         if (!Array.isArray(component.children)) {
-          errors.push('Layout components must have a children array');
+          errors.push('Container components must have a children array');
         }
       } else {
-        errors.push('Layout components must have a children property');
+        errors.push('Container components must have a children property');
+      }
+    }
+  }
+
+  /**
+   * Validates UI components (button, heading, section_divider)
+   */
+  private static validateUIComponent(component: FormComponentData, errors: string[]): void {
+    // UI components are generally not required fields since they don't collect data
+    if (component.type === 'button' || component.type === 'heading' || component.type === 'section_divider') {
+      // These components should not be marked as required since they don't collect form data
+      if (component.required) {
+        errors.push('UI components (button, heading, section_divider) cannot be marked as required');
+      }
+    }
+    
+    // Button-specific validation
+    if (component.type === 'button') {
+      if (!component.defaultValue && !component.label) {
+        errors.push('Button must have either a label or default value for display text');
+      }
+    }
+    
+    // Heading-specific validation
+    if (component.type === 'heading') {
+      if (!component.defaultValue && !component.label) {
+        errors.push('Heading must have either a label or default value for display text');
+      }
+      
+      // Validate heading level if specified in styling
+      if (component.styling?.theme) {
+        const validLevels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+        if (!validLevels.includes(component.styling.theme)) {
+          errors.push('Heading level must be one of: h1, h2, h3, h4, h5, h6');
+        }
       }
     }
   }

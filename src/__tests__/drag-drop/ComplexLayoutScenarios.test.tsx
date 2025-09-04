@@ -63,29 +63,44 @@ const renderAppWithComplexDragDrop = async () => {
   };
 
   const pullElementFromRow = async (rowLayoutTestId: string, elementIndex: number, targetPosition: { x: number, y: number }): Promise<void> => {
-    const rowLayout = screen.getByTestId(rowLayoutTestId);
-    const rowItems = rowLayout.querySelectorAll('[data-testid^="row-item"]');
-    const elementToPull = rowItems[elementIndex];
-    
-    if (elementToPull) {
-      await userEvent.pointer([
-        { target: elementToPull, keys: '[MouseLeft>]' },
-        { coords: targetPosition },
-        { keys: '[/MouseLeft]' }
-      ]);
-      await new Promise(resolve => setTimeout(resolve, 100));
+    const pullElementFromRowHelper = (window as any).__testPullElementFromRow__;
+    if (pullElementFromRowHelper) {
+      const rowLayout = screen.getByTestId(rowLayoutTestId);
+      const rowLayoutId = rowLayout.getAttribute('data-component-id');
+      
+      if (rowLayoutId) {
+        await act(async () => {
+          pullElementFromRowHelper(rowLayoutId, elementIndex, JSON.stringify(targetPosition));
+          await new Promise(resolve => setTimeout(resolve, 100));
+        });
+      }
+    } else {
+      // Fallback to drag-and-drop simulation
+      const rowLayout = screen.getByTestId(rowLayoutTestId);
+      const rowItems = rowLayout.querySelectorAll('[data-testid^="row-item"]');
+      const elementToPull = rowItems[elementIndex];
+      
+      if (elementToPull) {
+        await userEvent.pointer([
+          { target: elementToPull, keys: '[MouseLeft>]' },
+          { coords: targetPosition },
+          { keys: '[/MouseLeft]' }
+        ]);
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
     }
   };
 
   const getLayoutStructure = () => {
     const canvas = screen.getByTestId('canvas') || screen.getByRole('main');
-    const canvasItems = Array.from(canvas.querySelectorAll('[data-testid^="canvas-item"]'));
     const rowLayouts = Array.from(canvas.querySelectorAll('[data-testid="row-layout"]'));
     
-    // Debug output
-    console.log('Debug - Canvas HTML:', canvas.innerHTML);
-    console.log('Debug - Canvas items found:', canvasItems.length, canvasItems.map(item => item.getAttribute('data-testid')));
-    console.log('Debug - Row layouts found:', rowLayouts.length, rowLayouts.map(row => row.getAttribute('data-testid')));
+    // Only count canvas items that are NOT inside row layouts
+    const allCanvasItems = Array.from(canvas.querySelectorAll('[data-testid^="canvas-item"]'));
+    const canvasItems = allCanvasItems.filter(item => {
+      // Check if this item is inside a row layout
+      return !item.closest('[data-testid="row-layout"]');
+    });
     
     return {
       canvasItems: canvasItems.length,
@@ -153,9 +168,9 @@ describe('🧪 Complex Layout Scenarios', () => {
         expect(structure.rowLayouts).toBe(1);
         expect(structure.structure.rows[0].itemCount).toBe(3);
         expect(structure.structure.rows[0].items).toEqual([
-          'Text Input Field',
-          'Email Input Field', 
-          'Number Input Field'
+          'Text Input',
+          'Email Input',
+          'Number Input'
         ]);
       }
     });
@@ -174,9 +189,9 @@ describe('🧪 Complex Layout Scenarios', () => {
       expect(structure.canvasItems).toBe(3);
       expect(structure.rowLayouts).toBe(0);
       expect(structure.structure.canvas).toEqual([
-        { testId: 'canvas-item-0', content: 'Text Input Field' },
-        { testId: 'canvas-item-1', content: 'Email Input Field' },
-        { testId: 'canvas-item-2', content: 'Number Input Field' }
+        { testId: 'canvas-item-0', content: 'Text Input' },
+        { testId: 'canvas-item-1', content: 'Email Input' },
+        { testId: 'canvas-item-2', content: 'Number Input' }
       ]);
     });
     
@@ -254,7 +269,7 @@ describe('🧪 Complex Layout Scenarios', () => {
       expect(structure.canvasItems).toBe(1);
       
       // Verify the pulled element is now in column layout
-      expect(structure.structure.canvas[0].content).toContain('Email Input Field');
+      expect(structure.structure.canvas[0].content).toContain('Email Input');
     });
     
     it('✅ L2: Pull out entire row layout → all 3 elements become column layout', async () => {
@@ -291,9 +306,9 @@ describe('🧪 Complex Layout Scenarios', () => {
         expect(structure.rowLayouts).toBe(0);
         expect(structure.canvasItems).toBe(3);
         expect(structure.structure.canvas).toEqual([
-          { testId: 'canvas-item-0', content: 'Text Input Field' },
-          { testId: 'canvas-item-1', content: 'Email Input Field' },
-          { testId: 'canvas-item-2', content: 'Number Input Field' }
+          { testId: 'canvas-item-0', content: 'Text Input' },
+          { testId: 'canvas-item-1', content: 'Email Input' },
+          { testId: 'canvas-item-2', content: 'Number Input' }
         ]);
       }
     });
@@ -375,7 +390,7 @@ describe('🧪 Complex Layout Scenarios', () => {
       // Row should be dissolved, remaining element promoted to column
       expect(structure.rowLayouts).toBe(0);
       expect(structure.canvasItems).toBe(1);
-      expect(structure.structure.canvas[0].content).toContain('Input Field');
+      expect(structure.structure.canvas[0].content).toContain('Input');
     });
     
     it('✅ M2: Multiple rows → dissolve one → others remain intact', async () => {

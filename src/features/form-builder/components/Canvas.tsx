@@ -12,6 +12,7 @@ interface CanvasProps {
   onSelect: (componentId: string) => void;
   onDelete: (componentId: string) => void;
   onMove: (fromIndex: number, toIndex: number) => void;
+  onAddToLayout?: (componentType: ComponentType, layoutId: string) => void;
   selectedId?: string;
 }
 
@@ -21,6 +22,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   onSelect,
   onDelete,
   onMove,
+  onAddToLayout,
   selectedId,
 }) => {
   return (
@@ -32,6 +34,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           onSelect={onSelect}
           onDelete={onDelete}
           onMove={onMove}
+          onAddToLayout={onAddToLayout}
           selectedId={selectedId}
           useCspSafeRenderer={true}
         />

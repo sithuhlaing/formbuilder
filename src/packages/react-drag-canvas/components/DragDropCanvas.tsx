@@ -17,6 +17,7 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
   onLayoutCreate,
   onItemDelete,
   onItemAdd,
+  onAddToLayout,
   selectedItemId,
   config = {},
   className = '',
@@ -90,6 +91,7 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
                 onItemDelete={onItemDelete}
                 onItemMove={onItemMove}
                 onLayoutCreate={onLayoutCreate}
+                onAddToLayout={onAddToLayout}
                 selectedItemId={selectedItemId}
                 config={requiredConfig}
               />
@@ -103,6 +105,7 @@ export const DragDropCanvas: React.FC<DragDropCanvasProps> = ({
                 onLayoutCreate={onLayoutCreate}
                 onItemDelete={onItemDelete}
                 onItemAdd={onItemAdd}
+                onAddToLayout={onAddToLayout}
                 selectedItemId={selectedItemId}
                 config={requiredConfig}
               />

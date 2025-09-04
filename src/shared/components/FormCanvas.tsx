@@ -4,14 +4,11 @@
  * Features: Lazy loading for large forms, performance monitoring
  */
 
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDrop } from 'react-dnd';
 import { CanvasManager, type CanvasState } from '../../core/CanvasManager';
 import { ComponentRenderer } from './ComponentRenderer';
-import { LazyFormRenderer } from './LazyFormRenderer';
-import { usePerformanceMonitor } from '../hooks/usePerformanceMonitor';
 import type { ComponentType } from '../../types/component';
-import type { FormComponentData } from '../../core/interfaces/ComponentInterfaces';
 
 interface FormCanvasProps {
   canvasManager: CanvasManager;

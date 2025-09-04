@@ -1,21 +1,33 @@
 // Component type definitions - ALIGNED WITH DOCUMENTATION
 export type ComponentType = 
+  // Input Components
   | "text_input"
   | "email_input"
   | "password_input"
   | "number_input"
   | "textarea"
-  | "rich_text" 
+  | "rich_text"
+  
+  // Selection Components  
   | "select"
   | "multi_select"
   | "checkbox"
   | "radio_group"
+  
+  // Special Components
   | "date_picker"
   | "file_upload"
   | "signature"
-  | "section_divider"
+  
+  // Layout Components
   | "horizontal_layout"
-  | "vertical_layout";
+  | "vertical_layout"
+  
+  // UI Components
+  | "section_divider"
+  | "button"
+  | "heading"
+  | "card";
 
 // Option type for select, radio, and checkbox components
 export interface OptionData {
@@ -32,6 +44,8 @@ export interface ValidationRule {
 }
 
 export interface ValidationResult {
+  isValid: any;
+  warnings: string[] | undefined;
   valid: boolean;
   message?: string;
   errors?: string[];
@@ -46,6 +60,9 @@ export interface ConditionalRule {
 
 // ALIGNED WITH DOCUMENTATION - FormComponentData interface
 export interface FormComponentData {
+  content: string;
+  description(arg0: string, description: any, arg2: string): import("react").ReactNode;
+  alignment: string;
   // Core properties - REQUIRED
   id: string;
   type: ComponentType;

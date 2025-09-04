@@ -3,7 +3,7 @@
  * Provides dynamic property editing for selected form components
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import type { FormComponentData } from '../../types/component';
 
 interface PropertiesPanelProps {
@@ -75,8 +75,10 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   const updateOption = useCallback((index: number, field: string, value: any) => {
     if (!selectedComponent) return;
     const currentOptions = [...(selectedComponent.options || [])];
-    currentOptions[index] = { ...currentOptions[index], [field]: value };
-    handleOptionsChange(currentOptions);
+    if (currentOptions[index]) {
+      currentOptions[index] = { ...currentOptions[index], [field]: value };
+      handleOptionsChange(currentOptions);
+    }
   }, [selectedComponent, handleOptionsChange]);
 
   const removeOption = useCallback((index: number) => {
@@ -86,7 +88,9 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     handleOptionsChange(currentOptions);
   }, [selectedComponent, handleOptionsChange]);
 
-  const getPropertySections = useCallback((component: FormComponentData): PropertySection[] => {
+  const getPropertySections = useMemo((): PropertySection[] => {
+    if (!selectedComponent) return [];
+
     const sections: PropertySection[] = [
       {
         title: 'Basic Properties',
@@ -108,18 +112,19 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     ];
 
     // Add type-specific properties
-    switch (component.type) {
+    switch (selectedComponent.type) {
       case 'text_input':
       case 'email_input':
       case 'password_input':
       case 'textarea':
-        sections[1].fields.push(
-          { key: 'minLength', label: 'Min Length', type: 'number', min: 0 },
-          { key: 'maxLength', label: 'Max Length', type: 'number', min: 1 }
-        );
-        if (component.type === 'text_input') {
+        if (selectedComponent.type === 'text_input') {
           sections[1].fields.push(
-            { key: 'pattern', label: 'Pattern (Regex)', type: 'text', placeholder: '^[a-zA-Z]+$' }
+            { key: 'pattern', label: 'Pattern (Regex)', type: 'text', placeholder: '^[a-zA-Z]+' }
+          );
+        }
+        if (selectedComponent.type === 'textarea') {
+          sections[1].fields.push(
+            { key: 'rows', label: 'Rows', type: 'number', min: 2, max: 10 }
           );
         }
         break;
@@ -135,17 +140,12 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
       case 'select':
       case 'multi_select':
       case 'radio_group':
-      case 'checkbox_group':
+      case 'checkbox':
         sections.push({
           title: 'Options',
           expanded: expandedSections.has('options'),
           fields: [{ key: 'options', label: 'Options', type: 'options' }]
         });
-        if (component.type === 'multi_select') {
-          sections[1].fields.push(
-            { key: 'multiple', label: 'Multiple Selection', type: 'boolean' }
-          );
-        }
         break;
 
       case 'file_upload':
@@ -153,8 +153,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           title: 'File Settings',
           expanded: expandedSections.has('file'),
           fields: [
-            { key: 'accept', label: 'Accepted File Types', type: 'text', placeholder: '.jpg,.png,.pdf' },
-            { key: 'multiple', label: 'Multiple Files', type: 'boolean' }
+            { key: 'acceptedFileTypes', label: 'Accepted File Types', type: 'text', placeholder: '.jpg,.png,.pdf' }
           ]
         });
         break;
@@ -164,8 +163,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           title: 'Canvas Settings',
           expanded: expandedSections.has('canvas'),
           fields: [
-            { key: 'width', label: 'Width (px)', type: 'number', min: 200, max: 800 },
-            { key: 'height', label: 'Height (px)', type: 'number', min: 100, max: 400 }
+            { key: 'height', label: 'Height', type: 'text', placeholder: '200px' }
           ]
         });
         break;
@@ -179,6 +177,82 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           ]
         });
         break;
+
+      case 'button':
+        // Remove required field since buttons are not form inputs
+        sections[1].fields = sections[1].fields.filter(field => field.key !== 'required');
+        sections.push({
+          title: 'Button Settings',
+          expanded: expandedSections.has('button'),
+          fields: [
+            { key: 'defaultValue', label: 'Button Text', type: 'text', placeholder: 'Click Me' },
+            { 
+              key: 'styling.theme', 
+              label: 'Button Style', 
+              type: 'select', 
+              options: [
+                { value: 'primary', label: 'Primary' },
+                { value: 'secondary', label: 'Secondary' },
+                { value: 'danger', label: 'Danger' },
+                { value: 'success', label: 'Success' }
+              ]
+            }
+          ]
+        });
+        break;
+
+      case 'heading':
+        // Remove required field since headings are not form inputs
+        sections[1].fields = sections[1].fields.filter(field => field.key !== 'required');
+        sections.push({
+          title: 'Heading Settings',
+          expanded: expandedSections.has('heading'),
+          fields: [
+            { key: 'defaultValue', label: 'Heading Text', type: 'text', placeholder: 'Section Title' },
+            {
+              key: 'styling.theme',
+              label: 'Heading Level',
+              type: 'select',
+              options: [
+                { value: 'h1', label: 'H1 - Large Title' },
+                { value: 'h2', label: 'H2 - Section Title' },
+                { value: 'h3', label: 'H3 - Subsection' },
+                { value: 'h4', label: 'H4 - Minor Heading' },
+                { value: 'h5', label: 'H5 - Small Heading' },
+                { value: 'h6', label: 'H6 - Tiny Heading' }
+              ]
+            }
+          ]
+        });
+        break;
+
+      case 'card':
+        // Remove required field since cards are containers, not form inputs
+        sections[1].fields = sections[1].fields.filter(field => field.key !== 'required');
+        sections.push({
+          title: 'Card Settings',
+          expanded: expandedSections.has('card'),
+          fields: [
+            {
+              key: 'styling.theme',
+              label: 'Card Style',
+              type: 'select',
+              options: [
+                { value: 'default', label: 'Default' },
+                { value: 'bordered', label: 'Bordered' },
+                { value: 'shadow', label: 'Shadow' },
+                { value: 'minimal', label: 'Minimal' }
+              ]
+            }
+          ]
+        });
+        break;
+
+      case 'section_divider':
+        // Remove required field since dividers are not form inputs
+        sections[1].fields = sections[1].fields.filter(field => field.key !== 'required');
+        // Section dividers use basic properties only
+        break;
     }
 
     // Add styling section
@@ -187,13 +261,12 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
       expanded: expandedSections.has('styling'),
       fields: [
         { key: 'width', label: 'Width', type: 'text', placeholder: '100%' },
-        { key: 'readOnly', label: 'Read Only', type: 'boolean' },
-        { key: 'disabled', label: 'Disabled', type: 'boolean' }
+        { key: 'height', label: 'Height', type: 'text', placeholder: '200px' }
       ]
     });
 
     return sections;
-  }, [expandedSections]);
+  }, [selectedComponent, expandedSections]);
 
   const renderPropertyField = useCallback((field: PropertyField, value: any) => {
     switch (field.type) {
@@ -268,14 +341,14 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               <div key={index} className="option-row">
                 <input
                   type="text"
-                  value={option.label}
+                  value={option.label || ''}
                   onChange={(e) => updateOption(index, 'label', e.target.value)}
                   placeholder="Option label"
                   className="option-input"
                 />
                 <input
                   type="text"
-                  value={option.value}
+                  value={option.value || ''}
                   onChange={(e) => updateOption(index, 'value', e.target.value)}
                   placeholder="Option value"
                   className="option-input"
@@ -285,6 +358,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                   onClick={() => removeOption(index)}
                   className="option-remove-btn"
                   title="Remove option"
+                  aria-label={`Remove option ${index + 1}`}
                 >
                   ×
                 </button>
@@ -320,14 +394,12 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     );
   }
 
-  const sections = getPropertySections(selectedComponent);
-
   return (
     <div className="properties-panel">
       <div className="properties-header">
         <h3>Properties</h3>
         <div className="component-type-badge">
-          {selectedComponent.type.replace('_', ' ')}
+          {selectedComponent.type.replace(/_/g, ' ')}
         </div>
         {onClose && (
           <button
@@ -335,6 +407,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             onClick={onClose}
             className="close-btn"
             title="Close properties panel"
+            aria-label="Close properties panel"
           >
             ×
           </button>
@@ -342,19 +415,24 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
       </div>
 
       <div className="properties-content">
-        {sections.map((section) => (
+        {getPropertySections.map((section) => (
           <div key={section.title} className="property-section">
             <button
               type="button"
               className={`section-header ${section.expanded ? 'expanded' : ''}`}
-              onClick={() => toggleSection(section.title.toLowerCase().replace(' ', ''))}
+              onClick={() => toggleSection(section.title.toLowerCase().replace(/\s+/g, ''))}
+              aria-expanded={section.expanded}
+              aria-controls={`section-${section.title.toLowerCase().replace(/\s+/g, '')}`}
             >
               <span className="section-title">{section.title}</span>
               <span className="section-toggle">{section.expanded ? '−' : '+'}</span>
             </button>
 
             {section.expanded && (
-              <div className="section-content">
+              <div 
+                className="section-content"
+                id={`section-${section.title.toLowerCase().replace(/\s+/g, '')}`}
+              >
                 {section.fields.map((field) => (
                   <div key={field.key} className="property-field">
                     {field.type !== 'boolean' && (
@@ -371,3 +449,5 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     </div>
   );
 };
+
+export default PropertiesPanel;

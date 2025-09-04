@@ -12,6 +12,7 @@ export interface BaseComponent {
   label: string;
   fieldId: string;
   required: boolean;
+  helpText?: string;
 }
 
 // Input-specific interface

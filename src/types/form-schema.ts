@@ -2,8 +2,7 @@
  * ALIGNED WITH DOCUMENTATION - Form Schema Types
  * These interfaces match the JSON Schema Architecture described in the documentation
  */
-
-import { FormComponentData, ValidationRule, ConditionalRule } from './component';
+import type { FormComponentData, ValidationRule, ConditionalRule } from './component';
 
 // FORM SCHEMA JSON - Template Structure
 export interface FormSchema {

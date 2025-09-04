@@ -102,6 +102,135 @@ export class ComponentRenderer {
           })
         ]);
 
+      case 'password_input':
+        return React.createElement('div', props, [
+          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
+            component.label + (component.required ? ' *' : '')
+          ),
+          React.createElement('input', {
+            key: 'input',
+            type: 'password',
+            className: 'form-field__input',
+            placeholder: component.placeholder || '',
+            required: component.required
+          })
+        ]);
+
+      case 'number_input':
+        return React.createElement('div', props, [
+          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
+            component.label + (component.required ? ' *' : '')
+          ),
+          React.createElement('input', {
+            key: 'input',
+            type: 'number',
+            className: 'form-field__input',
+            placeholder: component.placeholder || '',
+            min: component.min,
+            max: component.max,
+            step: component.step,
+            required: component.required
+          })
+        ]);
+
+      case 'select':
+        return React.createElement('div', props, [
+          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
+            component.label + (component.required ? ' *' : '')
+          ),
+          React.createElement('select', {
+            key: 'select',
+            className: 'form-field__select',
+            required: component.required
+          }, [
+            React.createElement('option', { key: 'placeholder', value: '' }, 'Choose an option'),
+            ...(component.options || []).map((option, idx) => 
+              React.createElement('option', { key: idx, value: option }, option)
+            )
+          ])
+        ]);
+
+      case 'checkbox':
+        return React.createElement('div', props, [
+          React.createElement('input', {
+            key: 'input',
+            type: 'checkbox',
+            className: 'form-field__checkbox',
+            id: component.id,
+            required: component.required
+          }),
+          React.createElement('label', {
+            key: 'label',
+            htmlFor: component.id,
+            className: 'form-field__checkbox-label'
+          }, component.label + (component.required ? ' *' : ''))
+        ]);
+
+      case 'date_picker':
+        return React.createElement('div', props, [
+          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
+            component.label + (component.required ? ' *' : '')
+          ),
+          React.createElement('input', {
+            key: 'input',
+            type: 'date',
+            className: 'form-field__input',
+            required: component.required
+          })
+        ]);
+
+      case 'file_upload':
+        return React.createElement('div', props, [
+          React.createElement('label', { key: 'label', className: 'form-field__label' }, 
+            component.label + (component.required ? ' *' : '')
+          ),
+          React.createElement('input', {
+            key: 'input',
+            type: 'file',
+            className: 'form-field__file',
+            accept: component.acceptedFileTypes,
+            multiple: component.multiple,
+            required: component.required
+          })
+        ]);
+
+      case 'button':
+        return React.createElement('button', {
+          ...props,
+          type: 'button',
+          className: 'btn btn--primary'
+        }, component.label);
+
+      case 'heading':
+        return React.createElement('h2', {
+          ...props,
+          className: 'form-field__heading'
+        }, component.label);
+
+      case 'card':
+        return React.createElement('div', {
+          ...props,
+          className: 'form-card'
+        }, [
+          React.createElement('div', { key: 'header', className: 'form-card__header' },
+            React.createElement('span', { className: 'form-card__label' }, component.label)
+          ),
+          React.createElement('div', { key: 'content', className: 'form-card__content' },
+            (component.children || []).map(child => 
+              this.renderComponentElement(child, _mode)
+            )
+          )
+        ]);
+
+      case 'section_divider':
+        return React.createElement('div', props, [
+          React.createElement('hr', { key: 'divider', className: 'form-field__divider' }),
+          component.label ? React.createElement('h3', { 
+            key: 'title', 
+            className: 'form-field__section-title' 
+          }, component.label) : null
+        ]);
+
       default:
         return React.createElement('div', props, 
           React.createElement('span', { className: 'form-field__error' }, 

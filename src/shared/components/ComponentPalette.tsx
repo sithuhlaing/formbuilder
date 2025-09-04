@@ -119,7 +119,7 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({
   canvasManager,
   className = ''
 }) => {
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['input', 'selection']));
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['input_components', 'selection_components']));
   const [isDragging, setIsDragging] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -138,52 +138,76 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({
     const domainMode = canvasManager.getConfig().crossDomainMode;
     
     const baseComponents: ComponentInfo[] = [
-      // Input Components
-      { type: 'text_input', label: 'Text Input', description: 'Single line text field', icon: '📝', category: 'input' },
-      { type: 'textarea', label: 'Text Area', description: 'Multi-line text field', icon: '📄', category: 'input' },
-      { type: 'rich_text', label: 'Rich Text', description: 'WYSIWYG text editor', icon: '✏️', category: 'input' },
-      { type: 'email_input', label: 'Email', description: 'Email address field', icon: '📧', category: 'input' },
-      { type: 'password_input', label: 'Password', description: 'Password input field', icon: '🔒', category: 'input' },
-      { type: 'number_input', label: 'Number', description: 'Numeric input field', icon: '🔢', category: 'input' },
-      { type: 'date_picker', label: 'Date', description: 'Date selection field', icon: '📅', category: 'input' },
-      { type: 'file_upload', label: 'File Upload', description: 'File selection field', icon: '📎', category: 'input' },
+      // Input Components - EXACTLY AS DOCUMENTED
+      { type: 'text_input', label: 'Text Input', description: 'Single line text field', icon: '📝', category: 'input_components' },
+      { type: 'email_input', label: 'Email Input', description: 'Email address field with validation', icon: '📧', category: 'input_components' },
+      { type: 'password_input', label: 'Password Input', description: 'Password field with masking', icon: '🔒', category: 'input_components' },
+      { type: 'number_input', label: 'Number Input', description: 'Numeric input with validation', icon: '🔢', category: 'input_components' },
+      { type: 'textarea', label: 'Text Area', description: 'Multi-line text input', icon: '📄', category: 'input_components' },
+      { type: 'rich_text', label: 'Rich Text Editor', description: 'WYSIWYG text editor', icon: '✏️', category: 'input_components' },
       
-      // Selection Components
-      { type: 'select', label: 'Dropdown', description: 'Single selection dropdown', icon: '📋', category: 'selection' },
-      { type: 'multi_select', label: 'Multi Select', description: 'Multiple selection dropdown', icon: '☑️', category: 'selection' },
-      { type: 'radio_group', label: 'Radio Group', description: 'Single choice options', icon: '🔘', category: 'selection' },
-      { type: 'checkbox_group', label: 'Checkbox Group', description: 'Multiple choice options', icon: '☑️', category: 'selection' },
-      { type: 'checkbox', label: 'Checkbox', description: 'Single checkbox field', icon: '✅', category: 'selection' },
+      // Selection Components - EXACTLY AS DOCUMENTED
+      { type: 'select', label: 'Select Dropdown', description: 'Single selection dropdown', icon: '📋', category: 'selection_components' },
+      { type: 'multi_select', label: 'Multi Select', description: 'Multiple selection dropdown', icon: '☑️', category: 'selection_components' },
+      { type: 'checkbox', label: 'Checkbox', description: 'Single checkbox input', icon: '✅', category: 'selection_components' },
+      { type: 'radio_group', label: 'Radio Group', description: 'Single selection from multiple options', icon: '🔘', category: 'selection_components' },
       
-      // Display Components
-      { type: 'heading', label: 'Heading', description: 'Section heading text', icon: '📰', category: 'display' },
-      { type: 'paragraph', label: 'Paragraph', description: 'Descriptive text block', icon: '📝', category: 'display' },
-      { type: 'divider', label: 'Divider', description: 'Visual section separator', icon: '➖', category: 'display' },
+      // Special Components - EXACTLY AS DOCUMENTED
+      { type: 'date_picker', label: 'Date Picker', description: 'Calendar date selection', icon: '📅', category: 'special_components' },
+      { type: 'file_upload', label: 'File Upload', description: 'File selection and upload', icon: '📎', category: 'special_components' },
+      { type: 'signature', label: 'Signature Pad', description: 'Digital signature capture', icon: '✍️', category: 'special_components' },
       
-      // Special Components
-      { type: 'signature', label: 'Signature', description: 'Digital signature pad', icon: '✍️', category: 'special' }
+      // Layout Components - EXACTLY AS DOCUMENTED
+      { type: 'horizontal_layout', label: 'Horizontal Layout', description: 'Container for side-by-side components', icon: '📐', category: 'layout_components' },
+      { type: 'vertical_layout', label: 'Vertical Layout', description: 'Container for stacked components', icon: '📏', category: 'layout_components' },
+      
+      // UI Components - EXACTLY AS DOCUMENTED
+      { type: 'section_divider', label: 'Section Divider', description: 'Visual separator between form sections', icon: '➖', category: 'ui_components' },
+      { type: 'button', label: 'Button', description: 'Action button for form interactions', icon: '🔲', category: 'ui_components' },
+      { type: 'heading', label: 'Heading', description: 'Section heading or title', icon: '📰', category: 'ui_components' },
+      { type: 'card', label: 'Card Container', description: 'Visual card container for grouping', icon: '🗂️', category: 'ui_components' }
     ];
 
-    // Filter based on domain mode
+    // Filter based on domain mode - ALIGNED WITH DOCUMENTATION
     let filteredComponents = baseComponents;
     
     if (domainMode === 'surveys') {
-      // Surveys might emphasize selection components
-      filteredComponents = baseComponents.map(comp => {
-        if (comp.category === 'selection') {
-          return { ...comp, category: 'primary' };
-        }
-        return comp;
+      // Surveys focus on data collection components - CORRECTED
+      filteredComponents = baseComponents.filter(comp => {
+        const surveyComponents = [
+          // Input Components (6 components)
+          'text_input', 'email_input', 'password_input', 'number_input', 'textarea', 'rich_text',
+          // Selection Components (4 components)
+          'select', 'multi_select', 'checkbox', 'radio_group',
+          // Special Components (3 components) 
+          'date_picker', 'file_upload', 'signature',
+          // UI Components (1 component for surveys)
+          'section_divider'
+        ];
+        return surveyComponents.includes(comp.type);
       });
     } else if (domainMode === 'workflows') {
-      // Workflows might emphasize special components
-      filteredComponents = baseComponents.map(comp => {
-        if (['signature', 'file_upload', 'date_picker'].includes(comp.type)) {
-          return { ...comp, category: 'primary' };
-        }
-        return comp;
+      // Workflows focus on action-oriented components - CORRECTED
+      filteredComponents = baseComponents.filter(comp => {
+        const workflowComponents = [
+          // Input Components (2 components)
+          'text_input', 'textarea',
+          // Selection Components (2 components)
+          'select', 'checkbox',
+          // UI Components (3 components for workflows)
+          'button', 'heading', 'card'
+        ];
+        return workflowComponents.includes(comp.type);
       });
     }
+    // 'forms' mode shows all components (default)
+    
+    console.log('🔍 Domain Mode:', domainMode);
+    console.log('🔍 Base Components Count:', baseComponents.length);
+    console.log('🔍 Filtered Components Count:', filteredComponents.length);
+    console.log('🔍 All Categories:', [...new Set(filteredComponents.map(c => c.category))]);
+    console.log('🔍 Special Components:', filteredComponents.filter(c => c.category === 'special_components'));
+    console.log('🔍 UI Components:', filteredComponents.filter(c => c.category === 'ui_components'));
 
     // Apply search filter
     if (searchTerm) {
@@ -207,22 +231,22 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({
 
   const getCategoryLabel = (category: string): string => {
     const labels: Record<string, string> = {
-      primary: 'Primary',
-      input: 'Input Fields',
-      selection: 'Selection',
-      display: 'Display',
-      special: 'Special'
+      input_components: 'Input Components',
+      selection_components: 'Selection Components',
+      special_components: 'Special Components',
+      layout_components: 'Layout Components',
+      ui_components: 'UI Components'
     };
     return labels[category] || category;
   };
 
   const getCategoryIcon = (category: string): string => {
     const icons: Record<string, string> = {
-      primary: '⭐',
-      input: '📝',
-      selection: '☑️',
-      display: '📄',
-      special: '🔧'
+      input_components: '📝',
+      selection_components: '☑️',
+      special_components: '⭐',
+      layout_components: '📐',
+      ui_components: '🎨'
     };
     return icons[category] || '📦';
   };
@@ -361,9 +385,13 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({
         {Object.keys(groupedComponents).length > 0 ? (
           Object.entries(groupedComponents)
             .sort(([a], [b]) => {
-              // Sort categories: primary first, then alphabetical
-              if (a === 'primary') return -1;
-              if (b === 'primary') return 1;
+              // Sort categories in documented order
+              const order = ['input_components', 'selection_components', 'special_components', 'layout_components', 'ui_components'];
+              const aIndex = order.indexOf(a);
+              const bIndex = order.indexOf(b);
+              if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+              if (aIndex !== -1) return -1;
+              if (bIndex !== -1) return 1;
               return a.localeCompare(b);
             })
             .map(([category, components]) => renderCategory(category, components))

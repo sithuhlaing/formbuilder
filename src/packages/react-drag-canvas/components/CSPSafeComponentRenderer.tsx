@@ -296,8 +296,8 @@ const FormComponents = {
         {component.required && <span className="form-field__required">*</span>}
       </label>
       <RichTextEditor
-        value={component.defaultValue || ''}
-        placeholder={component.placeholder?.toString() || 'Enter rich text content...'}
+        value={typeof component.defaultValue === 'string' ? component.defaultValue : ''}
+        placeholder={typeof component.placeholder === 'string' ? component.placeholder : 'Enter rich text content...'}
         readOnly={readOnly}
         height={component.height || '200px'}
         className="form-field__rich-text"
@@ -355,7 +355,7 @@ const FormComponents = {
           <h3 className="form-field__card-title">{component.label}</h3>
         </div>
         <div className="form-field__card-content">
-          {component.children?.map((child, index) => {
+          {component.children?.map((child) => {
             const ChildComponent = FormComponents[child.type as keyof typeof FormComponents];
             return ChildComponent ? (
               <ChildComponent key={child.id} component={child} readOnly={readOnly} />
@@ -370,8 +370,8 @@ const FormComponents = {
 
   horizontal_layout: ({ component, readOnly }: { component: FormComponentData; readOnly?: boolean }) => (
     <div className="form-field">
-      <div className="form-field__horizontal-layout" style={{ display: 'flex', flexDirection: 'row', gap: '12px' }}>
-        {component.children?.map((child, childIndex) => {
+      <div className="form-field__horizontal-layout" data-testid="row-layout" style={{ display: 'flex', flexDirection: 'row', gap: '12px' }}>
+        {component.children?.map((child) => {
           const ChildComponent = FormComponents[child.type as keyof typeof FormComponents];
           return (
             <div key={child.id} className="form-field__horizontal-item" style={{ flex: 1 }}>
@@ -390,7 +390,7 @@ const FormComponents = {
   vertical_layout: ({ component, readOnly }: { component: FormComponentData; readOnly?: boolean }) => (
     <div className="form-field">
       <div className="form-field__vertical-layout" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {component.children?.map((child, childIndex) => {
+        {component.children?.map((child) => {
           const ChildComponent = FormComponents[child.type as keyof typeof FormComponents];
           return (
             <div key={child.id} className="form-field__vertical-item">
@@ -445,7 +445,7 @@ export const CSPSafeComponentRenderer: React.FC<CSPSafeRendererProps> = ({
   context, 
   readOnly = false 
 }) => {
-  const component = item.data as FormComponentData;
+  const component = item.data as unknown as FormComponentData;
   
   // Get the appropriate renderer
   const ComponentRenderer = FormComponents[component.type as keyof typeof FormComponents];

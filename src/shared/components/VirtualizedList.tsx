@@ -9,10 +9,12 @@
 
 import React, { 
   useState, 
-  useEffect, 
   useRef, 
   useCallback, 
   useMemo,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
   CSSProperties 
 } from 'react';
 
@@ -33,7 +35,13 @@ interface VirtualItem {
   size: number;
 }
 
-export function VirtualizedList<T>({
+export interface VirtualizedListRef {
+  scrollToIndex: (index: number, align?: 'start' | 'center' | 'end') => void;
+  scrollToItem: (item: any, align?: 'start' | 'center' | 'end') => void;
+  getScrollTop: () => number;
+}
+
+export const VirtualizedList = forwardRef<VirtualizedListRef, VirtualizedListProps<any>>(function VirtualizedList<T>({
   items,
   renderItem,
   itemHeight = 50,
@@ -41,7 +49,7 @@ export function VirtualizedList<T>({
   overscan = 5,
   className = '',
   onScroll
-}: VirtualizedListProps<T>) {
+}: VirtualizedListProps<T>, ref) {
   const [scrollTop, setScrollTop] = useState(0);
   const scrollElementRef = useRef<HTMLDivElement>(null);
   
@@ -115,9 +123,9 @@ export function VirtualizedList<T>({
 
   // Handle scroll events
   const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
-    const scrollTop = event.currentTarget.scrollTop;
-    setScrollTop(scrollTop);
-    onScroll?.(scrollTop);
+    const newScrollTop = event.currentTarget.scrollTop;
+    setScrollTop(newScrollTop);
+    onScroll?.(newScrollTop);
   }, [onScroll]);
 
   // Scroll to specific index
@@ -125,16 +133,16 @@ export function VirtualizedList<T>({
     if (!scrollElementRef.current || !itemPositions[index]) return;
 
     const item = itemPositions[index];
-    let scrollTop = item.start;
+    let targetScrollTop = item.start;
 
     if (align === 'center') {
-      scrollTop = item.start - (height - item.size) / 2;
+      targetScrollTop = item.start - (height - item.size) / 2;
     } else if (align === 'end') {
-      scrollTop = item.end - height;
+      targetScrollTop = item.end - height;
     }
 
-    scrollTop = Math.max(0, Math.min(totalHeight - height, scrollTop));
-    scrollElementRef.current.scrollTop = scrollTop;
+    targetScrollTop = Math.max(0, Math.min(totalHeight - height, targetScrollTop));
+    scrollElementRef.current.scrollTop = targetScrollTop;
   }, [itemPositions, height, totalHeight]);
 
   // Scroll to specific item
@@ -146,11 +154,11 @@ export function VirtualizedList<T>({
   }, [items, scrollToIndex]);
 
   // Expose scroll methods via ref
-  React.useImperativeHandle(scrollElementRef, () => ({
+  useImperativeHandle(ref, () => ({
     scrollToIndex,
     scrollToItem,
     getScrollTop: () => scrollTop
-  }));
+  }), [scrollToIndex, scrollToItem, scrollTop]);
 
   return (
     <div 
@@ -188,7 +196,7 @@ export function VirtualizedList<T>({
       </div>
     </div>
   );
-}
+});
 
 // Hook for easier usage
 export function useVirtualizedList<T>(

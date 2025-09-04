@@ -1,66 +1,66 @@
 
 # Form Builder Documentation
 
-A comprehensive guide to the Form Builder application - an interactive drag-and-drop form builder with multi-page support, built with React, TypeScript, and Vite.
+Clean, systematic documentation for the Form Builder project.
 
-## Table of Contents
+## 📋 Documentation Structure
 
-1. [Overview](#overview)
-2. [Getting Started](#getting-started)
-3. [Architecture](#architecture)
-4. [Core Components](#core-components)
-5. [Features](#features)
-6. [Development Guide](#development-guide)
-7. [API Reference](#api-reference)
-8. [Testing](#testing)
-9. [Deployment](#deployment)
-10. [Contributing](#contributing)
+### [01-ARCHITECTURE.md](./01-ARCHITECTURE.md)
+**System Overview & Architecture**
+- Core engines and single sources of truth
+- Component types and state flow  
+- Technology stack and performance features
+- Quick system understanding
 
-## Overview
+### [02-BUSINESS-LOGIC.md](./02-BUSINESS-LOGIC.md) 
+**Business Logic & Functional Requirements**
+- Drag-drop behavior and layout transformations
+- User workflows and validation requirements
+- Component lifecycle and state management rules
+- Complete functional specifications
 
-### What is Form Builder?
+### [03-DEVELOPMENT-GUIDE.md](./03-DEVELOPMENT-GUIDE.md)
+**Development Guide & Patterns**  
+- Development commands and quick start
+- Code organization and testing strategy
+- Performance best practices and debugging
+- Practical development workflows
 
-Form Builder is a modern, interactive application that allows users to create complex forms through an intuitive drag-and-drop interface. It supports multi-page forms, live preview, template management, and 13 different field types.
+### [04-API-REFERENCE.md](./04-API-REFERENCE.md)
+**Complete API Reference**
+- Core engines API (ComponentEngine, FormStateEngine, ComponentRenderer)
+- Form builder hook and template service
+- TypeScript interfaces and drag-drop service
+- All methods, parameters, and return types
 
-### Key Features
+### [05-TECHNICAL-SPECIFICATIONS.md](./05-TECHNICAL-SPECIFICATIONS.md)
+**Detailed Technical Specifications**
+- Architecture diagrams and state machines
+- Performance implementation details
+- Component validation rules and drop zone specifications
+- Advanced technical implementation details
 
-- **Drag-and-Drop Interface**: Intuitive form building experience
-- **Multi-Page Support**: Create complex, multi-step forms
-- **13 Field Types**: Text, number, email, select, checkbox, radio, and more
-- **Live Preview**: Real-time form preview as you build
-- **Template Management**: Save, load, and share form templates
-- **Responsive Design**: Works seamlessly across devices
-- **Unified Modal System**: Consistent user experience
-- **Progressive Web App**: PWA support for offline functionality
+### [06-SYSTEM-INTERACTION-DIAGRAMS.md](./06-SYSTEM-INTERACTION-DIAGRAMS.md)
+**Complete System Interaction Diagrams**
+- Class interaction and dependency diagrams
+- State flow and transformation diagrams  
+- Sequence diagrams for complex operations
+- Hook integration and component lifecycle flows
 
-### Technology Stack
+## 🚀 Quick Start
 
-- **Frontend**: React 18, TypeScript 5.8.3
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS with CSS Variables
-- **Drag & Drop**: React DnD
-- **Rich Text**: Lexical Editor
-- **Testing**: Vitest, React Testing Library
-- **Deployment**: GitHub Pages with GitHub Actions
+1. **Understanding the System**: Start with [Architecture](./01-ARCHITECTURE.md)
+2. **Business Requirements**: Read [Business Logic](./02-BUSINESS-LOGIC.md)  
+3. **Development Setup**: Follow [Development Guide](./03-DEVELOPMENT-GUIDE.md)
+4. **API Usage**: Reference [API Documentation](./04-API-REFERENCE.md)
+5. **Deep Technical Details**: Check [Technical Specifications](./05-TECHNICAL-SPECIFICATIONS.md)
+6. **System Interactions**: View [System Interaction Diagrams](./06-SYSTEM-INTERACTION-DIAGRAMS.md)
 
-## Getting Started
+## 📁 What's Covered
 
-### Prerequisites
+- ✅ **Complete Architecture** - Core engines, state flow, component system
+- ✅ **Business Logic** - Drag-drop rules, layout transformations, validation
+- ✅ **Development Workflow** - Commands, patterns, testing, debugging  
+- ✅ **API Reference** - All methods, interfaces, and usage examples
 
-- Node.js 18 or higher
-- npm (comes with Node.js)
-- Modern web browser
-
-### Installation
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd form-builder
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
+This documentation structure eliminates duplication and provides everything needed to understand, develop, and extend the Form Builder system.
