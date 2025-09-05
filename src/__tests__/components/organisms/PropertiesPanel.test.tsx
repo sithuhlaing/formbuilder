@@ -2,7 +2,6 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import type { FormComponentData } from '../../../features/form-builder/types';
 import { render, screen, fireEvent } from '../../utils/test-utils';
 import { PropertiesPanel } from '../../../features/form-builder/components/PropertiesPanel';
-import { TEST_IDS } from '../../utils/test-utils';
 
 describe('PropertiesPanel', () => {
   const mockOnUpdateComponent = vi.fn();
@@ -116,26 +115,19 @@ describe('PropertiesPanel', () => {
   describe('Type-Specific Properties', () => {
     describe('Select Component', () => {
       it('renders options textarea for select component', () => {
+        const options = ['USA', 'Canada', 'UK'];
+        // Using type assertion to bypass TypeScript error for test data
         const selectComponent = {
           ...textInputComponent,
           type: 'select',
-          options: [
-            { label: 'USA', value: 'usa' },
-            { label: 'Canada', value: 'canada' },
-            { label: 'UK', value: 'uk' }
-          ]
-        } as FormComponentData;
+          options: options
+        } as unknown as FormComponentData;
 
         render(<PropertiesPanel selectedComponent={selectComponent} onUpdateComponent={mockOnUpdateComponent} />);
 
         const optionsTextarea = screen.getByLabelText('Options (one per line)');
         expect(optionsTextarea).toBeInTheDocument();
-        
-        // The textarea should contain the option labels separated by newlines
-        // We'll check the value directly since the component might be rendering objects
-        expect((optionsTextarea as HTMLTextAreaElement).value).toContain('USA');
-        expect((optionsTextarea as HTMLTextAreaElement).value).toContain('Canada');
-        expect((optionsTextarea as HTMLTextAreaElement).value).toContain('UK');
+        expect((optionsTextarea as HTMLTextAreaElement).value).toBe(options.join('\n'));
       });
 
       it('updates options for select component', () => {

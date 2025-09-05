@@ -5,11 +5,11 @@
 
 import React, { useCallback, memo } from 'react';
 import { useAppState } from './hooks/useAppState';
-import { OptimizedFormBuilder } from './components/OptimizedFormBuilder';
+import { SimpleFormBuilder } from './components/SimpleFormBuilder';
 import { LazyTemplateListView } from './components/LazyComponents';
 import { templateService } from './features/template-management';
 import { Button, Modal } from './shared/components';
-import { useFormBuilder } from './features/form-builder';
+import { useSimpleFormBuilder } from './hooks/useSimpleFormBuilder';
 import type { FormTemplate } from './types';
 
 // Styles
@@ -26,63 +26,43 @@ LoadingSpinner.displayName = 'LoadingSpinner';
 
 const App: React.FC = () => {
   const { state, actions } = useAppState();
-  const formBuilderHook = useFormBuilder();
-  const { loadTemplate, loadFromJSON, clearForNewTemplate } = formBuilderHook;
+  const formBuilderHook = useSimpleFormBuilder();
+  const { 
+    templateName,
+    components,
+    selectedId,
+    loadFromJSON: loadJSONData,
+    exportJSON,
+    clearAll,
+    setTemplateName
+  } = formBuilderHook;
 
   // Memoized handlers for better performance
   const handleSave = useCallback(() => {
     try {
-      const { formState } = formBuilderHook;
-      if (formState.templateId) {
-        // Update existing template - convert pages to template format
-        const templatePages = formState.pages.map((page, index) => ({
-          ...page,
-          layout: page.layoutConfig || {},
-          order: index
-        }));
-        
-        const updated = templateService.updateTemplate(formState.templateId, {
-          name: formState.templateName || 'Untitled Form',
-          pages: templatePages
-        });
-        
-        if (updated) {
-          console.log('Template updated:', updated);
-          actions.showSuccess(
-            'Template Updated',
-            `Template "${updated.name}" has been updated successfully.`
-          );
-        } else {
-          actions.showError(
-            'Update Failed',
-            'Failed to update template. Please try again.'
-          );
-        }
+      // Create template with simple structure
+      const templateData = {
+        name: templateName || 'Untitled Form',
+        pages: [{
+          id: 'page-1',
+          title: 'Page 1', 
+          components: components
+        }]
+      };
+      
+      const newTemplate = templateService.saveTemplate(templateData);
+      
+      if (newTemplate) {
+        console.log('Template created:', newTemplate);
+        actions.showSuccess(
+          'Template Saved',
+          `Template "${newTemplate.name}" has been saved successfully.`
+        );
       } else {
-        // Create new template
-        const templatePages = formState.pages.map((page, index) => ({
-          ...page,
-          layout: page.layoutConfig || {},
-          order: index
-        }));
-        
-        const newTemplate = templateService.saveTemplate({
-          name: formState.templateName || 'Untitled Form',
-          pages: templatePages
-        });
-        
-        if (newTemplate) {
-          console.log('Template created:', newTemplate);
-          actions.showSuccess(
-            'Template Saved',
-            `Template "${newTemplate.name}" has been saved successfully.`
-          );
-        } else {
-          actions.showError(
-            'Save Failed',
-            'Failed to save template. Please try again.'
-          );
-        }
+        actions.showError(
+          'Save Failed',
+          'Failed to save template. Please try again.'
+        );
       }
     } catch (error) {
       console.error('Error saving template:', error);
@@ -91,7 +71,7 @@ const App: React.FC = () => {
         'An error occurred while saving. Please try again.'
       );
     }
-  }, [formBuilderHook, actions]);
+  }, [templateName, components, actions]);
 
 
   const handleJSONUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,7 +81,7 @@ const App: React.FC = () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const jsonData = e.target?.result as string;
-      loadFromJSON(jsonData);
+      loadJSONData(jsonData);
     };
     
     reader.readAsText(file);
@@ -111,19 +91,13 @@ const App: React.FC = () => {
   // Export template layout JSON (headless JSON for form data)
   const handleExportJSON = useCallback(() => {
     try {
-      const { formState } = formBuilderHook;
-      const templateData = {
-        templateName: formState.templateName,
-        pages: formState.pages
-      };
-      
-      const dataStr = JSON.stringify(templateData, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const jsonString = exportJSON();
+      const dataBlob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(dataBlob);
       
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${formState.templateName || 'form-template'}.json`;
+      link.download = `${templateName || 'form-template'}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -140,16 +114,25 @@ const App: React.FC = () => {
         'Failed to export template. Please try again.'
       );
     }
-  }, [formBuilderHook, actions]);
+  }, [exportJSON, templateName, actions]);
 
   const handleBackToList = useCallback(() => {
     actions.setView('list');
   }, [actions]);
 
   const handleTemplateSelect = useCallback((template: FormTemplate) => {
-    loadTemplate(template);
+    // Load template data into simple form builder
+    if (template.pages && template.pages.length > 0) {
+      const firstPage = template.pages[0];
+      if (firstPage.components) {
+        loadJSONData(JSON.stringify({
+          templateName: template.name,
+          components: firstPage.components
+        }));
+      }
+    }
     actions.setView('builder');
-  }, [loadTemplate, actions]);
+  }, [loadJSONData, actions]);
 
   // Template List View
   if (state.currentView === 'list') {
@@ -158,7 +141,8 @@ const App: React.FC = () => {
         <LazyTemplateListView
           onCreateNew={() => {
             // Clear form state for new template
-            clearForNewTemplate();
+            clearAll();
+            setTemplateName('Untitled Form');
             actions.setView('builder');
           }}
           onEditTemplate={handleTemplateSelect}
@@ -202,8 +186,8 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {/* Optimized Form Builder */}
-      <OptimizedFormBuilder
+      {/* Simple Form Builder - Phase 5 Integration */}
+      <SimpleFormBuilder
         onSave={handleSave}
         onExport={handleExportJSON}
         onPreview={() => actions.togglePreview(true)}

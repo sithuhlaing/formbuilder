@@ -7,7 +7,7 @@
 import React, { useState, memo, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
-import { ComponentRenderer } from '../../../core';
+import { getSimpleComponentInfo } from '../../../core';
 import { usePerformanceMonitor } from '../../../shared/hooks/usePerformanceMonitor';
 import type { ComponentType } from '../../../types';
 
@@ -42,7 +42,7 @@ const PaletteItem: React.FC<PaletteItemProps> = memo(({ componentType, onAddComp
     preview(getEmptyImage(), { captureDraggingState: true });
   }, [preview]);
 
-  const info = ComponentRenderer.getComponentInfo(componentType);
+  const info = getSimpleComponentInfo(componentType);
 
   const handleClick = (_e: React.MouseEvent) => {
     // Prevent click if drag was initiated
@@ -140,7 +140,7 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddCompone
     if (!searchTerm) return components;
     
     return components.filter(type => {
-      const info = ComponentRenderer.getComponentInfo(type);
+      const info = getSimpleComponentInfo(type);
       return info.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
              type.toLowerCase().includes(searchTerm.toLowerCase());
     });

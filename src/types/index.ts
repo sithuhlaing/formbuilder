@@ -25,17 +25,8 @@ export type {
   PositionedComponent
 } from '../core/interfaces/ComponentInterfaces';
 
-// Re-export state management interfaces
-export type {
-  IFormState,
-  IFormAction,
-  IFormStateEngine,
-  IFormQueries,
-  IFormCommands,
-  IFormValidator,
-  FormPage,
-  FormAction
-} from '../core/interfaces/StateInterfaces';
+// Note: Complex state management interfaces moved to legacy in Phase 5
+// The app now uses simple React state via useSimpleFormBuilder hook
 
 // Re-export form schema types - DOCUMENTATION ALIGNED
 export type {

@@ -9,8 +9,9 @@ import { DeleteZone } from '../features/form-builder/components/DeleteZone';
 import { FormWizardNavigation } from '../features/form-builder/components/FormWizardNavigation';
 import { LazyCanvas, LazyComponentPalette, LazyPropertiesPanel, LazyPreviewModal } from './LazyComponents';
 import { MobileDrawerManager } from './ResponsiveDrawers';
-import { MobileDragDropManager } from './MobileDragDropManager';
-import { TouchDragPreview } from './TouchDragPreview';
+// Mobile drag-drop components moved to legacy in Phase 3
+// import { MobileDragDropManager } from './MobileDragDropManager';
+// import { TouchDragPreview } from './TouchDragPreview';
 import type { FormComponentData, ComponentType } from '../types';
 
 // Loading fallback component
@@ -120,7 +121,7 @@ const OptimizedFormBuilder: React.FC<OptimizedFormBuilderProps> = memo(({
   ]);
 
   return (
-    <MobileDragDropManager>
+    <div className="form-builder-wrapper">{/* MobileDragDropManager removed in Phase 3 - mobile drag-drop now handled by SimpleCanvas */}
       <div className="form-builder optimized-form-builder">
         {/* Toolbar */}
         <div className="form-builder__toolbar">
@@ -192,8 +193,8 @@ const OptimizedFormBuilder: React.FC<OptimizedFormBuilderProps> = memo(({
           </div>
         </MobileDrawerManager>
 
-        {/* Touch Drag Preview for Mobile */}
-        <TouchDragPreview />
+        {/* Touch Drag Preview for Mobile - Removed in Phase 3, now handled by SimpleDraggableComponent */}
+        {/* <TouchDragPreview /> */}
 
         {/* Preview Modal */}
         {showPreview && (
@@ -207,7 +208,7 @@ const OptimizedFormBuilder: React.FC<OptimizedFormBuilderProps> = memo(({
           </Suspense>
         )}
       </div>
-    </MobileDragDropManager>
+    </div>
   );
 });
 

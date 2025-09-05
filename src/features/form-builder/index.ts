@@ -8,5 +8,5 @@ export { PropertiesPanel } from './components/PropertiesPanel';
 export { PreviewModal } from './components/PreviewModal';
 export { DeleteZone } from './components/DeleteZone';
 export { PreviewForm } from './components/PreviewForm';
-export { useFormBuilder } from './hooks/useFormBuilder';
-export type { FormBuilderState } from './hooks/useFormBuilder';
+// Phase 5: useFormBuilder moved to legacy, replaced by useSimpleFormBuilder
+export { useSimpleFormBuilder } from '../../hooks/useSimpleFormBuilder';

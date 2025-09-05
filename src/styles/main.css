@@ -7,7 +7,7 @@
 @import './base.css';
 @import './components.css';
 @import './layout.css';
-@import './drag-drop.css';
+/* @import './drag-drop.css'; - Moved to legacy in Phase 4 */
 @import './RichTextEditor.css';
 
 /* Import Clean Feature Styles */
@@ -15,8 +15,9 @@
 @import './features/template-management.css';
 @import './form-builder-layout.css';
 @import './responsive-drawers.css';
-@import './mobile-drag-drop.css';
-@import './touch-drag-preview.css';
+@import './simple-form-builder.css';
+/* @import './mobile-drag-drop.css'; - Moved to legacy in Phase 3 */
+/* @import './touch-drag-preview.css'; - Moved to legacy in Phase 3 */
 
 /* Custom Application Styles */
 

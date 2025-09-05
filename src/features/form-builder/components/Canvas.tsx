@@ -1,42 +1,40 @@
 /**
- * Form Builder Canvas - Now using FormCanvasAdapter with SOLID principles
+ * Form Builder Canvas - Phase 4 Implementation using SimpleCanvas
+ * Replaces: FormCanvasAdapter (moved to legacy)
  */
 
 import React from 'react';
-import { FormCanvas } from '../../../packages/react-drag-canvas/FormCanvasAdapter';
-import type { FormComponentData, ComponentType } from '../../../types';
+import { SimpleCanvas } from '../../../components/SimpleCanvas';
+import type { Component, ComponentType } from '../../../types/components';
 
 interface CanvasProps {
-  components: FormComponentData[];
-  onDrop: (componentType: ComponentType, targetId: string, position: 'before' | 'after' | 'left' | 'right' | 'inside') => void;
+  components: Component[];
+  selectedId: string | null;
+  onDrop: (type: ComponentType, position?: { index: number }) => void;
   onSelect: (componentId: string) => void;
   onDelete: (componentId: string) => void;
-  onMove: (fromIndex: number, toIndex: number) => void;
-  onAddToLayout?: (componentType: ComponentType, layoutId: string) => void;
-  selectedId?: string;
+  onMove: (sourceId: string, targetId: string, position: 'before' | 'after') => void;
 }
 
 export const Canvas: React.FC<CanvasProps> = ({
   components,
+  selectedId,
   onDrop,
   onSelect,
   onDelete,
   onMove,
-  onAddToLayout,
-  selectedId,
 }) => {
   return (
     <div data-testid="canvas" className="form-builder-canvas form-canvas">
       <div className="form-canvas__container">
-        <FormCanvas
+        <SimpleCanvas
           components={components}
+          selectedId={selectedId}
           onDrop={onDrop}
           onSelect={onSelect}
           onDelete={onDelete}
           onMove={onMove}
-          onAddToLayout={onAddToLayout}
-          selectedId={selectedId}
-          useCspSafeRenderer={true}
+          mode="builder"
         />
       </div>
     </div>

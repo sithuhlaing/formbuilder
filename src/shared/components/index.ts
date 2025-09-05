@@ -33,23 +33,15 @@ export {
   UnknownComponent
 } from './SpecializedFormComponents';
 
-// Component Renderer
-export { ComponentRenderer } from '../../core/ComponentRenderer';
+// Simple Component Renderer - Phase 4 Implementation
+export { renderSimpleComponent } from '../../components/SimpleRenderer';
 
-// Drop Zone Components - Legacy Pattern
-// NOTE: These use legacy callback patterns for backward compatibility
-// For NPM package usage, see: src/packages/react-drag-canvas/components/
-export { 
-  DropZone, 
-  BetweenDropZone,      // Legacy: onInsertBetween(ComponentType, index)
-  SmartDropZone,        // Legacy: basic position detection
-  CanvasDropZone 
-} from './DropZone';
-
-// Drag Handle Components
-export { 
-  DragHandle, 
-  DeleteButton, 
-  DragControls, 
-  RowLayoutControls 
-} from './DragHandle';
+// Legacy Drag-Drop Components - Moved to legacy in Phases 3 & 4
+// If you need drag-drop functionality, use the new simple components:
+// - SimpleCanvas (Phase 3)
+// - SimpleDraggableComponent (Phase 3) 
+// - SimpleComponentPalette (Phase 3)
+// 
+// Original complex components preserved in:
+// - src/_legacy_phase3/drag-drop-system/
+// - src/_legacy_phase3/canvas-system/

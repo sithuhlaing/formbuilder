@@ -5,10 +5,10 @@
 
 import { lazy } from 'react';
 
-// Lazy load heavy components
+// Lazy load simple components - Phase 5 Integration
 export const LazyComponentPalette = lazy(() => 
-  import('../features/form-builder/components/ComponentPalette').then(module => ({
-    default: module.ComponentPalette
+  import('./SimpleComponentPalette').then(module => ({
+    default: module.SimpleComponentPalette
   }))
 );
 
@@ -31,7 +31,7 @@ export const LazyTemplateListView = lazy(() =>
 );
 
 export const LazyCanvas = lazy(() => 
-  import('../features/form-builder/components/Canvas').then(module => ({
-    default: module.Canvas
+  import('./SimpleCanvas').then(module => ({
+    default: module.SimpleCanvas
   }))
 );

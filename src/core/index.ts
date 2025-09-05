@@ -3,15 +3,17 @@
  * Convergence: All core business logic in ONE place
  */
 
-// Core Engines - Single Sources of Truth - ALIGNED WITH DOCUMENTATION
-export { ComponentEngine } from './ComponentEngine';
-export { FormStateEngine } from './FormStateEngine';
-export { ComponentRenderer } from './ComponentRenderer';
-export { ValidationEngine } from './ValidationEngine';
+// Core Engines - Phase 5 Implementation  
 export { DependencyEngine } from './DependencyEngine';
+
+// Simple Component System - Phases 1-2 Implementation
+export * from './componentUtils';
+export * from './simpleComponents';
+
+// Simple Renderer - Phase 4 Implementation
+export { renderSimpleComponent, getSimpleComponentInfo } from '../components/SimpleRenderer';
 
 // Services  
 export { SchemaGenerator } from './services/schemaGenerator';
 
-// Types
-export type { FormStateAction } from './FormStateEngine';
+// Note: FormStateEngine moved to legacy - replaced by useSimpleFormBuilder hook

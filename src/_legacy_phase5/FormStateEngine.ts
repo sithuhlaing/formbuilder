@@ -4,9 +4,9 @@
  * Business Logic: Exactly what the requirements need
  */
 
-import type { FormComponentData, FormPage, ValidationResult } from '../types';
-import { ComponentEngine } from './ComponentEngine';
-import { DragDropService } from '../features/drag-drop';
+import type { Component, ComponentType } from '../types/components';
+// Simple component utilities - Phase 4 replacement for ComponentEngine
+import { createComponent, validateComponent } from './componentUtils';
 
 export class FormStateEngine {
   
@@ -138,7 +138,7 @@ export class FormStateEngine {
       
       // Validate components on this page
       page.components.forEach(component => {
-        const componentValidation = ComponentEngine.validateComponent(component);
+        const componentValidation = validateComponent(component);
         if (!componentValidation.isValid) {
           errors.push(`Page ${pageIndex + 1}, Component "${component.label}": ${componentValidation.errors?.join(', ')}`);
         }
@@ -159,7 +159,7 @@ export class FormStateEngine {
     state: any, 
     payload: { componentType: string; pageId: string; position?: { index: number } }
   ) {
-    const newComponent = ComponentEngine.createComponent(payload.componentType as any);
+    const newComponent = createComponent(payload.componentType as any);
     
     const updatedPages = state.pages.map((page: FormPage) => {
       if (page.id === payload.pageId) {
@@ -188,10 +188,9 @@ export class FormStateEngine {
     payload: { componentId: string; updates: Partial<FormComponentData> }
   ) {
     const updatedPages = state.pages.map((page: FormPage) => {
-      const updatedComponents = ComponentEngine.updateComponent(
-        page.components, 
-        payload.componentId, 
-        payload.updates
+      // Simple component update - direct array manipulation
+      const updatedComponents = page.components.map(comp => 
+        comp.id === payload.componentId ? { ...comp, ...payload.updates } : comp
       );
       
       return { ...page, components: updatedComponents };
@@ -205,10 +204,8 @@ export class FormStateEngine {
     payload: { componentId: string }
   ) {
     const updatedPages = state.pages.map((page: FormPage) => {
-      const updatedComponents = ComponentEngine.removeComponent(
-        page.components, 
-        payload.componentId
-      );
+      // Simple component removal - direct array filtering
+      const updatedComponents = page.components.filter(comp => comp.id !== payload.componentId);
       
       return { ...page, components: updatedComponents };
     });
@@ -254,7 +251,7 @@ export class FormStateEngine {
     const updatedComponents = DragDropService.handleDrop(
       currentPage.components,
       dropPosition,
-      ComponentEngine.createComponent
+      createComponent
     );
     
     const updatedPages = state.pages.map((page: FormPage) => {
@@ -326,7 +323,7 @@ export class FormStateEngine {
     const currentPage = state.pages.find((page: FormPage) => page.id === state.currentPageId);
     if (!currentPage) return state;
 
-    const newComponent = ComponentEngine.createComponent(payload.componentType as any);
+    const newComponent = createComponent(payload.componentType as any);
     const updatedComponents = [...currentPage.components];
     updatedComponents.splice(payload.insertIndex, 0, newComponent);
 
@@ -357,7 +354,7 @@ export class FormStateEngine {
     const updatedComponents = DragDropService.handleDrop(
       currentPage.components,
       dropPosition,
-      ComponentEngine.createComponent
+      createComponent
     );
 
     const updatedPages = state.pages.map((page: FormPage) => {
@@ -379,10 +376,10 @@ export class FormStateEngine {
     if (targetIndex === -1) return state;
 
     const targetComponent = currentPage.components[targetIndex];
-    const newComponent = ComponentEngine.createComponent(payload.componentType as any);
+    const newComponent = createComponent(payload.componentType as any);
     
     // Create horizontal layout containing both components
-    const horizontalLayout = ComponentEngine.createComponent('horizontal_layout');
+    const horizontalLayout = createComponent('horizontal_layout');
     
     // Arrange components based on side (left/right)
     if (payload.side === 'left') {
@@ -418,7 +415,7 @@ export class FormStateEngine {
     state: any,
     payload: { pageId: string; componentType: string; rowLayoutId: string }
   ) {
-    const newComponent = ComponentEngine.createComponent(payload.componentType as any);
+    const newComponent = createComponent(payload.componentType as any);
     
     const updatedPages = state.pages.map((page: FormPage) => {
       if (page.id !== payload.pageId) return page;
