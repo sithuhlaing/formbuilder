@@ -5,6 +5,7 @@
 import React from 'react';
 import { useDragLayer } from 'react-dnd';
 import { ComponentRenderer } from '../../core/ComponentRenderer';
+import { ComponentEngine } from '../../core/ComponentEngine';
 import type { ComponentType, FormComponentData } from '../../types';
 
 const layerStyles: React.CSSProperties = {
@@ -61,26 +62,17 @@ export const DragLayer: React.FC = () => {
       return null;
     }
 
-    // Create a mock component data for preview
-    const mockComponent: FormComponentData = {
-      id: 'drag-preview',
-      type: componentType,
-      label: ComponentRenderer.getComponentInfo(componentType).label,
-      fieldId: 'preview-field',
-      required: false,
-      placeholder: 'Preview field...',
-      children: []
-    };
+    // Create a realistic component using ComponentEngine
+    const mockComponent = ComponentEngine.createComponent(componentType);
+    
+    // Customize the component for better preview
+    mockComponent.label = ComponentRenderer.getComponentInfo(componentType).label;
+    mockComponent.placeholder = `Sample ${componentType.replace('_', ' ')}`;
 
     return (
       <div className="drag-preview">
         <div className="drag-preview__container">
-          <div className="drag-preview__field">
-            {ComponentRenderer.renderComponent(mockComponent, 'preview')}
-          </div>
-          <div className="drag-preview__label">
-            {ComponentRenderer.getComponentInfo(componentType).label}
-          </div>
+          {ComponentRenderer.renderComponent(mockComponent, 'builder')}
         </div>
       </div>
     );

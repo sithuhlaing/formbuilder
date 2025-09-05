@@ -1,5 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { DndProvider } from 'react-dnd';
+import { TestBackend } from 'react-dnd-test-backend';
+import App from '../App';
 import { mockFormBuilderState } from './utils/testUtils';
 
 // Mock the form builder hook

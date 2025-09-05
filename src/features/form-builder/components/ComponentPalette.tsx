@@ -25,29 +25,45 @@ const PaletteItem: React.FC<PaletteItemProps> = memo(({ componentType, onAddComp
   
   const [{ isDragging }, drag, preview] = useDrag({
     type: 'new-item',
-    item: { type: 'new-item', itemType: componentType },
+    item: () => {
+      console.log('🚀 Drag started for component:', componentType);
+      return { type: 'new-item', itemType: componentType };
+    },
+    end: (item, monitor) => {
+      console.log('🏁 Drag ended:', { item, didDrop: monitor.didDrop() });
+    },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
   });
 
-  // Hide the default drag preview and use a custom one
+  // Use custom drag preview via DragLayer
   useEffect(() => {
     preview(getEmptyImage(), { captureDraggingState: true });
   }, [preview]);
 
   const info = ComponentRenderer.getComponentInfo(componentType);
 
+  const handleClick = (_e: React.MouseEvent) => {
+    // Prevent click if drag was initiated
+    if (!isDragging) {
+      onAddComponent(componentType);
+    }
+  };
+
   return (
-    <button
+    <div
       ref={drag as any}
-      onClick={() => onAddComponent(componentType)}
+      onClick={handleClick}
       className={`palette-item ${isDragging ? 'palette-item--dragging' : ''}`}
       title={info.description}
+      role="button"
+      tabIndex={0}
+      style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
     >
       <span className="palette-item__icon">{info.icon}</span>
       <span className="palette-item__label">{info.label}</span>
-    </button>
+    </div>
   );
 });
 PaletteItem.displayName = 'PaletteItem';
@@ -158,6 +174,8 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({ onAddCompone
           type="text" 
           placeholder="Search components..." 
           className="search-input"
+          id="component-search"
+          name="component-search"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />

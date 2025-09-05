@@ -6,6 +6,7 @@
 
 import type { ComponentType, ValidationResult } from '../types';
 import type { FormComponentData } from './interfaces/ComponentInterfaces';
+import type { ComponentLayout } from '../types/layout';
 import { ComponentRegistry } from './ComponentRegistry';
 import { ComponentValidationEngine } from './ComponentValidationEngine';
 import { generateId } from '../shared/utils';
@@ -18,9 +19,9 @@ export class ComponentEngine {
    */
   static createComponent(type: ComponentType): FormComponentData {
     // Defensive programming - ensure we have a valid type
-    if (!type) {
+    if (!type || type === null || type === undefined) {
       console.error('❌ ComponentEngine.createComponent: type is undefined');
-      type = 'text_input'; // fallback
+      throw new Error('Component type is required');
     }
 
     const baseData = {
@@ -31,7 +32,10 @@ export class ComponentEngine {
     };
 
     try {
-      return ComponentRegistry.createComponent(type, baseData);
+      const component = ComponentRegistry.createComponent(type, baseData);
+      
+      // Add default layout properties based on component type
+      return this.enhanceWithDefaultLayout(component);
     } catch (error) {
       console.error('❌ ComponentEngine.createComponent: Failed to create component', error);
       // Fallback to text input
@@ -40,24 +44,126 @@ export class ComponentEngine {
   }
 
   /**
+   * ENHANCED: Create component with custom layout options
+   */
+  static createComponentWithLayout(
+    type: ComponentType, 
+    layoutOptions?: Partial<ComponentLayout>
+  ): FormComponentData {
+    const component = this.createComponent(type);
+    
+    if (layoutOptions) {
+      component.layout = {
+        layoutType: 'block', // Default layout type
+        ...layoutOptions
+      } as ComponentLayout;
+    }
+    
+    return component;
+  }
+
+  /**
+   * Add smart default layout properties based on component type
+   */
+  private static enhanceWithDefaultLayout(component: FormComponentData): FormComponentData {
+    // Smart defaults based on component type
+    const layoutDefaults: Partial<ComponentLayout> = {};
+    
+    switch (component.type) {
+      case 'horizontal_layout':
+        layoutDefaults.layoutType = 'flex';
+        layoutDefaults.flex = {
+          display: 'flex',
+          flexDirection: 'row',
+          gap: '1rem',
+          alignItems: 'center'
+        };
+        break;
+        
+      case 'vertical_layout':
+        layoutDefaults.layoutType = 'flex';
+        layoutDefaults.flex = {
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem'
+        };
+        break;
+        
+      case 'button':
+        layoutDefaults.layoutType = 'block';
+        layoutDefaults.size = { width: 'fit-content' };
+        layoutDefaults.spacing = { margin: '0.5rem 0' };
+        break;
+        
+      case 'card':
+        layoutDefaults.layoutType = 'block';
+        layoutDefaults.spacing = { 
+          padding: '1rem',
+          margin: '0.5rem 0' 
+        };
+        layoutDefaults.border = { 
+          width: 1, 
+          style: 'solid', 
+          color: '#e0e0e0',
+          radius: '8px'
+        };
+        break;
+        
+      default:
+        // Default block layout for input components
+        layoutDefaults.layoutType = 'block';
+        layoutDefaults.spacing = { margin: '0.5rem 0' };
+    }
+    
+    // Only add layout if we have meaningful defaults
+    if (Object.keys(layoutDefaults).length > 1) {
+      component.layout = layoutDefaults as ComponentLayout;
+    }
+    
+    return component;
+  }
+
+  /**
    * SINGLE method to update ANY component
    * Replaces: scattered update logic
+   * Overloaded to support both array and single component updates
    */
   static updateComponent(
     components: FormComponentData[], 
     componentId: string, 
     updates: Partial<FormComponentData>
-  ): FormComponentData[] {
+  ): FormComponentData[];
+  static updateComponent(
+    component: FormComponentData, 
+    updates: Partial<FormComponentData>
+  ): FormComponentData;
+  static updateComponent(
+    componentsOrComponent: FormComponentData[] | FormComponentData, 
+    componentIdOrUpdates: string | Partial<FormComponentData>, 
+    updates?: Partial<FormComponentData>
+  ): FormComponentData[] | FormComponentData {
+    // Handle single component update (2 parameter version)
+    if (!Array.isArray(componentsOrComponent) && typeof componentIdOrUpdates === 'object') {
+      const component = componentsOrComponent;
+      const updateData = componentIdOrUpdates as Partial<FormComponentData>;
+      return { ...component, ...updateData };
+    }
+    
+    // Handle array component update (3 parameter version)
+    const components = componentsOrComponent as FormComponentData[];
+    const componentId = componentIdOrUpdates as string;
+    const updateData = updates as Partial<FormComponentData>;
+    
     return components.map(component => {
       if (component.id === componentId) {
-        return { ...component, ...updates };
+        return { ...component, ...updateData };
       }
       
       // Handle nested components
       if (component.children) {
         return {
           ...component,
-          children: this.updateComponent(component.children, componentId, updates)
+          children: this.updateComponent(component.children, componentId, updateData)
         };
       }
       
@@ -130,6 +236,60 @@ export class ComponentEngine {
     }
     
     return null;
+  }
+
+  /**
+   * Alias for findComponent to maintain backward compatibility
+   */
+  static findComponentById(
+    components: FormComponentData[], 
+    componentId: string
+  ): FormComponentData | null {
+    return this.findComponentWithCycleDetection(components, componentId, new Set());
+  }
+
+  /**
+   * Find component with cycle detection to prevent infinite recursion
+   */
+  private static findComponentWithCycleDetection(
+    components: FormComponentData[], 
+    componentId: string,
+    visited: Set<string>
+  ): FormComponentData | null {
+    for (const component of components) {
+      if (component.id === componentId) {
+        return component;
+      }
+      
+      // Prevent infinite recursion by tracking visited components
+      if (component.children && !visited.has(component.id)) {
+        visited.add(component.id);
+        const found = this.findComponentWithCycleDetection(component.children, componentId, visited);
+        if (found) return found;
+        visited.delete(component.id);
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Clone component with new ID
+   */
+  static cloneComponent(component: FormComponentData): FormComponentData {
+    const cloned = { ...component, id: generateId() };
+    
+    // Clone children recursively if they exist
+    if (component.children) {
+      cloned.children = component.children.map(child => this.cloneComponent(child));
+    }
+    
+    // Clone options array if it exists
+    if (component.options) {
+      cloned.options = component.options.map(option => ({ ...option }));
+    }
+    
+    return cloned;
   }
 
   /**

@@ -191,6 +191,10 @@ describe('Performance Optimizations', () => {
   });
 
   describe('ComponentRenderer Memoization', () => {
+    const TestComponent = ({ component, readOnly }: { component: FormComponentData; readOnly: boolean }) => {
+      return ComponentRenderer.renderComponent(component, readOnly ? 'preview' : 'builder');
+    };
+
     test('memoizes component renders', () => {
       const testComponent: FormComponentData = {
         id: 'test-1',
@@ -202,11 +206,11 @@ describe('Performance Optimizations', () => {
       };
 
       const { rerender } = render(
-        <ComponentRenderer component={testComponent} readOnly={true} />
+        <TestComponent component={testComponent} readOnly={true} />
       );
 
       // Re-render with same props
-      rerender(<ComponentRenderer component={testComponent} readOnly={true} />);
+      rerender(<TestComponent component={testComponent} readOnly={true} />);
 
       // Component should be memoized and not re-render unnecessarily
       expect(screen.getByText('Test Input')).toBeInTheDocument();
@@ -223,12 +227,12 @@ describe('Performance Optimizations', () => {
       };
 
       const { rerender } = render(
-        <ComponentRenderer component={testComponent} readOnly={true} />
+        <TestComponent component={testComponent} readOnly={true} />
       );
 
       // Change a prop
       const updatedComponent = { ...testComponent, label: 'Updated Input' };
-      rerender(<ComponentRenderer component={updatedComponent} readOnly={true} />);
+      rerender(<TestComponent component={updatedComponent} readOnly={true} />);
 
       expect(screen.getByText('Updated Input')).toBeInTheDocument();
     });
@@ -366,13 +370,16 @@ describe('Performance Benchmarks', () => {
 
   test('lazy loading vs standard rendering benchmark', async () => {
     const components = createBenchmarkComponents(50);
+    const TestComponent = ({ component }: { component: FormComponentData }) => {
+      return ComponentRenderer.renderComponent(component, 'preview');
+    };
     
     // Standard rendering benchmark
     const standardStart = performance.now();
     const standardResult = render(
       <div>
         {components.map(component => (
-          <ComponentRenderer key={component.id} component={component} />
+          <TestComponent key={component.id} component={component} />
         ))}
       </div>
     );
@@ -385,7 +392,7 @@ describe('Performance Benchmarks', () => {
       <LazyFormRenderer
         components={components}
         renderComponent={(component) => (
-          <ComponentRenderer key={component.id} component={component} />
+          <TestComponent key={component.id} component={component} />
         )}
         chunkSize={10}
       />

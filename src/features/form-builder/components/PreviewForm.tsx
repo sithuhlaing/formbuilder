@@ -15,7 +15,7 @@ interface PreviewFormProps {
 }
 
 export const PreviewForm: React.FC<PreviewFormProps> = ({
-  templateName,
+  templateName: _templateName,
   components = [],
   pages = [],
   onSubmit
@@ -28,7 +28,7 @@ export const PreviewForm: React.FC<PreviewFormProps> = ({
   const isMultiPage = pages.length > 0;
   const totalPages = isMultiPage ? pages.length : 1;
   const currentPageComponents = isMultiPage ? pages[currentPageIndex]?.components || [] : components;
-  const currentPageTitle = isMultiPage ? pages[currentPageIndex]?.title : '';
+  const _currentPageTitle = isMultiPage ? pages[currentPageIndex]?.title : '';
 
   const handleFieldChange = (fieldId: string, value: any) => {
     setFormData(prev => ({
@@ -353,21 +353,6 @@ export const PreviewForm: React.FC<PreviewFormProps> = ({
 
   return (
     <div className="preview-form">
-      <div className="preview-form__header">
-        <h1 className="preview-form__title">{templateName}</h1>
-        {isMultiPage && (
-          <div className="preview-form__page-nav">
-            <div className="preview-form__page-indicator">
-              Page {currentPageIndex + 1} of {totalPages}
-            </div>
-            {currentPageTitle && (
-              <div className="preview-form__page-title">
-                <h3>{currentPageTitle}</h3>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
       
       <form className="preview-form__content" onSubmit={handleSubmit}>
         {currentPageComponents.length === 0 ? (

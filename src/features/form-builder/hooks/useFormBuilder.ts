@@ -302,7 +302,7 @@ export const useFormBuilder = () => {
   }, [formState, saveToHistory]);
 
   const loadTemplate = useCallback((template: any) => {
-    console.log('Template updated:', template);
+    console.log('Loading template:', template);
     if (!template || !template.pages || template.pages.length === 0) {
       console.error('Invalid template structure:', template);
       return;
@@ -315,7 +315,7 @@ export const useFormBuilder = () => {
       pages: template.pages,
       currentPageId: template.pages[0]?.id || 'page1',
       selectedComponentId: null,
-      templateId: template.id || template.templateId
+      templateId: template.templateId // Use templateId from the template object
     }));
   }, [formState, saveToHistory]);
 
@@ -437,6 +437,13 @@ export const useFormBuilder = () => {
     pullElementFromRow,
     setTemplateName: (name: string) => 
       setFormState(prev => ({ ...prev, templateName: name })),
+    clearForNewTemplate: () =>
+      setFormState(prev => ({ 
+        ...prev, 
+        templateId: undefined,
+        templateName: 'Untitled Form',
+        selectedComponentId: null
+      })),
     // Undo/Redo
     undo,
     redo,

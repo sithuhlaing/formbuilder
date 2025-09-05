@@ -72,12 +72,19 @@ vi.mock('../hooks/useModals', () => ({
 // Mock DnD
 vi.mock('react-dnd', () => ({
   DndProvider: ({ children }: any) => <div data-testid="dnd-provider">{children}</div>,
-  useDrag: () => [{ isDragging: false }, () => {}],
+  useDrag: () => [{ isDragging: false }, () => {}, () => {}],
   useDrop: () => [{ isOver: false }, () => {}],
+  useDragLayer: () => ({
+    isDragging: false,
+    item: null,
+    initialOffset: null,
+    currentOffset: null,
+  }),
 }));
 
 vi.mock('react-dnd-html5-backend', () => ({
-  HTML5Backend: 'html5-backend'
+  HTML5Backend: 'html5-backend',
+  getEmptyImage: () => new Image(),
 }));
 
 // Mock PropertiesPanel

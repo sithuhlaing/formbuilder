@@ -118,6 +118,179 @@ describe('Component Creation', () => {
 });
 ```
 
+## 🛡️ Regression Prevention Guide
+
+### ⚠️ The Problem
+When adding new features or making changes, existing functionality can break if the full system context isn't considered. This section provides strategies to prevent regressions.
+
+### 🎯 Best Practices for Safe Changes
+
+#### 1. **Specify Scope and Constraints**
+
+❌ **Avoid vague requests:**
+```
+"Add a delete button to components"
+```
+
+✅ **Use specific, constrained requests:**
+```
+"Add a delete button to components that:
+- Appears on hover in the properties panel
+- Maintains existing drag-drop functionality
+- Preserves component selection state
+- Includes confirmation dialog
+- Updates the canvas immediately after deletion"
+```
+
+#### 2. **Reference Existing Tests**
+
+❌ **Don't ignore existing tests:**
+```
+"Change the component rendering logic"
+```
+
+✅ **Acknowledge test constraints:**
+```
+"Change the component rendering logic while ensuring all existing tests in 
+form-wizard-pagination.test.tsx and component-selection-properties.test.tsx 
+continue to pass"
+```
+
+#### 3. **Specify Integration Points**
+
+❌ **Ignore system integration:**
+```
+"Update the properties panel"
+```
+
+✅ **Consider full integration:**
+```
+"Update the properties panel ensuring:
+- FormBuilder component integration remains intact
+- Canvas selection synchronization works
+- Multi-page navigation is unaffected
+- Drag-drop from ComponentPalette still functions"
+```
+
+### 🔧 Command Templates for Safe Changes
+
+#### For UI Changes
+```
+"Modify [COMPONENT] to [CHANGE] while:
+- Maintaining existing [FUNCTIONALITY_1]
+- Preserving [FUNCTIONALITY_2] 
+- Ensuring [TEST_SUITE] continues to pass
+- Keeping [INTEGRATION_POINT] working"
+```
+
+#### For New Features
+```
+"Add [FEATURE] that:
+- Integrates with existing [SYSTEM_PART]
+- Does not affect [CRITICAL_FUNCTIONALITY]
+- Follows the same patterns as [EXISTING_SIMILAR_FEATURE]
+- Includes comprehensive test coverage"
+```
+
+#### For Bug Fixes
+```
+"Fix [BUG] by [SOLUTION] ensuring:
+- No regression in [RELATED_FUNCTIONALITY]
+- All existing tests continue to pass
+- [SPECIFIC_WORKFLOW] remains functional"
+```
+
+### 📋 Pre-Change Checklist
+
+Before making changes:
+
+#### ✅ **Documentation Review**
+- [ ] Read relevant documentation sections
+- [ ] Understand current architecture
+- [ ] Identify affected components
+
+#### ✅ **Test Coverage Check**
+- [ ] Review existing test files
+- [ ] Identify tests that might be affected
+- [ ] Plan for new test coverage
+
+#### ✅ **Integration Points**
+- [ ] Map component dependencies
+- [ ] Identify data flow impacts
+- [ ] Consider state management effects
+
+### 📊 Current Test Coverage Map
+
+#### Core Functionality Tests
+- **form-wizard-pagination.test.tsx** - Multi-page navigation
+- **component-selection-properties.test.tsx** - Component selection & properties
+- **form-title-editing.test.tsx** - Form title functionality
+- **integration-comprehensive.test.tsx** - End-to-end workflows
+- **DragDropBehavior.test.tsx** - Drag-drop functionality
+
+#### When Changing These Areas, Reference These Tests:
+- **FormBuilder.tsx** → All integration tests
+- **ComponentPalette.tsx** → DragDropBehavior.test.tsx
+- **Canvas.tsx** → component-selection-properties.test.tsx
+- **FormWizardNavigation.tsx** → form-wizard-pagination.test.tsx
+
+### 🚨 High-Risk Change Areas
+
+#### Changes That Often Cause Regressions:
+1. **State Management** (useFormBuilder hook)
+2. **Drag-Drop Logic** (react-dnd integration)
+3. **Component Rendering** (Canvas/ComponentRenderer)
+4. **Navigation Logic** (page switching)
+5. **Properties Panel** (component selection)
+
+#### For These Areas, Always:
+- Run full test suite before and after
+- Test manual workflows
+- Verify integration points
+- Check error handling
+
+### 🔍 Verification Commands
+
+#### After Implementation
+```
+"Verify that this change:
+- Doesn't break existing drag-drop functionality
+- Maintains form wizard navigation
+- Preserves component selection behavior
+- Keeps properties panel integration working
+- Passes all existing tests"
+```
+
+#### For Complex Changes
+```
+"Run the integration-comprehensive.test.tsx suite and confirm all tests pass 
+after implementing this change."
+```
+
+### 🎯 Summary Commands for Any Change
+
+#### Before Making Changes:
+```
+"Implement [CHANGE] while ensuring:
+1. All existing tests continue to pass
+2. No regression in core functionality
+3. Integration points remain intact
+4. New functionality includes test coverage
+5. Documentation is updated if needed"
+```
+
+#### After Implementation:
+```
+"Verify:
+- Run npm test and confirm all tests pass
+- Test the complete form building workflow manually
+- Verify drag-drop from palette to canvas works
+- Check multi-page navigation functions
+- Confirm component selection and properties editing works"
+```
+
+This approach ensures that changes consider the full system context and maintain existing functionality while adding new features.
+
 ## Development Patterns
 
 ### Single Sources of Truth

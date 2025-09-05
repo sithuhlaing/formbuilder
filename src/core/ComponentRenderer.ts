@@ -2,11 +2,13 @@
  * SINGLE SOURCE OF TRUTH for ALL component rendering
  * Convergence: All rendering logic in ONE place
  * Business Logic: Exactly what the UI requirements need
+ * ENHANCED: Now includes sophisticated layout system integration
  */
 
 import React from 'react';
 import type { FormComponentData } from '../types';
 import { ValidatedFormField } from '../shared/components/ValidatedFormField';
+import { generateCSSFromLayout } from '../types/layout';
 
 export class ComponentRenderer {
   
@@ -45,18 +47,70 @@ export class ComponentRenderer {
   }
 
   /**
+   * ENHANCED: Generate comprehensive component styles including layout system
+   */
+  private static generateComponentStyles(component: FormComponentData): React.CSSProperties {
+    let styles: React.CSSProperties = {};
+    
+    // Apply sophisticated layout system if present
+    if (component.layout) {
+      styles = { ...styles, ...generateCSSFromLayout(component.layout) };
+    }
+    
+    // Apply legacy styling for backward compatibility
+    if (component.styling?.customCSS) {
+      // Parse custom CSS string and merge (simplified approach)
+      try {
+        const customStyles = component.styling.customCSS
+          .split(';')
+          .reduce((acc: React.CSSProperties, rule: string) => {
+            const [property, value] = rule.split(':').map(s => s.trim());
+            if (property && value) {
+              const camelProperty = property.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+              (acc as any)[camelProperty] = value;
+            }
+            return acc;
+          }, {});
+        styles = { ...styles, ...customStyles };
+      } catch (_e) {
+        console.warn('Failed to parse customCSS:', component.styling.customCSS);
+      }
+    }
+    
+    // Apply existing inline styles (highest priority)
+    if (component.style) {
+      styles = { ...styles, ...component.style };
+    }
+    
+    return styles;
+  }
+
+  /**
    * Render component as React element
    */
-  static renderComponentElement(
-    component: FormComponentData,
-    _mode: 'builder' | 'preview' = 'preview'
-  ): React.ReactElement {
-    const props = {
+  private static renderComponentElement(component: FormComponentData, _mode: 'builder' | 'preview' = 'preview'): React.ReactNode {
+    if (!component) return null;
+
+    // Common props for all components with enhanced styling
+    const generatedStyles = this.generateComponentStyles(component);
+    const props: {
+      key: string;
+      'data-component-id': string;
+      'data-component-type': string;
+      className: string;
+      required?: boolean;
+      style?: React.CSSProperties;
+      [key: string]: any;
+    } = {
       key: component.id,
       'data-component-id': component.id,
       'data-component-type': component.type,
-      className: `form-field form-field--${component.type}`,
-      required: component.required
+      className: [
+        component.className || '', 
+        component.styling?.className || ''
+      ].filter(Boolean).join(' '),
+      required: component.required,
+      style: generatedStyles
     };
 
     switch (component.type) {
@@ -227,33 +281,144 @@ export class ComponentRenderer {
           })
         ]);
 
-      case 'button':
-        return React.createElement('button', {
+      case 'button': {
+        const buttonProps = {
           ...props,
           type: 'button',
-          className: 'btn btn--primary'
-        }, component.label);
+          className: `btn btn--${component.buttonType || 'primary'} ${component.size ? 'btn--' + component.size : ''} ${component.variant ? 'btn--' + component.variant : ''} ${component.fullWidth ? 'btn--full-width' : ''} ${component.isLoading ? 'btn--loading' : ''} ${component.className || ''}`.trim(),
+          disabled: component.disabled || component.isLoading,
+          style: {
+            ...(component.styling?.customCSS ? { ...JSON.parse(component.styling.customCSS) } : {}),
+            ...(component.styling?.width ? { width: component.styling.width } : {}),
+            ...(component.styling?.height ? { height: component.styling.height } : {}),
+            ...props.style
+          },
+          onClick: component.onClick
+        };
 
-      case 'heading':
-        return React.createElement('h2', {
-          ...props,
-          className: 'form-field__heading'
-        }, component.label);
+        const buttonContent = [];
+        
+        // Add icon if specified
+        if (component.icon) {
+          const iconElement = React.createElement('span', {
+            key: 'icon',
+            className: `btn__icon ${component.iconPosition === 'right' ? 'btn__icon--right' : ''}`,
+            dangerouslySetInnerHTML: { __html: component.icon }
+          });
+          
+          buttonContent.push(iconElement);
+        }
+        
+        // Add label
+        buttonContent.push(React.createElement('span', { 
+          key: 'label', 
+          className: 'btn__label' 
+        }, component.label));
+        
+        // Add loading spinner if loading
+        if (component.isLoading) {
+          buttonContent.push(React.createElement('span', {
+            key: 'spinner',
+            className: 'btn__spinner',
+            'aria-hidden': 'true'
+          }));
+        }
+        
+        return React.createElement('button', buttonProps, buttonContent);
+      }
 
-      case 'card':
-        return React.createElement('div', {
+      case 'heading': {
+        const headingLevel = component.level ? `h${component.level}` : 'h2';
+        const headingClass = `form-field__heading ${component.alignment ? 'text-' + component.alignment : ''} ${component.className || ''}`.trim();
+        
+        const headingStyle = {
+          color: component.color,
+          marginTop: component.margin?.top,
+          marginRight: component.margin?.right,
+          marginBottom: component.margin?.bottom,
+          marginLeft: component.margin?.left,
+          ...(component.styling?.customCSS ? { ...JSON.parse(component.styling.customCSS) } : {}),
+          ...(component.styling?.width ? { width: component.styling.width } : {}),
+          ...(component.styling?.height ? { height: component.styling.height } : {})
+        };
+        
+        return React.createElement(headingLevel, {
           ...props,
-          className: 'form-card'
-        }, [
-          React.createElement('div', { key: 'header', className: 'form-card__header' },
-            React.createElement('span', { className: 'form-card__label' }, component.label)
-          ),
-          React.createElement('div', { key: 'content', className: 'form-card__content' },
-            (component.children || []).map(child => 
-              this.renderComponentElement(child, _mode)
+          className: headingClass,
+          style: headingStyle
+        }, component.label);
+      }
+
+      case 'card': {
+        const cardClass = `form-card ${component.variant ? 'form-card--' + component.variant : ''} ${component.shadow ? 'form-card--shadow-' + component.shadow : ''} ${component.className || ''}`.trim();
+        
+        const cardStyle = {
+          padding: component.padding,
+          borderColor: component.borderColor,
+          backgroundColor: component.backgroundColor,
+          ...(component.styling?.customCSS ? { ...JSON.parse(component.styling.customCSS) } : {}),
+          ...(component.styling?.width ? { width: component.styling.width } : {}),
+          ...(component.styling?.height ? { height: component.styling.height } : {})
+        };
+        
+        const cardContent = [];
+        
+        // Add header if enabled
+        if (component.showHeader !== false) {
+          const headerClass = `form-card__header ${component.headerAlign ? 'text-' + component.headerAlign : ''}`.trim();
+          const headerStyle = {
+            padding: component.padding,
+            borderBottom: '1px solid #e2e8f0'
+          };
+          
+          cardContent.push(
+            React.createElement('div', { 
+              key: 'header', 
+              className: headerClass,
+              style: headerStyle
+            },
+              React.createElement('span', { className: 'form-card__label' }, component.label)
+            )
+          );
+        }
+        
+        // Add content
+        cardContent.push(
+          React.createElement('div', { 
+            key: 'content', 
+            className: 'form-card__content',
+            style: { padding: component.padding }
+          },
+            (component.children || []).map((child, index) => 
+              this.renderComponentElement({ ...child, key: child.id || `card-child-${index}` }, _mode)
             )
           )
-        ]);
+        );
+        
+        // Add footer if enabled
+        if (component.showFooter) {
+          const footerClass = `form-card__footer ${component.footerAlign ? 'text-' + component.footerAlign : ''}`.trim();
+          const footerStyle = {
+            padding: component.padding,
+            borderTop: '1px solid #e2e8f0'
+          };
+          
+          // You can customize the footer content here
+          cardContent.push(
+            React.createElement('div', { 
+              key: 'footer', 
+              className: footerClass,
+              style: footerStyle
+            })
+          );
+        }
+        
+        return React.createElement('div', {
+          ...props,
+          className: cardClass,
+          style: cardStyle
+        }, cardContent);
+      }
 
       case 'section_divider':
         return React.createElement('div', props, [

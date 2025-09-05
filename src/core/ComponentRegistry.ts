@@ -65,8 +65,8 @@ class NumberInputFactory extends BaseComponentFactory {
       type: 'number_input' as ComponentType,
       placeholder: 'Enter number...',
       defaultValue: 0,
-      min: undefined,
-      max: undefined,
+      min: 0,
+      max: 100,
       step: 1,
       validationRules: [{ type: 'number', message: 'Please enter a valid number' }]
     };

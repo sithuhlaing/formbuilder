@@ -311,15 +311,25 @@
   background: white;
   border: 2px solid var(--color-primary-500);
   border-radius: var(--radius-lg);
-  padding: var(--space-3);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
-  max-width: 300px;
+  padding: var(--space-4);
+  box-shadow: 0 12px 35px rgba(59, 130, 246, 0.4);
+  max-width: 400px;
+  min-width: 280px;
+  opacity: 0.95;
+  transform: rotate(-2deg) scale(1.05);
   animation: dragPreviewFloat 2s ease-in-out infinite alternate;
 }
 
-.drag-preview__field {
-  margin-bottom: var(--space-2);
-  opacity: 0.9;
+/* Style the form components inside the drag preview */
+.drag-preview__container .form-field {
+  margin-bottom: 0;
+}
+
+.drag-preview__container .form-field__input,
+.drag-preview__container .form-field__textarea,
+.drag-preview__container .form-field__select {
+  pointer-events: none;
+  cursor: grabbing;
 }
 
 .drag-preview__label {
@@ -837,7 +847,6 @@
 }
 
 /* Drag Preview Styles - Hide dragged components */
-.palette-item.palette-item--dragging,
 .form-component.is-dragging,
 .form-canvas__item--dragging {
   opacity: 0;

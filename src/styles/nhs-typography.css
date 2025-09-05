@@ -1,0 +1,152 @@
+/* NHS UK Typography System */
+
+/* NHS UK Heading Classes */
+.nhsuk-heading-xl {
+  font-size: var(--text-64);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-6) 0;
+}
+
+.nhsuk-heading-l {
+  font-size: var(--text-48);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-5) 0;
+}
+
+.nhsuk-heading-m {
+  font-size: var(--text-36);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.nhsuk-heading-s {
+  font-size: var(--text-26);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.nhsuk-heading-xs {
+  font-size: var(--text-22);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-3) 0;
+}
+
+/* NHS UK Body Text Classes */
+.nhsuk-body-l {
+  font-size: var(--text-26);     /* Lead paragraph */
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.nhsuk-body {
+  font-size: var(--text-19);     /* Standard body text */
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.nhsuk-body-s {
+  font-size: var(--text-16);     /* Small body text */
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.nhsuk-body-xs {
+  font-size: var(--text-14);     /* Extra small body text */
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+/* NHS UK Font Size Utilities */
+.nhsuk-u-font-size-64 { font-size: var(--text-64) !important; }
+.nhsuk-u-font-size-48 { font-size: var(--text-48) !important; }
+.nhsuk-u-font-size-36 { font-size: var(--text-36) !important; }
+.nhsuk-u-font-size-26 { font-size: var(--text-26) !important; }
+.nhsuk-u-font-size-22 { font-size: var(--text-22) !important; }
+.nhsuk-u-font-size-19 { font-size: var(--text-19) !important; }
+.nhsuk-u-font-size-16 { font-size: var(--text-16) !important; }
+.nhsuk-u-font-size-14 { font-size: var(--text-14) !important; }
+
+/* NHS UK Font Weight Utilities */
+.nhsuk-u-font-weight-normal { font-weight: var(--font-weight-normal) !important; }
+.nhsuk-u-font-weight-bold { font-weight: var(--font-weight-bold) !important; }
+
+/* NHS UK Text Color Utilities */
+.nhsuk-u-secondary-text-colour { 
+  color: var(--color-text-secondary) !important; 
+}
+
+.nhsuk-text-colour { 
+  color: var(--color-text-primary) !important; 
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  .nhsuk-heading-xl { font-size: var(--text-48); }
+  .nhsuk-heading-l { font-size: var(--text-36); }
+  .nhsuk-heading-m { font-size: var(--text-26); }
+  .nhsuk-heading-s { font-size: var(--text-22); }
+  .nhsuk-heading-xs { font-size: var(--text-19); }
+  
+  .nhsuk-body-l { font-size: var(--text-22); }
+  .nhsuk-body { font-size: var(--text-16); }
+  .nhsuk-body-s { font-size: var(--text-14); }
+  .nhsuk-body-xs { font-size: var(--text-14); }
+}
+
+/* NHS UK Link Styles */
+a, 
+.nhsuk-link {
+  color: var(--color-link);
+  text-decoration: underline;
+  text-underline-offset: 0.1em;
+}
+
+a:hover,
+.nhsuk-link:hover {
+  color: var(--color-link-hover);
+  text-decoration-thickness: max(1px, 0.0625rem);
+}
+
+a:visited,
+.nhsuk-link:visited {
+  color: var(--color-link-visited);
+}
+
+a:active,
+.nhsuk-link:active {
+  color: var(--color-link-active);
+  background-color: var(--color-focus);
+}
+
+a:focus,
+.nhsuk-link:focus {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 0;
+  color: var(--color-text-primary);
+  background-color: var(--color-focus);
+  box-shadow: 0 -2px var(--color-focus), 0 4px var(--color-text-primary);
+  text-decoration: none;
+}
+
+/* NHS UK Text Alignment Utilities */
+.nhsuk-u-text-align-left { text-align: left !important; }
+.nhsuk-u-text-align-centre { text-align: center !important; }
+.nhsuk-u-text-align-right { text-align: right !important; }

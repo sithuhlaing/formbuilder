@@ -53,7 +53,7 @@ export class ComponentValidationEngine {
       const optionsComponent = component as FormComponentData & OptionsComponent;
       
       if (!optionsComponent.options || optionsComponent.options.length === 0) {
-        errors.push('At least one option is required for choice-based components');
+        errors.push('At least one option is required');
       }
       
       // Validate option structure

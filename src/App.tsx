@@ -27,7 +27,7 @@ LoadingSpinner.displayName = 'LoadingSpinner';
 const App: React.FC = () => {
   const { state, actions } = useAppState();
   const formBuilderHook = useFormBuilder();
-  const { loadTemplate, clearAll, loadFromJSON } = formBuilderHook;
+  const { loadTemplate, loadFromJSON, clearForNewTemplate } = formBuilderHook;
 
   // Memoized handlers for better performance
   const handleSave = useCallback(() => {
@@ -147,7 +147,7 @@ const App: React.FC = () => {
   }, [actions]);
 
   const handleTemplateSelect = useCallback((template: FormTemplate) => {
-    loadTemplate(template.templateId);
+    loadTemplate(template);
     actions.setView('builder');
   }, [loadTemplate, actions]);
 
@@ -157,11 +157,8 @@ const App: React.FC = () => {
       <div className="app">
         <LazyTemplateListView
           onCreateNew={() => {
-            // Clear form if requested
-            if (localStorage.getItem('__clearFormBeforeNew')) {
-              clearAll();
-              localStorage.removeItem('__clearFormBeforeNew');
-            }
+            // Clear form state for new template
+            clearForNewTemplate();
             actions.setView('builder');
           }}
           onEditTemplate={handleTemplateSelect}

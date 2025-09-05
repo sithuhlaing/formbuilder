@@ -2,6 +2,8 @@
 
 /* Import Core Styles */
 @import './variables.css';
+@import './nhs-typography.css';
+@import './nhs-components.css';
 @import './base.css';
 @import './components.css';
 @import './layout.css';

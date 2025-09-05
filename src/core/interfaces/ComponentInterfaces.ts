@@ -4,6 +4,7 @@
  */
 
 import type { ValidationRule, ConditionalRule } from '../../types/component';
+import type { ComponentLayout } from '../../types/layout';
 
 // Component type definitions
 export type ComponentType = 
@@ -103,30 +104,49 @@ export interface TextareaComponent extends InputComponent {
   maxLength?: number;
 }
 
-// Styled interface - only for components with custom styling
-export interface StyledComponent {
-  styling: {
+// UNIFIED LAYOUT SYSTEM - replaces StyledComponent and PositionedComponent
+// Uses comprehensive ComponentLayout from types/layout.ts
+export interface LayoutEnhancedComponent {
+  layout?: ComponentLayout;
+  
+  // Legacy support - will be merged into layout system
+  styling?: {
     className?: string;
-    customCSS?: string;
-    width?: string;
-    height?: string;
     theme?: string;
   };
 }
 
-// Positioned interface - only for components with positioning
-export interface PositionedComponent {
-  position: {
-    x: number;
-    y: number;
-    row?: number;
-    column?: number;
-  };
+// Heading interface - only for heading components
+export interface HeadingComponent extends BaseComponent, LayoutEnhancedComponent {
+  level?: 1 | 2 | 3 | 4 | 5 | 6;
+  alignment?: 'left' | 'center' | 'right' | 'justify';
+  color?: string;
 }
 
-// Heading interface - only for heading components
-export interface HeadingComponent extends BaseComponent {
-  level?: 1 | 2 | 3 | 4 | 5 | 6;
+// Button interface - only for button components
+export interface ButtonComponent extends BaseComponent, LayoutEnhancedComponent {
+  buttonType?: 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'light' | 'dark' | 'link';
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'solid' | 'outline' | 'ghost' | 'link';
+  icon?: string;
+  iconPosition?: 'left' | 'right';
+  fullWidth?: boolean;
+  onClick?: () => void;
+  isLoading?: boolean;
+  disabled?: boolean;
+}
+
+// Card interface - only for card components
+export interface CardComponent extends BaseComponent, LayoutEnhancedComponent {
+  variant?: 'elevated' | 'outlined' | 'filled';
+  shadow?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
+  borderColor?: string;
+  backgroundColor?: string;
+  showHeader?: boolean;
+  headerAlign?: 'left' | 'center' | 'right';
+  showFooter?: boolean;
+  footerAlign?: 'left' | 'center' | 'right';
+  children?: FormComponentData[];
 }
 
 // Additional properties for compatibility with types/component.ts
@@ -136,20 +156,39 @@ export interface CompatibilityComponent {
   alignment: 'left' | 'center' | 'right' | 'justify';
 }
 
+// Base interface for all components with common properties
+export interface BaseComponentWithProps extends BaseComponent {
+  className?: string;
+  style?: React.CSSProperties;
+  key?: string | number;
+}
+
 // Composite type for full component data - intersection of needed interfaces
-export type FormComponentData = BaseComponent & 
-  Partial<InputComponent> & 
-  Partial<ValidatableComponent> & 
-  Partial<OptionsComponent> & 
-  Partial<NumericComponent> & 
-  Partial<ContainerComponent> & 
-  Partial<ConditionalComponent> & 
-  Partial<FileComponent> & 
-  Partial<TextareaComponent> & 
-  Partial<StyledComponent> & 
-  Partial<PositionedComponent> & 
-  Partial<HeadingComponent> & 
-  Partial<CompatibilityComponent>;
+export type FormComponentData = BaseComponentWithProps &
+  Partial<InputComponent> &
+  Partial<ValidatableComponent> &
+  Partial<OptionsComponent> &
+  Partial<NumericComponent> &
+  Partial<ContainerComponent> &
+  Partial<ConditionalComponent> &
+  Partial<FileComponent> &
+  Partial<TextareaComponent> &
+  Partial<LayoutEnhancedComponent> &
+  Partial<HeadingComponent> &
+  Partial<ButtonComponent> &
+  Partial<CardComponent> &
+  Partial<CompatibilityComponent> & {
+    // Card component specific properties
+    variant?: 'elevated' | 'outlined' | 'filled';
+    padding?: string | number;
+    shadow?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
+    borderColor?: string;
+    backgroundColor?: string;
+    showHeader?: boolean;
+    headerAlign?: 'left' | 'center' | 'right';
+    showFooter?: boolean;
+    footerAlign?: 'left' | 'center' | 'right';
+  };
 
 // Specific component type definitions - composition interfaces
 // These interfaces combine multiple base interfaces for type safety
@@ -164,4 +203,4 @@ export interface SelectComponent extends BaseComponent, OptionsComponent, Valida
  
 export interface FileUploadComponent extends BaseComponent, FileComponent, ValidatableComponent, ConditionalComponent {}
  
-export interface LayoutComponent extends BaseComponent, ContainerComponent, StyledComponent, PositionedComponent {}
+export interface LayoutComponent extends BaseComponent, ContainerComponent, LayoutEnhancedComponent {}

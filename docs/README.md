@@ -15,6 +15,8 @@ Clean, systematic documentation for the Form Builder project.
 ### [02-BUSINESS-LOGIC.md](./02-BUSINESS-LOGIC.md) 
 **Business Logic & Functional Requirements**
 - Drag-drop behavior and layout transformations
+- Side-by-side arrangement system with hierarchical drop zones
+- Row layout creation, expansion, and auto-dissolution logic
 - User workflows and validation requirements
 - Component lifecycle and state management rules
 - Complete functional specifications
@@ -22,6 +24,7 @@ Clean, systematic documentation for the Form Builder project.
 ### [03-DEVELOPMENT-GUIDE.md](./03-DEVELOPMENT-GUIDE.md)
 **Development Guide & Patterns**  
 - Development commands and quick start
+- 🛡️ **Regression prevention guide** with safe change practices
 - Code organization and testing strategy
 - Performance best practices and debugging
 - Practical development workflows
@@ -59,8 +62,8 @@ Clean, systematic documentation for the Form Builder project.
 ## 📁 What's Covered
 
 - ✅ **Complete Architecture** - Core engines, state flow, component system
-- ✅ **Business Logic** - Drag-drop rules, layout transformations, validation
-- ✅ **Development Workflow** - Commands, patterns, testing, debugging  
+- ✅ **Business Logic** - Drag-drop rules, side-by-side arrangements, layout transformations, validation
+- ✅ **Development Workflow** - Commands, patterns, regression prevention, testing, debugging  
 - ✅ **API Reference** - All methods, interfaces, and usage examples
 
-This documentation structure eliminates duplication and provides everything needed to understand, develop, and extend the Form Builder system.
+This documentation structure eliminates duplication and provides everything needed to understand, develop, and extend the Form Builder system safely.

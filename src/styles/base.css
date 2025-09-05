@@ -15,8 +15,8 @@ body {
   font-family: var(--font-family-sans);
   font-size: var(--text-base);
   line-height: var(--line-height-normal);
-  color: var(--color-gray-900);
-  background-color: var(--color-gray-50);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   height: 100%;
@@ -66,9 +66,9 @@ body {
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
-  color: var(--color-gray-900);
+  color: var(--color-text-primary);
 }
 
 h1 { font-size: var(--text-3xl); }
@@ -80,19 +80,29 @@ h6 { font-size: var(--text-sm); }
 
 p {
   margin-bottom: var(--space-4);
-  color: var(--color-gray-700);
+  color: var(--color-text-secondary);
 }
 
 /* Links */
 a {
-  color: var(--color-primary-600);
-  text-decoration: none;
+  color: var(--color-link);
+  text-decoration: underline;
+  text-underline-offset: 0.1em;
   transition: color var(--transition-fast);
 }
 
 a:hover {
-  color: var(--color-primary-700);
-  text-decoration: underline;
+  color: var(--color-link-hover);
+  text-decoration-thickness: max(1px, 0.0625rem);
+}
+
+a:visited {
+  color: var(--color-link-visited);
+}
+
+a:active {
+  color: var(--color-link-active);
+  background-color: var(--color-focus);
 }
 
 /* Lists */

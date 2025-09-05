@@ -3,12 +3,12 @@
 /* Template List Styles */
 .template-list-view {
   min-height: 100vh;
-  background: #f9fafb;
+  background: var(--color-bg-secondary);
 }
 
 .template-list-header {
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border);
   padding: 2rem 0;
 }
 
@@ -27,14 +27,14 @@
 
 .template-list-header__title {
   font-size: 2.5rem;
-  font-weight: 700;
-  color: #1f2937;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
   margin: 0 0 0.5rem 0;
 }
 
 .template-list-header__subtitle {
   font-size: 1.125rem;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
@@ -88,13 +88,13 @@
 }
 
 .template-card {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 0;
-  transition: all 0.2s ease;
+  transition: all var(--transition-normal);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .template-card:hover {
@@ -104,7 +104,7 @@
 
 .template-card__header {
   padding: 1.5rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--color-border-light);
 }
 
 .template-card__title-section {
@@ -116,8 +116,8 @@
 
 .template-card__title {
   font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
   margin: 0;
   flex: 1;
 }
@@ -277,10 +277,18 @@
 }
 
 .modal__footer {
-  padding: 1rem 1.5rem;
+  padding: 1.5rem 1.5rem;
   border-top: 1px solid #e5e7eb;
   background: #f9fafb;
   border-radius: 0 0 8px 8px;
+  min-height: 4rem;
+}
+
+.modal__close--no-header {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
 }
 
 /* Preview Form Styles */
@@ -474,14 +482,14 @@
 
 /* Button Variants */
 .btn--primary {
-  background-color: var(--color-primary-600);
+  background-color: var(--color-nhs-blue);
   color: white;
-  border: 1px solid var(--color-primary-600);
+  border: 1px solid var(--color-nhs-blue);
 }
 
 .btn--primary:hover:not(:disabled) {
-  background-color: var(--color-primary-700);
-  border-color: var(--color-primary-700);
+  background-color: var(--color-nhs-dark-blue);
+  border-color: var(--color-nhs-dark-blue);
 }
 
 .btn--primary:active {
@@ -542,8 +550,8 @@
 }
 
 .input:focus {
-  border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px var(--color-primary-100);
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px var(--color-focus);
 }
 
 .input:disabled {
@@ -594,8 +602,8 @@
 }
 
 .select:focus {
-  border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px var(--color-primary-100);
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px var(--color-focus);
 }
 
 /* Textarea Component */
@@ -613,8 +621,8 @@
 }
 
 .textarea:focus {
-  border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px var(--color-primary-100);
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px var(--color-focus);
 }
 
 /* Checkbox Component */
@@ -642,8 +650,8 @@
 }
 
 .checkbox__input:checked + .checkbox__box {
-  background-color: var(--color-primary-600);
-  border-color: var(--color-primary-600);
+  background-color: var(--color-nhs-blue);
+  border-color: var(--color-nhs-blue);
 }
 
 .checkbox__input:checked + .checkbox__box::after {
@@ -659,7 +667,7 @@
 }
 
 .checkbox__input:focus + .checkbox__box {
-  box-shadow: 0 0 0 3px var(--color-primary-100);
+  box-shadow: 0 0 0 3px var(--color-focus);
 }
 
 /* Card Component */

@@ -36,6 +36,8 @@ const FormComponents = {
         <input
           type="text"
           className="form-field__input"
+          id={component.fieldId}
+          name={component.fieldId}
           placeholder={component.placeholder || 'Enter text'}
           readOnly={readOnly}
           disabled={readOnly}
@@ -79,6 +81,8 @@ const FormComponents = {
         <input
           type="email"
           className="form-field__input"
+          id={component.fieldId}
+          name={component.fieldId}
           placeholder={component.placeholder || 'Enter email'}
           readOnly={readOnly}
           disabled={readOnly}
@@ -114,6 +118,8 @@ const FormComponents = {
       <input
         type="password"
         className="form-field__input"
+        id={component.fieldId}
+        name={component.fieldId}
         placeholder={component.placeholder || 'Enter password'}
         readOnly={readOnly}
         disabled={readOnly}
@@ -131,6 +137,8 @@ const FormComponents = {
       <input
         type="number"
         className="form-field__input"
+        id={component.fieldId}
+        name={component.fieldId}
         placeholder={component.placeholder || 'Enter number'}
         readOnly={readOnly}
         disabled={readOnly}
@@ -148,6 +156,8 @@ const FormComponents = {
       <input
         type="date"
         className="form-field__input"
+        id={component.fieldId}
+        name={component.fieldId}
         readOnly={readOnly}
         disabled={readOnly}
         aria-label={component.label}
@@ -164,6 +174,8 @@ const FormComponents = {
       <input
         type="file"
         className="form-field__file"
+        id={component.fieldId}
+        name={component.fieldId}
         disabled={readOnly}
         aria-label={component.label}
       />
@@ -236,6 +248,7 @@ const FormComponents = {
           type="checkbox"
           className="form-field__checkbox"
           id={component.id}
+          name={component.fieldId}
           disabled={readOnly}
         />
         <label htmlFor={component.id} className="form-field__checkbox-label">
