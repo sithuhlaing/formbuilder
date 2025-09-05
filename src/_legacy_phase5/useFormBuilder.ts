@@ -430,20 +430,6 @@ export const useFormBuilder = () => {
     insertBetweenComponents,
     insertComponentWithPosition,
     insertHorizontalToComponent,
-    moveComponent,
-    // Complex layout methods
-    addToRowLayout,
-    dissolveRowLayout,
-    pullElementFromRow,
-    setTemplateName: (name: string) => 
-      setFormState(prev => ({ ...prev, templateName: name })),
-    clearForNewTemplate: () =>
-      setFormState(prev => ({ 
-        ...prev, 
-        templateId: undefined,
-        templateName: 'Untitled Form',
-        selectedComponentId: null
-      })),
     // Undo/Redo
     undo,
     redo,

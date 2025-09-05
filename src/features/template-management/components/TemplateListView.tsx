@@ -29,9 +29,27 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
     message: string;
   }>({ isOpen: false, message: '' });
 
+  // Refresh templates whenever the component mounts or when returning from builder
   useEffect(() => {
-    const savedTemplates = templateService.getAllTemplates();
-    setTemplates(savedTemplates);
+    const refreshTemplates = () => {
+      const savedTemplates = templateService.getAllTemplates();
+      setTemplates(savedTemplates);
+    };
+
+    // Load templates immediately
+    refreshTemplates();
+
+    // Also refresh when the window gains focus (user returns from builder)
+    const handleFocus = () => refreshTemplates();
+    window.addEventListener('focus', handleFocus);
+    
+    // Set up a periodic refresh to catch auto-saves
+    const intervalId = setInterval(refreshTemplates, 2000); // Every 2 seconds
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(intervalId);
+    };
   }, []);
 
   const handleDeleteTemplate = (templateId: string, templateName: string) => {
@@ -52,11 +70,7 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
   const handleDuplicateTemplate = (template: FormTemplate) => {
     const duplicatedTemplate = templateService.saveTemplate({
       name: `${template.name} (Copy)`,
-      pages: template.pages,
-      type: template.type || 'other',
-      fields: template.fields || [],
-      jsonSchema: template.jsonSchema || {},
-      currentView: template.currentView
+      pages: template.pages
     });
     setTemplates(templateService.getAllTemplates());
     setSuccessModal({
@@ -98,17 +112,6 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
           </div>
           <div className="template-list-header__actions">
             <Button
-              onClick={() => {
-                // Clear form before creating new
-                localStorage.setItem('__clearFormBeforeNew', 'true');
-                onCreateNew();
-              }}
-              variant="secondary"
-              size="large"
-            >
-              🧹 Clear & New
-            </Button>
-            <Button
               onClick={onCreateNew}
               variant="primary"
               size="large"
@@ -148,7 +151,7 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
                           key: 'edit',
                           icon: '✏️',
                           title: 'Edit template',
-                          onClick: (e: React.MouseEvent) => {
+                          onClick: (e?: React.MouseEvent) => {
                             e?.stopPropagation();
                             console.log('🔍 Edit button clicked for:', template.name);
                             onEditTemplate(template);
@@ -158,7 +161,7 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
                           key: 'preview',
                           icon: '👁️',
                           title: 'Preview template',
-                          onClick: (e: React.MouseEvent) => {
+                          onClick: (e?: React.MouseEvent) => {
                             e?.stopPropagation();
                             handlePreviewTemplate(template);
                           }
@@ -167,7 +170,7 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
                           key: 'duplicate',
                           icon: '📋',
                           title: 'Duplicate template',
-                          onClick: (e: React.MouseEvent) => {
+                          onClick: (e?: React.MouseEvent) => {
                             e?.stopPropagation();
                             handleDuplicateTemplate(template);
                           }
@@ -176,7 +179,7 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
                           key: 'delete',
                           icon: '🗑️',
                           title: 'Delete template',
-                          onClick: (e: React.MouseEvent) => {
+                          onClick: (e?: React.MouseEvent) => {
                             e?.stopPropagation();
                             handleDeleteTemplate(template.templateId, template.name);
                           }
@@ -231,7 +234,10 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
                   
                   <div className="template-card__footer">
                     <Button
-                      onClick={() => onEditTemplate(template)}
+                      onClick={() => {
+                        console.log('🔍 Open Template button clicked for:', template.name);
+                        onEditTemplate(template);
+                      }}
                       variant="primary"
                       size="small"
                     >

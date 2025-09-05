@@ -38,7 +38,13 @@ export function SimpleDraggableComponent({
   // Simple drag handling for existing components
   const [{ isDragging }, drag] = useDrag({
     type: 'existing-component',
-    item: { type: 'existing-component', id: component.id, index },
+    item: { 
+      type: 'existing-component', 
+      id: component.id, 
+      index, 
+      component: component, // Pass full component for preview
+      componentType: component.type 
+    },
     collect: (monitor) => ({
       isDragging: monitor.isDragging()
     }),

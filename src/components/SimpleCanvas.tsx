@@ -9,6 +9,7 @@ import { useDrop } from 'react-dnd';
 import type { Component, ComponentType, DragItem } from '../types/components';
 import { SimpleDraggableComponent } from './SimpleDraggableComponent';
 import { renderSimpleComponent } from './SimpleRenderer';
+import { createComponent } from '../core/componentUtils';
 
 export interface SimpleCanvasProps {
   // Core data
@@ -40,7 +41,7 @@ export function SimpleCanvas({
 }: SimpleCanvasProps) {
   
   // Simple drop handling - replaces complex drop zone logic
-  const [{ isOver, canDrop }, drop] = useDrop({
+  const [{ isOver, canDrop, dragItem }, drop] = useDrop({
     accept: ['component-type', 'existing-component'],
     drop: (item: DragItem, monitor) => {
       // Only handle drops directly on canvas (not nested drops)
@@ -48,15 +49,16 @@ export function SimpleCanvas({
         return;
       }
       
-      if (item.type) {
+      if (item.type || item.componentType) {
         // Dropping new component from palette
-        onDrop(item.type, { index: components.length });
+        onDrop(item.type || item.componentType, { index: components.length });
       }
       // Note: Moving existing components will be handled by SimpleDraggableComponent
     },
     collect: (monitor) => ({
       isOver: monitor.isOver({ shallow: true }),
-      canDrop: monitor.canDrop()
+      canDrop: monitor.canDrop(),
+      dragItem: monitor.getItem() as DragItem
     })
   });
 
@@ -67,10 +69,20 @@ export function SimpleCanvas({
     className
   ].filter(Boolean).join(' ');
 
+  // Create preview component for palette drags
+  const previewComponent = dragItem?.type === 'component-type' && isOver && canDrop
+    ? createComponent(dragItem.componentType || dragItem.type)
+    : null;
+
+  // Determine drag type for visual feedback
+  const dragType = dragItem?.type === 'component-type' ? 'palette' : 
+                   dragItem?.type === 'existing-component' ? 'reorder' : null;
+
   return (
     <div 
       ref={drop}
       className={canvasClasses}
+      data-drag-type={dragType}
       onClick={() => mode === 'builder' && onSelect(null)} // Clear selection when clicking canvas
       style={{
         minHeight: '400px',
@@ -120,29 +132,64 @@ export function SimpleCanvas({
               onMove={onMove}
             />
           ))}
+          
+          {/* Inline preview for palette drag */}
+          {previewComponent && (
+            <div 
+              className="drag-preview-component"
+              style={{
+                opacity: 0.6,
+                border: '2px dashed #007bff',
+                borderRadius: '4px',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                padding: '0.5rem',
+                margin: '0.25rem 0',
+                position: 'relative',
+                animation: 'pulse 1s ease-in-out infinite alternate'
+              }}
+            >
+              <div style={{ 
+                position: 'absolute', 
+                top: '-8px', 
+                left: '8px', 
+                backgroundColor: '#007bff',
+                color: 'white',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                fontSize: '10px',
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                PREVIEW
+              </div>
+              {renderSimpleComponent(previewComponent)}
+            </div>
+          )}
         </div>
       )}
       
-      {/* Visual feedback for drag operations */}
-      {isOver && canDrop && (
+      {/* Visual feedback for drag operations - only show for reorder, not palette */}
+      {isOver && canDrop && dragType === 'reorder' && (
         <div style={{
           position: 'absolute',
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 123, 255, 0.1)',
-          border: '2px dashed #007bff',
+          backgroundColor: 'rgba(40, 167, 69, 0.05)',
+          border: '2px dashed #28a745',
           borderRadius: '8px',
           pointerEvents: 'none',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: '1.2rem',
-          color: '#007bff',
-          fontWeight: 'bold'
+          color: '#28a745',
+          fontWeight: 'bold',
+          textAlign: 'center'
         }}>
-          Drop component here
+          ↕️ Move component here
         </div>
       )}
     </div>

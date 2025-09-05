@@ -1,26 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { templateService } from '../../../features/template-management/services/templateService';
 
-// Define minimal interfaces needed for testing
-interface FormPage {
-  id: string;
-  title: string;
-  components: any[];
-  layout?: any;
-  order?: number;
-}
-
-interface FormTemplate {
-  templateId: string;
-  name: string;
-  type: string;
-  fields: any[];
-  pages: FormPage[];
-  createdDate: string;
-  modifiedDate: string;
-  jsonSchema: any;
-}
-
 // Mock console methods
 const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -29,16 +9,16 @@ const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
   return {
-    getItem: vi.fn((key: string) => store[key] || null),
-    setItem: vi.fn((key: string, value: string) => {
+    getItem: (key: string) => store[key] || null,
+    setItem: (key: string, value: string) => {
       store[key] = value.toString();
-    }),
-    removeItem: vi.fn((key: string) => {
+    },
+    removeItem: (key: string) => {
       delete store[key];
-    }),
-    clear: vi.fn(() => {
+    },
+    clear: () => {
       store = {};
-    }),
+    },
   };
 })();
 
@@ -47,6 +27,40 @@ Object.defineProperty(window, 'localStorage', {
   configurable: true,
   writable: true,
 });
+
+// Test data
+const mockTemplates = [
+  {
+    templateId: '1',
+    name: 'Contact Form',
+    pages: [{
+      id: 'page1',
+      title: 'Page 1',
+      components: [
+        { id: '1', type: 'text_input', label: 'Name' },
+        { id: '2', type: 'email_input', label: 'Email' }
+      ]
+    }],
+    createdDate: '2023-01-01T00:00:00Z',
+    modifiedDate: '2023-01-01T00:00:00Z',
+    jsonSchema: {}
+  },
+  {
+    templateId: '2',
+    name: 'Survey',
+    pages: [{
+      id: 'page1',
+      title: 'Page 1',
+      components: [
+        { id: '1', type: 'radio_group', label: 'Satisfaction' },
+        { id: '2', type: 'textarea', label: 'Comments' }
+      ]
+    }],
+    createdDate: '2023-01-02T00:00:00Z',
+    modifiedDate: '2023-01-02T00:00:00Z',
+    jsonSchema: {}
+  }
+];
 
 describe('TemplateService', () => {
   const mockTemplate: FormTemplate = {
@@ -327,27 +341,17 @@ describe('TemplateService', () => {
     });
 
     it('should return undefined for non-existent template', () => {
-      localStorage.setItem('formTemplates', JSON.stringify(mockTemplates));
-      
-      const template = templateService.getTemplateById('non-existent-id');
-      
+      const template = templateService.getTemplate('nonexistent');
       expect(template).toBeUndefined();
     });
   });
 
-  describe('import/export', () => {
-    it('should export template as JSON', () => {
-      localStorage.setItem('formTemplates', JSON.stringify(mockTemplates));
-      
-      const json = templateService.exportJSON('template-1');
-      
-      expect(json).toEqual(JSON.stringify(mockTemplates[0], null, 2));
-    });
-
-    it('should import template from JSON', () => {
-      const templateToImport = {
-        ...mockTemplate,
-        templateId: 'imported-template',
+  describe('saveTemplate', () => {
+    it('should create new template', () => {
+      const newTemplate = {
+        ...mockTemplates[0],
+        templateId: 'new',
+        name: 'New Template'
         name: 'Imported Template'
       };
       

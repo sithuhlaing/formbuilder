@@ -3,7 +3,7 @@
  * Features: Lazy loading, memoization, centralized state management
  */
 
-import React, { useCallback, memo } from 'react';
+import React, { useCallback, memo, useEffect, useRef } from 'react';
 import { useAppState } from './hooks/useAppState';
 import { SimpleFormBuilder } from './components/SimpleFormBuilder';
 import { LazyTemplateListView } from './components/LazyComponents';
@@ -30,15 +30,16 @@ const App: React.FC = () => {
   const { 
     templateName,
     components,
-    selectedId,
-    loadFromJSON: loadJSONData,
+    mode,
+    editingTemplateId,
+    importJSON: loadJSONData,
     exportJSON,
     clearAll,
-    setTemplateName
+    setEditMode
   } = formBuilderHook;
 
   // Memoized handlers for better performance
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback((isAutoSave = false) => {
     try {
       // Create template with simple structure
       const templateData = {
@@ -49,20 +50,46 @@ const App: React.FC = () => {
           components: components
         }]
       };
-      
-      const newTemplate = templateService.saveTemplate(templateData);
-      
-      if (newTemplate) {
-        console.log('Template created:', newTemplate);
-        actions.showSuccess(
-          'Template Saved',
-          `Template "${newTemplate.name}" has been saved successfully.`
-        );
+
+      if (mode === 'edit' && editingTemplateId) {
+        // Edit mode: Update existing template
+        const updatedTemplate = templateService.updateTemplate(editingTemplateId, templateData);
+        
+        if (updatedTemplate) {
+          console.log('Template updated:', updatedTemplate);
+          // Only show success modal for manual saves, not auto-saves
+          if (!isAutoSave) {
+            actions.showSuccess(
+              'Template Updated',
+              `Template "${updatedTemplate.name}" has been updated successfully.`
+            );
+          }
+        } else {
+          actions.showError(
+            'Update Failed',
+            'Failed to update template. Please try again.'
+          );
+        }
       } else {
-        actions.showError(
-          'Save Failed',
-          'Failed to save template. Please try again.'
-        );
+        // Create mode: Create new template and switch to edit mode
+        const newTemplate = templateService.saveTemplate(templateData);
+        
+        if (newTemplate) {
+          console.log('Template created:', newTemplate);
+          
+          // 🔑 KEY CHANGE: Switch to edit mode for the newly created template
+          setEditMode(newTemplate.templateId);
+          
+          actions.showSuccess(
+            'Template Created',
+            `New template "${newTemplate.name}" has been created successfully.`
+          );
+        } else {
+          actions.showError(
+            'Save Failed',
+            'Failed to create template. Please try again.'
+          );
+        }
       }
     } catch (error) {
       console.error('Error saving template:', error);
@@ -71,8 +98,50 @@ const App: React.FC = () => {
         'An error occurred while saving. Please try again.'
       );
     }
-  }, [templateName, components, actions]);
+  }, [templateName, components, mode, editingTemplateId, setEditMode, actions]);
 
+  // Auto-save functionality - debounced save when title or components change
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedRef = useRef({ templateName: '', componentsCount: 0 });
+
+  const autoSave = useCallback(() => {
+    // Only auto-save in edit mode (after first manual save)
+    if (mode === 'edit' && editingTemplateId) {
+      // Check if there are actual changes
+      const currentComponentsCount = components.length;
+      const hasChanges = 
+        templateName !== lastSavedRef.current.templateName ||
+        currentComponentsCount !== lastSavedRef.current.componentsCount;
+
+      if (hasChanges) {
+        console.log('🔄 Auto-saving template changes...');
+        handleSave(true); // Pass true for auto-save
+        lastSavedRef.current = { 
+          templateName, 
+          componentsCount: currentComponentsCount 
+        };
+      }
+    }
+  }, [mode, editingTemplateId, templateName, components, handleSave]);
+
+  // Auto-save when title or components change (with 1 second debounce)
+  useEffect(() => {
+    if (mode === 'edit' && editingTemplateId) {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+      
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        autoSave();
+      }, 1000); // 1 second debounce
+    }
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [templateName, components, mode, editingTemplateId, autoSave]);
 
   const handleJSONUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -121,6 +190,8 @@ const App: React.FC = () => {
   }, [actions]);
 
   const handleTemplateSelect = useCallback((template: FormTemplate) => {
+    console.log('🎯 Opening template for editing:', template.name);
+    
     // Load template data into simple form builder
     if (template.pages && template.pages.length > 0) {
       const firstPage = template.pages[0];
@@ -131,8 +202,11 @@ const App: React.FC = () => {
         }));
       }
     }
+    
+    // Set edit mode with the template ID
+    setEditMode(template.templateId);
     actions.setView('builder');
-  }, [loadJSONData, actions]);
+  }, [loadJSONData, setEditMode, actions]);
 
   // Template List View
   if (state.currentView === 'list') {
@@ -142,7 +216,6 @@ const App: React.FC = () => {
           onCreateNew={() => {
             // Clear form state for new template
             clearAll();
-            setTemplateName('Untitled Form');
             actions.setView('builder');
           }}
           onEditTemplate={handleTemplateSelect}
@@ -188,6 +261,8 @@ const App: React.FC = () => {
 
       {/* Simple Form Builder - Phase 5 Integration */}
       <SimpleFormBuilder
+        // Pass the hook data to SimpleFormBuilder to share state
+        formBuilderHook={formBuilderHook}
         onSave={handleSave}
         onExport={handleExportJSON}
         onPreview={() => actions.togglePreview(true)}

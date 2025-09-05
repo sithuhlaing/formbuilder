@@ -25,7 +25,7 @@ interface PaletteItemProps {
 function PaletteItem({ type, label, icon, onAddComponent }: PaletteItemProps) {
   const [{ isDragging }, drag] = useDrag({
     type: 'component-type',
-    item: { type },
+    item: { type, componentType: type }, // Pass both for compatibility
     collect: (monitor) => ({
       isDragging: monitor.isDragging()
     })
@@ -39,7 +39,7 @@ function PaletteItem({ type, label, icon, onAddComponent }: PaletteItemProps) {
 
   return (
     <div
-      ref={drag}
+      ref={drag as any}
       onClick={handleClick}
       className={`simple-palette-item ${isDragging ? 'dragging' : ''}`}
       title={`Add ${label}`}

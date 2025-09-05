@@ -1,13 +1,26 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import { TemplateListView } from '../features/template-management/components/TemplateListView';
-import { templateService } from '../features/template-management/services/templateService';
-import type { FormTemplate } from '../types';
+import { TemplateListView } from '../../../../features/template-management/components/TemplateListView';
+import { templateService } from '../../../../features/template-management/services/templateService';
+import type { FormTemplate } from '../../../../types';
 
 // Mock the templateService
-vi.mock('../features/template-management/services/templateService', () => ({
+vi.mock('../../../features/template-management/services/templateService', () => ({
   templateService: {
     getAllTemplates: vi.fn(),
+    updateTemplate: vi.fn((id, updates) => ({
+      ...mockTemplates.find(t => t.templateId === id),
+      ...updates,
+      modifiedDate: new Date().toISOString()
+    })),
+    deleteTemplate: vi.fn((id) => {
+      const index = mockTemplates.findIndex(t => t.templateId === id);
+      if (index !== -1) {
+        mockTemplates.splice(index, 1);
+        return true;
+      }
+      return false;
+    })
   }
 }));
 
@@ -45,7 +58,7 @@ vi.mock('../shared/components', () => ({
 }));
 
 // Sample test templates
-const mockTemplates: FormTemplate[] = [
+let mockTemplates: FormTemplate[] = [
   {
     templateId: 'template-1',
     name: 'Customer Feedback Form',
@@ -223,6 +236,47 @@ describe('TemplateListView - Welcome Screen Tests', () => {
 
   describe('Template Actions', () => {
     beforeEach(() => {
+      // Reset mock templates before each test
+      mockTemplates = [
+        {
+          templateId: 'template-1',
+          name: 'Test Template 1',
+          type: 'form',
+          fields: [],
+          pages: [{
+            id: 'page1',
+            title: 'Page 1',
+            components: [
+              { id: 'comp1', type: 'text_input', label: 'Text Input' },
+              { id: 'comp2', type: 'select', label: 'Dropdown' }
+            ],
+            layout: { type: 'vertical', direction: 'column' },
+            order: 0
+          }],
+          createdDate: '2023-01-01T00:00:00Z',
+          modifiedDate: '2023-01-01T00:00:00Z',
+          jsonSchema: {}
+        },
+        {
+          templateId: 'template-2',
+          name: 'Test Template 2',
+          type: 'survey',
+          fields: [],
+          pages: [{
+            id: 'page1',
+            title: 'Page 1',
+            components: [
+              { id: 'comp3', type: 'checkbox', label: 'Checkbox' },
+              { id: 'comp4', type: 'radio_group', label: 'Radio Group' }
+            ],
+            layout: { type: 'vertical', direction: 'column' },
+            order: 0
+          }],
+          createdDate: '2023-01-02T00:00:00Z',
+          modifiedDate: '2023-01-02T00:00:00Z',
+          jsonSchema: {}
+        }
+      ];
       (templateService.getAllTemplates as any).mockReturnValue(mockTemplates);
     });
 

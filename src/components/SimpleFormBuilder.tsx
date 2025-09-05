@@ -4,15 +4,15 @@
  * Uses: All simplified systems from Phases 1-4
  */
 
-import React, { Suspense } from 'react';
+import React from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { SimpleCanvas } from './SimpleCanvas';
 import { SimpleComponentPalette } from './SimpleComponentPalette';
-import { useSimpleFormBuilder } from '../hooks/useSimpleFormBuilder';
 import type { ComponentType } from '../types/components';
 
 interface SimpleFormBuilderProps {
+  formBuilderHook: ReturnType<typeof import('../hooks/useSimpleFormBuilder').useSimpleFormBuilder>;
   onSave?: () => void;
   onExport?: () => void;
   onPreview?: () => void;
@@ -20,31 +20,25 @@ interface SimpleFormBuilderProps {
   onClosePreview?: () => void;
 }
 
-const LoadingSpinner = () => (
-  <div className="loading-spinner">
-    <div className="spinner"></div>
-    <span>Loading...</span>
-  </div>
-);
 
 export const SimpleFormBuilder: React.FC<SimpleFormBuilderProps> = ({
+  formBuilderHook,
   onSave,
   onExport,
   onPreview,
-  showPreview,
-  onClosePreview
+  showPreview: _showPreview,
+  onClosePreview: _onClosePreview
 }) => {
   const {
     templateName,
     components,
     selectedId,
     addComponent,
-    updateComponent,
     deleteComponent,
     selectComponent,
     moveComponent,
     setTemplateName
-  } = useSimpleFormBuilder();
+  } = formBuilderHook;
 
   const handleDrop = (type: ComponentType, position?: { index: number }) => {
     addComponent(type, position?.index);

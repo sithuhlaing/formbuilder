@@ -5,6 +5,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import { templateService } from '../features/template-management/services/templateService';
 import type { Component, ComponentType } from '../types/components';
 import { 
   createComponent, 
@@ -21,6 +22,8 @@ interface FormState {
   history: FormState[];
   historyIndex: number;
   previewMode?: boolean;
+  mode: 'create' | 'edit';     // Track whether we're creating new or editing existing
+  editingTemplateId?: string;  // ID of template being edited (null for create mode)
 }
 
 interface FormActions {
@@ -38,6 +41,8 @@ interface FormActions {
   togglePreview: () => void;
   exportJSON: () => string;
   importJSON: (jsonString: string) => void;
+  setEditMode: (templateId: string) => void;  // Switch to edit mode for specific template
+  setCreateMode: () => void;                  // Switch to create mode
 }
 
 const INITIAL_STATE: FormState = {
@@ -46,7 +51,9 @@ const INITIAL_STATE: FormState = {
   templateName: 'Untitled Form',
   history: [],
   historyIndex: -1,
-  previewMode: false
+  previewMode: false,
+  mode: 'create',
+  editingTemplateId: undefined
 };
 
 const MAX_HISTORY = 50; // Prevent memory issues
@@ -178,20 +185,75 @@ export function useSimpleFormBuilder(): FormState & FormActions {
 
   // Form operations
   const setTemplateName = useCallback((name: string) => {
-    setState(prev => ({
-      ...prev,
-      templateName: name
-    }));
+    setState(prev => {
+      // Create a new history entry
+      const newHistory = [...prev.history];
+      
+      // Create updated state with new name
+      const updatedState: FormState = {
+        ...prev,
+        templateName: name,
+        history: newHistory,
+        historyIndex: prev.historyIndex + 1
+      };
+
+      // If we're editing an existing template, update it in localStorage
+      if (prev.editingTemplateId) {
+        try {
+          // Format components into pages structure expected by the template service
+          const pages = [{
+            id: 'page1',
+            title: 'Page 1',
+            components: [...prev.components],
+            layout: { type: 'vertical', direction: 'column' }, // Add default layout
+            order: 0
+          }];
+          
+          const updatedTemplate = templateService.updateTemplate(prev.editingTemplateId, { 
+            name,
+            pages,
+            type: 'form',
+            fields: [],
+            createdDate: new Date().toISOString(),
+            modifiedDate: new Date().toISOString(),
+            jsonSchema: {}
+          });
+          
+          if (!updatedTemplate) {
+            console.error('Failed to update template name');
+            return prev;
+          }
+        } catch (error) {
+          console.error('Error updating template:', error);
+          return prev;
+        }
+      }
+
+      // Add current state to history before updating
+      newHistory.push(prev);
+      
+      // Ensure we don't exceed history limit
+      if (newHistory.length > 50) {
+        newHistory.shift();
+      }
+      
+      return updatedState;
+    });
   }, []);
 
   const clearAll = useCallback(() => {
-    saveToHistory();
-    setState(prev => ({
-      ...prev,
+    // Reset to initial state for new template
+    setState({
       components: [],
-      selectedId: null
-    }));
-  }, [saveToHistory]);
+      selectedId: null,
+      templateName: 'Untitled Form',
+      history: [],
+      historyIndex: -1,
+      previewMode: false,
+      mode: 'create',
+      editingTemplateId: undefined
+    });
+  }, []);
 
   const togglePreview = useCallback(() => {
     setState(prev => ({
@@ -233,6 +295,23 @@ export function useSimpleFormBuilder(): FormState & FormActions {
     }
   }, [saveToHistory]);
 
+  // Mode management functions
+  const setEditMode = useCallback((templateId: string) => {
+    setState(prev => ({
+      ...prev,
+      mode: 'edit',
+      editingTemplateId: templateId
+    }));
+  }, []);
+
+  const setCreateMode = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      mode: 'create',
+      editingTemplateId: undefined
+    }));
+  }, []);
+
   return {
     // State
     ...state,
@@ -251,7 +330,9 @@ export function useSimpleFormBuilder(): FormState & FormActions {
     clearAll,
     togglePreview,
     exportJSON,
-    importJSON
+    importJSON,
+    setEditMode,
+    setCreateMode
   };
 }
 
