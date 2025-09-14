@@ -1,9 +1,96 @@
-// Central type exports - main entry point for all types
-// SOLID PRINCIPLE REFACTORING - Updated imports
+/**
+ * ALIGNED WITH DOCUMENTATION - Centralized Type Definitions
+ * Exports all types used throughout the application
+ */
+
+// Core component types
+export interface FormComponent {
+  id: string;
+  type: ComponentType;
+  label: string;
+  required: boolean;
+  validation: ValidationRules;
+  styling: ComponentStyling;
+  position: Position;
+  size: Size;
+  options?: SelectOption[];
+  acceptedFileTypes?: string[];
+  maxFileSize?: number;
+  conditionalLogic?: ConditionalLogicConfig;
+}
+
+// Re-export ComponentType from components.ts to avoid duplication
+export type { ComponentType } from './components';
+
+export interface ValidationRules {
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  min?: number;
+  max?: number;
+  customValidation?: string;
+}
+
+export interface ComponentStyling {
+  backgroundColor?: string;
+  textColor?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderRadius?: number;
+  fontSize?: number;
+  fontWeight?: string;
+  padding?: number;
+  margin?: number;
+}
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export interface Size {
+  width: number;
+  height: number;
+}
+
+export interface SelectOption {
+  label: string;
+  value: string;
+  disabled?: boolean;
+}
+
+// Form structure types
+export interface FormPage {
+  id: string;
+  title: string;
+  description?: string;
+  components: FormComponent[];
+  conditionalLogic?: ConditionalLogicConfig;
+}
+
+export interface FormDefinition {
+  id: string;
+  title: string;
+  description?: string;
+  pages: FormPage[];
+  settings: FormSettings;
+  analytics?: FormAnalytics;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface FormSettings {
+  allowSaveProgress: boolean;
+  showProgressBar: boolean;
+  requireAuthentication: boolean;
+  submitButtonText: string;
+  successMessage: string;
+  redirectUrl?: string;
+}
 
 // Re-export component types from segregated interfaces
 export type { 
-  ComponentType,
   ValidationRule,
   ValidationResult,
   ConditionalRule,
@@ -47,3 +134,9 @@ export type { Template, FormTemplate, FormTemplateType } from './template';
 
 // Re-export app types
 export type { AppState, FormBuilderConfig, ModalFunctions } from './app';
+
+// Re-export from other type files
+export * from './form-schema';
+export * from './conditional-rules';
+export * from './drag-drop';
+export * from './template';

@@ -1,8 +1,7 @@
 
 export { generateId } from './generateId';
-export { debounce } from './debounce';
-export { deepClone } from './deepClone';
 export { classNames } from './classNames';
+// debounce and deepClone removed - were unused
 
 // Type exports for utilities
 export type ComponentTypesMap = typeof COMPONENT_TYPES;

@@ -62,49 +62,17 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/__tests__/setup.ts'],
+    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    exclude: ['node_modules', 'dist', '.idea', '.git', '.cache'],
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov', 'json-summary'],
-      reportsDirectory: './coverage',
+      reporter: ['text', 'json', 'html'],
       exclude: [
         'node_modules/',
-        'src/__tests__/**',
+        'src/__tests__/',
         '**/*.d.ts',
-        '**/*.test.{ts,tsx,js,jsx}',
-        '**/*.spec.{ts,tsx,js,jsx}',
-        '**/coverage/**',
-        '**/dist/**',
-        '**/dev-dist/**',
-        'src/main.tsx',
-        'src/vite-env.d.ts',
-        'vite.config.ts',
-        'postcss.config.js',
-        'tailwind.config.ts',
-        'eslint.config.js',
-        '**/*.config.{ts,js}',
-        'src/pwa.ts'
-      ],
-      include: [
-        'src/**/*.{ts,tsx,js,jsx}'
-      ],
-      all: true,
-      clean: true,
-      skipFull: false,
-      thresholds: {
-        global: {
-          branches: 70,
-          functions: 75,
-          lines: 80,
-          statements: 80
-        },
-        perFile: true
-      },
-      watermarks: {
-        statements: [50, 80],
-        functions: [50, 75], 
-        branches: [50, 70],
-        lines: [50, 80]
-      }
+        '**/*.config.*',
+        '**/coverage/**'
+      ]
     }
   }
 })

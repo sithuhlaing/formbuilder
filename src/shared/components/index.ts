@@ -6,6 +6,7 @@ export { Button } from './Button';
 export { Modal } from './Modal';
 export { ActionButton } from './ActionButton';
 export { ConfirmDialog } from './ConfirmDialog';
+export { DragLayer } from './DragLayer';
 
 // Form Components
 export { FormField } from './FormField';
@@ -36,12 +37,8 @@ export {
 // Simple Component Renderer - Phase 4 Implementation
 export { renderSimpleComponent } from '../../components/SimpleRenderer';
 
-// Legacy Drag-Drop Components - Moved to legacy in Phases 3 & 4
-// If you need drag-drop functionality, use the new simple components:
-// - SimpleCanvas (Phase 3)
-// - SimpleDraggableComponent (Phase 3) 
-// - SimpleComponentPalette (Phase 3)
-// 
-// Original complex components preserved in:
-// - src/_legacy_phase3/drag-drop-system/
-// - src/_legacy_phase3/canvas-system/
+// Legacy components have been removed - using simplified architecture
+// Current drag-drop functionality in:
+// - SimpleCanvas 
+// - SimpleDraggableComponent 
+// - SimpleComponentPalette

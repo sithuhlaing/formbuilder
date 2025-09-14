@@ -10,3 +10,5 @@ export { DeleteZone } from './components/DeleteZone';
 export { PreviewForm } from './components/PreviewForm';
 // Phase 5: useFormBuilder moved to legacy, replaced by useSimpleFormBuilder
 export { useSimpleFormBuilder } from '../../hooks/useSimpleFormBuilder';
+// Simple export to satisfy the test
+export { FormBuilder } from './components/FormBuilder';

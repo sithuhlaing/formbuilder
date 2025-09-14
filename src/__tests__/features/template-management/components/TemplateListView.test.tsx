@@ -1,17 +1,24 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { TemplateListView } from '../../../../../features/template-management/components/TemplateListView';
-import { templateService } from '../../../../../features/template-management/services/templateService';
+import { TemplateListView } from '../TemplateListView';
+import { templateService } from '../../services/templateService';
+
 
 // Mock the templateService
 vi.mock('../../../../../features/template-management/services/templateService', () => ({
   templateService: {
-    getAllTemplates: vi.fn(),
-    updateTemplate: vi.fn((id, updates) => ({
-      ...mockTemplates.find(t => t.templateId === id),
-      ...updates,
-      modifiedDate: new Date().toISOString()
-    })),
+    getAllTemplates: vi.fn(() => [...mockTemplates]),
+    updateTemplate: vi.fn((id, updates) => {
+      const template = mockTemplates.find(t => t.templateId === id);
+      if (!template) return null;
+      
+      const updated = { ...template, ...updates, modifiedDate: new Date().toISOString() };
+      const index = mockTemplates.findIndex(t => t.templateId === id);
+      if (index !== -1) {
+        mockTemplates[index] = updated;
+      }
+      return updated;
+    }),
     deleteTemplate: vi.fn((id) => {
       const index = mockTemplates.findIndex(t => t.templateId === id);
       if (index !== -1) {

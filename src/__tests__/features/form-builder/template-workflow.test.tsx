@@ -78,6 +78,7 @@ describe('Template Workflow Tests', () => {
       canRedo: false,
       undo: vi.fn(),
       redo: vi.fn(),
+      updateCurrentPageComponents: vi.fn(),
     };
 
     mockUseFormBuilder.mockReturnValue(mockFormBuilderState);
@@ -119,13 +120,6 @@ describe('Template Workflow Tests', () => {
     // Verify export was called and returned valid JSON
     expect(typeof exportedData).toBe('string');
     expect(() => JSON.parse(exportedData)).not.toThrow();
-  });
-    updateCurrentPageComponents: vi.fn(),
-  };
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockUseFormBuilder.mockReturnValue(mockFormBuilderState);
   });
 
   describe('Complete Workflow: Welcome Screen → Create New → Edit → Save', () => {

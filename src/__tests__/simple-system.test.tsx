@@ -3,6 +3,26 @@
  * Validates Phase 1 implementation before migration
  */
 
+// Mock performance.now for tests
+if (typeof performance === 'undefined') {
+  // @ts-ignore
+  global.performance = {
+    now: () => Date.now(),
+    timeOrigin: Date.now()
+  };
+}
+
+// Ensure performance.now is available for tests
+if (!global.performance) {
+  // @ts-ignore
+  global.performance = {};
+}
+
+if (!global.performance.now) {
+  // @ts-ignore
+  global.performance.now = () => Date.now();
+}
+
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { useSimpleFormBuilder, useSelectedComponent } from '../hooks/useSimpleFormBuilder';

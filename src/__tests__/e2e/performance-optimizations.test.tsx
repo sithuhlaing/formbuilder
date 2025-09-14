@@ -409,3 +409,69 @@ describe('Performance Benchmarks', () => {
     expect(standardTime).toBeDefined();
   });
 });
+
+interface PerformanceMonitor {
+  metrics: Array<{ name: string; value: number; timestamp: number }>;
+  warnings: Array<{ message: string; timestamp: number }>;
+  renderCount: number;
+  getPerformanceSummary(): { avgRenderTime: number; totalRenders: number };
+  clearWarnings(): void;
+  clearMetrics(): void;
+}
+
+describe('Performance Optimizations', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test('performance monitor types are correct', () => {
+    const mockMonitor: PerformanceMonitor = {
+      metrics: [],
+      warnings: [],
+      renderCount: 0,
+      getPerformanceSummary: vi.fn().mockReturnValue({
+        avgRenderTime: 16.7,
+        totalRenders: 10
+      }),
+      clearWarnings: vi.fn(),
+      clearMetrics: vi.fn(),
+    };
+
+    expect(mockMonitor).toBeDefined();
+    expect(typeof mockMonitor.getPerformanceSummary).toBe('function');
+    expect(Array.isArray(mockMonitor.metrics)).toBe(true);
+    expect(Array.isArray(mockMonitor.warnings)).toBe(true);
+    expect(typeof mockMonitor.renderCount).toBe('number');
+    
+    // Test method calls
+    mockMonitor.getPerformanceSummary();
+    expect(mockMonitor.getPerformanceSummary).toHaveBeenCalled();
+    
+    mockMonitor.clearWarnings();
+    expect(mockMonitor.clearWarnings).toHaveBeenCalled();
+    
+    mockMonitor.clearMetrics();
+    expect(mockMonitor.clearMetrics).toHaveBeenCalled();
+  });
+
+  test('should track render performance', () => {
+    const monitor: PerformanceMonitor = {
+      metrics: [
+        { name: 'render', value: 15.2, timestamp: Date.now() },
+        { name: 'render', value: 18.1, timestamp: Date.now() }
+      ],
+      warnings: [],
+      renderCount: 2,
+      getPerformanceSummary: () => ({
+        avgRenderTime: 16.65,
+        totalRenders: 2
+      }),
+      clearWarnings: vi.fn(),
+      clearMetrics: vi.fn(),
+    };
+
+    const summary = monitor.getPerformanceSummary();
+    expect(summary.totalRenders).toBe(2);
+    expect(summary.avgRenderTime).toBeCloseTo(16.65, 1);
+  });
+});

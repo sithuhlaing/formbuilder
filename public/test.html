@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OH eHR System - Pain Assessment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .container {
+            border: 1px solid #000;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .header img {
+            width: 100px;
+            height: auto;
+            margin-right: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .patient-info {
+            border-bottom: 1px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            border: 1px solid #000;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            font-size: 18px;
+            margin-top: 0;
+        }
+
+        .pain-scale {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .pain-scale span {
+            margin: 0 5px;
+        }
+
+        .pain-scale input[type="range"] {
+            width: 300px;
+        }
+
+        .body-diagram {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .body-diagram canvas {
+            border: 1px solid #000;
+            cursor: crosshair;
+        }
+
+        .checkbox-group label {
+            display: inline-block;
+            width: 150px;
+            margin: 5px 0;
+        }
+
+        .radio-group label {
+            margin-right: 20px;
+        }
+
+        .buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .buttons button {
+            margin: 0 10px;
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://via.placeholder.com/100x50?text=NHS+Logo" alt="NHS Logo">
+            <h1>OH eHR System - Pain Assessment</h1>
+        </div>
+        <div class="patient-info">
+            <p>Patient: John Smith | Date: 15/12/2024 | Time: 14:30</p>
+        </div>
+
+        <div class="section">
+            <h2>COMPREHENSIVE PAIN ASSESSMENT</h2>
+
+            <div class="section">
+                <h3>PAIN INTENSITY SCALE</h3>
+                <div class="pain-scale">
+                    <span>Current Pain Level (0-10):</span>
+                    <span>0</span>
+                    <input type="range" min="0" max="10" value="0" id="currentPain">
+                    <span>10</span>
+                </div>
+                <p>No Pain &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Moderate Pain
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Severe Pain</p>
+                <p>Worst pain in last 24 hours: <input type="number" min="0" max="10" value="2"> / 10</p>
+                <p>Average pain in last week: <input type="number" min="0" max="10" value="1"> / 10</p>
+                <p>Pain right now: <input type="number" min="0" max="10" value="0"> / 10</p>
+            </div>
+
+            <div class="section">
+                <h3>PAIN CHARACTERISTICS</h3>
+                <p>Location(s): [Click on body diagram to mark]</p>
+                <div class="body-diagram">
+                    <div>
+                        <p>Front View</p>
+                        <canvas id="frontCanvas" width="150" height="300"></canvas>
+                    </div>
+                    <div>
+                        <p>Back View</p>
+                        <canvas id="backCanvas" width="150" height="300"></canvas>
+                    </div>
+                </div>
+                <p>Marked Locations: <span id="markedLocations">Lower back</span></p>
+                <p>Primary Location: <input type="text" value="Lower back"></p>
+                <p>Pain Quality: (Check all that apply)</p>
+                <div class="checkbox-group">
+                    <label><input type="checkbox"> Sharp</label>
+                    <label><input type="checkbox"> Dull</label>
+                    <label><input type="checkbox"> Burning</label>
+                    <label><input type="checkbox" checked> Aching</label>
+                    <label><input type="checkbox"> Stabbing</label>
+                    <label><input type="checkbox"> Tingling</label>
+                    <label><input type="checkbox"> Shooting</label>
+                    <label><input type="checkbox"> Cramping</label>
+                    <label><input type="checkbox"> Throbbing</label>
+                    <label><input type="checkbox"> Pressure</label>
+                    <label><input type="checkbox"> Electric</label>
+                    <label>Other: <input type="text"></label>
+                </div>
+                <p>Pain Pattern:</p>
+                <div class="radio-group">
+                    <label><input type="radio" name="painPattern" checked> Constant</label>
+                    <label><input type="radio" name="painPattern"> Intermittent</label>
+                    <label><input type="radio" name="painPattern"> Variable</label>
+                </div>
+                <p>Duration: <input type="text" value="2 weeks"></p>
+                <p>Onset: <input type="text" value="Gradual after lifting boxes at work"></p>
+            </div>
+
+            <div class="section">
+                <h3>AGGRAVATING & RELIEVING FACTORS</h3>
+                <p>Makes Pain Worse:</p>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" checked> Sitting for long periods</label>
+                    <label><input type="checkbox" checked> Bending forward</label>
+                    <label><input type="checkbox" checked> Lifting objects</label>
+                    <label><input type="checkbox"> Walking</label>
+                    <label><input type="checkbox"> Standing</label>
+                    <label><input type="checkbox"> Coughing/sneezing</label>
+                    <label><input type="checkbox"> Weather changes</label>
+                    <label><input type="checkbox"> Stress</label>
+                    <label>Other: <input type="text"></label>
+                </div>
+                <p>Relieves Pain:</p>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" checked> Rest</label>
+                    <label><input type="checkbox" checked> Heat application</label>
+                    <label><input type="checkbox"> Cold application</label>
+                    <label><input type="checkbox"> Gentle stretching</label>
+                    <label><input type="checkbox"> Medication</label>
+                    <label><input type="checkbox"> Massage</label>
+                    <label><input type="checkbox"> Position changes</label>
+                    <label>Other: <input type="text" value="Ergonomic chair at work"></label>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>FUNCTIONAL IMPACT</h3>
+                <p>How does pain affect your daily activities? (Rate 0-10: 0=no interference, 10=complete interference)
+                </p>
+                <p>Work activities: <input type="number" min="0" max="10" value="3"> / 10</p>
+                <p>Sleep: <input type="number" min="0" max="10" value="2"> / 10</p>
+                <p>Physical activities: <input type="number" min="0" max="10" value="4"> / 10</p>
+                <p>Social activities: <input type="number" min="0" max="10" value="1"> / 10</p>
+                <p>Self-care: <input type="number" min="0" max="10" value="0"> / 10</p>
+                <p>Mood: <input type="number" min="0" max="10" value="2"> / 10</p>
+                <p>Work Limitations:</p>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" checked> Difficulty with prolonged sitting</label>
+                    <label><input type="checkbox" checked> Reduced lifting capacity</label>
+                    <label><input type="checkbox"> Unable to perform normal duties</label>
+                    <label><input type="checkbox"> Frequent breaks needed</label>
+                    <label><input type="checkbox"> Modified work schedule required</label>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>CURRENT PAIN MANAGEMENT</h3>
+                <p>Current Treatments:</p>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" checked> Over-the-counter pain relievers</label>
+                    <label>Medication: <input type="text" value="Ibuprofen"> Dose: <input type="text" value="400mg">
+                        Frequency: <input type="text" value="PRN"></label>
+                    <label><input type="checkbox"> Prescription medications</label>
+                    <label><input type="checkbox" checked> Physical therapy/exercises</label>
+                    <label><input type="checkbox"> Heat/cold therapy</label>
+                    <label><input type="checkbox"> Massage therapy</label>
+                    <label><input type="checkbox"> Acupuncture</label>
+                    <label>Other: <input type="text"></label>
+                </div>
+                <p>Effectiveness of current treatments:</p>
+                <div class="radio-group">
+                    <label><input type="radio" name="effectiveness"> Not helpful</label>
+                    <label><input type="radio" name="effectiveness" checked> Somewhat helpful</label>
+                    <label><input type="radio" name="effectiveness"> Very helpful</label>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>CLINICAL ASSESSMENT</h3>
+                <p>Assessed by: <input type="text" value="Dr. Sarah Smith"></p>
+                <p>Clinical Impression:</p>
+                <textarea rows="4"
+                    cols="50">Mechanical lower back pain, likely work-related. Minimal functional impairment. Good response to conservative management.</textarea>
+                <p>Recommendations:</p>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" checked> Continue current conservative management</label>
+                    <label><input type="checkbox" checked> Ergonomic workplace assessment</label>
+                    <label><input type="checkbox" checked> Manual handling training refresher</label>
+                    <label><input type="checkbox"> Physiotherapy referral</label>
+                    <label><input type="checkbox"> Imaging studies required</label>
+                    <label><input type="checkbox"> Specialist referral</label>
+                </div>
+                <p>Follow-up: <input type="text" value="2 weeks for reassessment"></p>
+            </div>
+
+            <div class="buttons">
+                <button onclick="window.history.back()">Back</button>
+                <button onclick="saveForm()">Save</button>
+                <button onclick="window.print()">Print</button>
+                <button onclick="alert('Follow-up scheduled')">Schedule Follow-up</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const frontCanvas = document.getElementById('frontCanvas');
+        const backCanvas = document.getElementById('backCanvas');
+        const frontCtx = frontCanvas.getContext('2d');
+        const backCtx = backCanvas.getContext('2d');
+        const markedLocations = document.getElementById('markedLocations');
+
+        let marks = [{ x: 75, y: 250, view: 'Back', label: 'Lower back' }];
+
+        function drawBodyDiagram(ctx, view) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.beginPath();
+            ctx.arc(75, 30, 20, 0, Math.PI * 2); // Head
+            ctx.moveTo(75, 50);
+            ctx.lineTo(75, 150); // Torso
+            ctx.moveTo(75, 50);
+            ctx.lineTo(50, 100); // Left arm
+            ctx.moveTo(75, 50);
+            ctx.lineTo(100, 100); // Right arm
+            ctx.moveTo(75, 150);
+            ctx.lineTo(50, 250); // Left leg
+            ctx.moveTo(75, 150);
+            ctx.lineTo(100, 250); // Right leg
+            ctx.stroke();
+
+            marks.forEach(mark => {
+                if (mark.view === view) {
+                    ctx.beginPath();
+                    ctx.arc(mark.x, mark.y, 5, 0, Math.PI * 2);
+                    ctx.fillStyle = 'red';
+                    ctx.fill();
+                }
+            });
+        }
+
+        function addMark(event, canvas, view) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            const label = prompt('Enter pain location label:');
+            if (label) {
+                marks.push({ x, y, view, label });
+                updateMarkedLocations();
+                drawBodyDiagram(frontCtx, 'Front'); // redraw both
+                drawBodyDiagram(backCtx, 'Back');   // redraw both
+            }
+        }
+
+
+        function updateMarkedLocations() {
+            markedLocations.textContent = marks.map(mark => mark.label).join(', ');
+        }
+
+        frontCanvas.addEventListener('click', (e) => addMark(e, frontCanvas, 'Front'));
+        backCanvas.addEventListener('click', (e) => addMark(e, backCanvas, 'Back'));
+
+        function saveForm() {
+            alert('Form saved successfully!');
+        }
+
+        drawBodyDiagram(frontCtx, 'Front');
+        drawBodyDiagram(backCtx, 'Back');
+    </script>
+</body>
+
+</html>

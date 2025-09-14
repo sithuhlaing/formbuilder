@@ -74,6 +74,55 @@ beforeAll(() => {
   Object.defineProperty(window, 'localStorage', {
     value: localStorageMock,
   });
+
+  // Mock performance.memory for all tests
+  Object.defineProperty(window, 'performance', {
+    value: {
+      ...window.performance,
+      memory: {
+        usedJSHeapSize: 15000000,
+        totalJSHeapSize: 30000000,
+        jsHeapSizeLimit: 2147483648
+      }
+    },
+    writable: true
+  });
+
+  // Mock garbage collection globally
+  (global as any).gc = vi.fn();
+
+  // Mock ResizeObserver
+  global.ResizeObserver = vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  }));
+
+  // Mock IntersectionObserver
+  global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  }));
+
+  // Mock DragEvent
+  global.DragEvent = class DragEvent extends Event {
+    dataTransfer: DataTransfer;
+    constructor(type: string, eventInitDict?: DragEventInit) {
+      super(type, eventInitDict);
+      this.dataTransfer = {
+        dropEffect: 'none',
+        effectAllowed: 'all',
+        files: [] as any,
+        items: [] as any,
+        types: [],
+        clearData: vi.fn(),
+        getData: vi.fn(),
+        setData: vi.fn(),
+        setDragImage: vi.fn(),
+      } as DataTransfer;
+    }
+  };
 });
 
 // Mock ResizeObserver

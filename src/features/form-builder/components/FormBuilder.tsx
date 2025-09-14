@@ -5,7 +5,7 @@ import { ComponentPalette } from './ComponentPalette';
 import { PropertiesPanel } from './PropertiesPanel';
 import { FormPageCard } from './FormPageCard';
 import { CanvasCard } from './CanvasCard';
-import { DragLayer } from '../../../shared/components/DragLayer';
+// import { DragLayer } from '../../../shared/components/DragLayer';
 import { useFormBuilder } from '../hooks/useFormBuilder';
 
 export const FormBuilder: React.FC = () => {
@@ -189,7 +189,7 @@ export const FormBuilder: React.FC = () => {
         </div>
         
         {/* Custom Drag Layer for Preview Fields */}
-        <DragLayer />
+        {/* <DragLayer /> */}
       </div>
     </DndProvider>
   );

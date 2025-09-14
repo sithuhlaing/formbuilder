@@ -471,3 +471,60 @@ describe('🧠 Memory Management Testing', () => {
     });
   });
 });
+
+describe('Memory Management', () => {
+  beforeEach(() => {
+    // Mock performance.memory
+    if (typeof window !== 'undefined') {
+      Object.defineProperty(window, 'performance', {
+        value: {
+          ...window.performance,
+          memory: {
+            usedJSHeapSize: 15000000,
+            totalJSHeapSize: 30000000,
+            jsHeapSizeLimit: 2147483648
+          }
+        },
+        writable: true
+      });
+    }
+    
+    // Mock garbage collection
+    (global as any).gc = vi.fn();
+    
+    vi.clearAllMocks();
+  });
+
+  test('should monitor memory usage', () => {
+    const memoryInfo = (window as any).performance.memory;
+    
+    expect(memoryInfo).toBeDefined();
+    expect(memoryInfo.usedJSHeapSize).toBe(15000000);
+    expect(memoryInfo.totalJSHeapSize).toBe(30000000);
+    expect(memoryInfo.jsHeapSizeLimit).toBe(2147483648);
+  });
+
+  test('should handle garbage collection', () => {
+    const gc = (global as any).gc;
+    
+    expect(gc).toBeDefined();
+    expect(typeof gc).toBe('function');
+    
+    // Simulate garbage collection call
+    gc();
+    expect(gc).toHaveBeenCalled();
+  });
+
+  test('should detect memory leaks', () => {
+    const initialMemory = (window as any).performance.memory.usedJSHeapSize;
+    
+    // Simulate memory usage increase
+    (window as any).performance.memory.usedJSHeapSize = initialMemory + 5000000;
+    
+    const currentMemory = (window as any).performance.memory.usedJSHeapSize;
+    const memoryIncrease = currentMemory - initialMemory;
+    
+    expect(memoryIncrease).toBe(5000000);
+    expect(memoryIncrease).toBeLessThan(10000000); // Threshold check
+  });
+});

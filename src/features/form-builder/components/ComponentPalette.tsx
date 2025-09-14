@@ -8,7 +8,7 @@ import React, { useState, memo, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import { getSimpleComponentInfo } from '../../../core';
-import { usePerformanceMonitor } from '../../../shared/hooks/usePerformanceMonitor';
+// usePerformanceMonitor removed - was unused optimization
 import type { ComponentType } from '../../../types';
 
 interface PaletteItemProps {
@@ -18,10 +18,7 @@ interface PaletteItemProps {
 
 // Memoized palette item component for better performance
 const PaletteItem: React.FC<PaletteItemProps> = memo(({ componentType, onAddComponent }) => {
-  usePerformanceMonitor({ 
-    componentName: `PaletteItem-${componentType}`,
-    slowRenderThreshold: 8 // Stricter threshold for palette items
-  });
+  // Performance monitoring removed - was unused optimization
   
   const [{ isDragging }, drag, preview] = useDrag({
     type: 'new-item',

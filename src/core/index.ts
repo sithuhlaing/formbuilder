@@ -4,7 +4,7 @@
  */
 
 // Core Engines - Phase 5 Implementation  
-export { DependencyEngine } from './DependencyEngine';
+// DependencyEngine removed - was unused
 
 // Simple Component System - Phases 1-2 Implementation
 export * from './componentUtils';
@@ -14,6 +14,6 @@ export * from './simpleComponents';
 export { renderSimpleComponent, getSimpleComponentInfo } from '../components/SimpleRenderer';
 
 // Services  
-export { SchemaGenerator } from './services/schemaGenerator';
+// SchemaGenerator removed - was unused
 
 // Note: FormStateEngine moved to legacy - replaced by useSimpleFormBuilder hook

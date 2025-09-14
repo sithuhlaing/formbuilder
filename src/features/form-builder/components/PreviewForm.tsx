@@ -3,13 +3,13 @@
  */
 
 import React, { useState } from 'react';
-import type { FormComponentData } from '../../../types';
+import type { Component } from '../../../types/components';
 import type { FormPage } from '../../../core/FormState';
 import { RichTextEditor } from '../../../shared/components/RichTextEditor';
 
 interface PreviewFormProps {
   templateName: string;
-  components?: FormComponentData[];
+  components?: Component[];
   pages?: FormPage[];
   onSubmit?: (data: Record<string, any>) => void;
 }
@@ -87,7 +87,7 @@ export const PreviewForm: React.FC<PreviewFormProps> = ({
     }
   };
 
-  const renderComponent = (component: FormComponentData) => {
+  const renderComponent = (component: Component) => {
     const fieldId = component.fieldId || component.id;
     const value = formData[fieldId] || '';
     const requiredMark = component.required ? ' *' : '';
@@ -125,8 +125,8 @@ export const PreviewForm: React.FC<PreviewFormProps> = ({
               className={`preview-field__number ${hasError ? 'preview-field__input--error' : ''}`}
               placeholder={component.placeholder}
               value={value}
-              min={component.min}
-              max={component.max}
+              min={component.validation?.min}
+              max={component.validation?.max}
               onChange={(e) => handleFieldChange(fieldId, Number(e.target.value))}
               required={component.required}
             />
@@ -308,13 +308,13 @@ export const PreviewForm: React.FC<PreviewFormProps> = ({
             <div className="preview-field__file-upload">
               <input
                 type="file"
-                accept={component.acceptedFileTypes}
+                accept={component.accept}
                 onChange={(e) => handleFieldChange(fieldId, e.target.files?.[0])}
                 required={component.required}
               />
-              {component.acceptedFileTypes && (
+              {component.accept && (
                 <div className="preview-field__file-types">
-                  Accepted types: {component.acceptedFileTypes}
+                  Accepted types: {component.accept}
                 </div>
               )}
               {value && (
@@ -334,6 +334,53 @@ export const PreviewForm: React.FC<PreviewFormProps> = ({
             {component.label && (
               <h3>{component.label}</h3>
             )}
+          </div>
+        );
+
+      case 'heading':
+        const HeadingTag = `h${component.level || 2}` as keyof JSX.IntrinsicElements;
+        return (
+          <HeadingTag key={component.id} className="preview-heading">
+            {component.content || component.label}
+          </HeadingTag>
+        );
+
+      case 'paragraph':
+        return (
+          <p key={component.id} className="preview-paragraph">
+            {component.content || component.label}
+          </p>
+        );
+
+      case 'button':
+        return (
+          <button 
+            key={component.id} 
+            type="button" 
+            className="preview-button"
+            disabled={component.disabled}
+            onClick={() => console.log('Button clicked:', component.label)}
+          >
+            {component.label}
+          </button>
+        );
+
+      case 'divider':
+        return (
+          <hr key={component.id} className="preview-divider" />
+        );
+
+      case 'horizontal_layout':
+        return (
+          <div key={component.id} className="preview-horizontal-layout" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+            {component.children?.map(child => renderComponent(child))}
+          </div>
+        );
+
+      case 'vertical_layout':
+        return (
+          <div key={component.id} className="preview-vertical-layout" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {component.children?.map(child => renderComponent(child))}
           </div>
         );
 

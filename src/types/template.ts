@@ -1,6 +1,11 @@
-import type { FormComponentData } from './component';
+/**
+ * ALIGNED WITH DOCUMENTATION - Template Management Types
+ * Supports template saving, loading, and management features
+ */
 
-// Template type definitions
+import type { FormDefinition } from ".";
+import type { FormComponentData } from "./component";
+
 export type FormTemplateType = "assessment" | "survey" | "application" | "feedback" | "registration" | "referral" | "compliance" | "other";
 
 export interface Page {
@@ -31,13 +36,64 @@ export interface Template {
 }
 
 export interface FormTemplate {
-  templateId: string;
+  pages: boolean;
+  templateId(templateId: any): unknown;
+  id: string;
   name: string;
-  type: FormTemplateType;
-  fields: FormComponentData[]; // For backward compatibility
-  pages: FormPage[];
-  createdDate: string;
-  modifiedDate: string;
-  jsonSchema: Record<string, unknown>;
-  currentView?: 'desktop' | 'tablet' | 'mobile';
+  description?: string;
+  category: TemplateCategory;
+  thumbnail?: string;
+  formDefinition: FormDefinition;
+  metadata: TemplateMetadata;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type TemplateCategory = 
+  | 'contact'
+  | 'survey'
+  | 'registration'
+  | 'feedback'
+  | 'application'
+  | 'order'
+  | 'booking'
+  | 'custom';
+
+export interface TemplateMetadata {
+  author: string;
+  version: string;
+  tags: string[];
+  usageCount: number;
+  rating: number;
+  isPublic: boolean;
+  isPremium: boolean;
+}
+
+export interface TemplateLibrary {
+  templates: FormTemplate[];
+  categories: TemplateCategory[];
+  searchFilters: TemplateSearchFilters;
+}
+
+export interface TemplateSearchFilters {
+  category?: TemplateCategory;
+  tags?: string[];
+  author?: string;
+  rating?: number;
+  sortBy: 'name' | 'created' | 'updated' | 'usage' | 'rating';
+  sortOrder: 'asc' | 'desc';
+}
+
+export interface TemplateImportResult {
+  success: boolean;
+  template?: FormTemplate;
+  errors?: string[];
+  warnings?: string[];
+}
+
+export interface TemplateExportOptions {
+  includeAnalytics: boolean;
+  includeMetadata: boolean;
+  format: 'json' | 'yaml' | 'xml';
+  compression: boolean;
 }

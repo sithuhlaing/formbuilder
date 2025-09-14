@@ -295,29 +295,22 @@ export interface FieldStatistics {
 }
 
 // Supporting interfaces for analytics and data visualization
+export interface FormAnalytics {
+  responseRate: number;
+  averageCompletionTime: number;
+  dropoffAnalysis: DropoffAnalysis;
+  qualityMetrics: QualityMetrics;
+}
+
 export interface DropoffAnalysis {
-  totalStarted: number;
-  totalCompleted: number;
-  dropoffByPage: Array<{
-    pageId: string;
-    pageTitle: string;
-    started: number;
-    completed: number;
-    dropoffRate: number;
-  }>;
-  overallCompletionRate: number;
+  pageDropoffs: Record<string, number>;
+  fieldDropoffs: Record<string, number>;
 }
 
 export interface QualityMetrics {
-  averageTimeToComplete: number; // in seconds
-  validationErrorRate: number; // percentage
-  mostProblematicFields: Array<{
-    fieldId: string;
-    fieldName: string;
-    errorCount: number;
-    errorRate: number;
-  }>;
-  userSatisfactionScore?: number; // 1-5 rating if available
+  completionRate: number;
+  errorRate: number;
+  averageTime: number;
 }
 
 export interface DemographicBreakdown {

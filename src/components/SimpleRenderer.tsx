@@ -5,7 +5,27 @@
  */
 
 import React from 'react';
-import type { Component } from '../types/components';
+import type { Component, ComponentType } from '../types/components';
+
+// Default labels for all component types
+const DEFAULT_COMPONENT_LABELS: Record<ComponentType, string> = {
+  text_input: 'Text Input',
+  email_input: 'Email Input',
+  number_input: 'Number Input',
+  textarea: 'Text Area',
+  date_picker: 'Date Picker',
+  file_upload: 'File Upload',
+  select: 'Select',
+  radio_group: 'Radio Group',
+  checkbox: 'Checkbox',
+  horizontal_layout: 'Horizontal Layout',
+  vertical_layout: 'Vertical Layout',
+  heading: 'Heading',
+  paragraph: 'Paragraph',
+  button: 'Button',
+  divider: 'Divider',
+  section_divider: 'Section Divider'
+};
 
 /**
  * Simple unified renderer for all component types

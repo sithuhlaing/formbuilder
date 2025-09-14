@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { templateService } from '../../../features/template-management/services/templateService';
+import type { FormTemplate } from '../../../features/template-management/types';
 
 // Mock console methods
 const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -207,14 +208,9 @@ describe('TemplateService', () => {
         'Failed to load templates:',
         expect.any(Error)
       );
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('formTemplates');
     });
   });
-});
-
-      components: []
-    }],
-    jsonSchema: {}
-  };
 
   const mockTemplates: FormTemplate[] = [
     {

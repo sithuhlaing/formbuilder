@@ -4,109 +4,225 @@
  * Uses: All simplified systems from Phases 1-4
  */
 
-import React from 'react';
-import { DndProvider } from 'react-dnd';
+import React, { useState } from 'react';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { SimpleCanvas } from './SimpleCanvas';
 import { SimpleComponentPalette } from './SimpleComponentPalette';
 import type { ComponentType } from '../types/components';
+import type { FormPage } from '../hooks/useSimpleFormBuilder';
 
 interface SimpleFormBuilderProps {
   formBuilderHook: ReturnType<typeof import('../hooks/useSimpleFormBuilder').useSimpleFormBuilder>;
-  onSave?: () => void;
-  onExport?: () => void;
-  onPreview?: () => void;
   showPreview?: boolean;
   onClosePreview?: () => void;
 }
 
+// Draggable Page Item Component
+interface DraggablePageItemProps {
+  page: FormPage;
+  index: number;
+  isActive: boolean;
+  onPageClick: (pageId: string) => void;
+  onDeletePage: (pageId: string) => void;
+  onMoveUp: (pageId: string) => void;
+  onMoveDown: (pageId: string) => void;
+  onReorder: (fromIndex: number, toIndex: number) => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+}
+
+const DraggablePageItem: React.FC<DraggablePageItemProps> = ({
+  page,
+  index,
+  isActive,
+  onPageClick,
+  onDeletePage,
+  onMoveUp,
+  onMoveDown,
+  onReorder,
+  canMoveUp,
+  canMoveDown
+}) => {
+  const [{ isDragging }, drag] = useDrag({
+    type: 'page',
+    item: { index, id: page.id },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const [{ isOver }, drop] = useDrop({
+    accept: 'page',
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+    }),
+    hover(item: { index: number; id: string }, monitor) {
+      if (!monitor.isOver({ shallow: true })) return;
+      
+      if (item.index !== index) {
+        onReorder(item.index, index);
+        item.index = index;
+      }
+    },
+  });
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowUp' && canMoveUp) {
+      e.preventDefault();
+      onMoveUp(page.id);
+    } else if (e.key === 'ArrowDown' && canMoveDown) {
+      e.preventDefault();
+      onMoveDown(page.id);
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onPageClick(page.id);
+    } else if (e.key === 'Delete') {
+      e.preventDefault();
+      onDeletePage(page.id);
+    }
+  };
+
+  return (
+    <div
+      ref={(node) => drag(drop(node))}
+      className={`page-item ${isActive ? 'active' : ''} ${isDragging ? 'dragging' : ''} ${isOver ? 'drop-over' : ''}`}
+      onClick={() => onPageClick(page.id)}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role="button"
+      aria-label={`Page ${page.title}, ${page.components.length} components`}
+      style={{ 
+        cursor: isDragging ? 'grabbing' : 'grab',
+        opacity: isDragging ? 0.5 : 1,
+      }}
+    >
+      <div className="page-drag-handle">⋮⋮</div>
+      
+      <div className="page-info">
+        <span className="page-title">{page.title}</span>
+        <span className="page-component-count">({page.components.length} components)</span>
+      </div>
+      
+      <div className="page-actions">
+        <button 
+          className={`btn-icon ${canMoveUp ? '' : 'disabled'}`}
+          title="Move Up"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (canMoveUp) onMoveUp(page.id);
+          }}
+          disabled={!canMoveUp}
+        >
+          ↑
+        </button>
+        <button 
+          className={`btn-icon ${canMoveDown ? '' : 'disabled'}`}
+          title="Move Down"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (canMoveDown) onMoveDown(page.id);
+          }}
+          disabled={!canMoveDown}
+        >
+          ↓
+        </button>
+        <button 
+          className="btn-icon btn-danger" 
+          title="Delete Page"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDeletePage(page.id);
+          }}
+        >
+          ✖
+        </button>
+      </div>
+    </div>
+  );
+};
+
 
 export const SimpleFormBuilder: React.FC<SimpleFormBuilderProps> = ({
   formBuilderHook,
-  onSave,
-  onExport,
-  onPreview,
   showPreview: _showPreview,
   onClosePreview: _onClosePreview
 }) => {
   const {
-    templateName,
     components,
     selectedId,
     addComponent,
     deleteComponent,
     selectComponent,
     moveComponent,
-    setTemplateName
+    clearAll,
+    pages,
+    currentPageId,
+    addPage,
+    deletePage,
+    switchToPage,
+    reorderPages,
+    movePageUp,
+    movePageDown
   } = formBuilderHook;
 
   const handleDrop = (type: ComponentType, position?: { index: number }) => {
     addComponent(type, position?.index);
   };
 
-  const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTemplateName(event.target.value);
+  const handleAddNewPage = () => {
+    addPage();
+  };
+
+  const handleDeletePage = (pageId: string) => {
+    if (pages.length <= 1) {
+      alert('Cannot delete the last page.');
+      return;
+    }
+    
+    if (window.confirm('Are you sure you want to delete this page? This action cannot be undone.')) {
+      deletePage(pageId);
+    }
+  };
+
+  const handlePageClick = (pageId: string) => {
+    switchToPage(pageId);
+  };
+
+  const getCurrentPageIndex = () => {
+    return pages.findIndex(page => page.id === currentPageId);
   };
 
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="simple-form-builder">
-        {/* Header with template title and actions */}
-        <div className="form-builder-header">
-          <div className="form-title-section">
-            <input
-              type="text"
-              value={templateName}
-              onChange={handleTitleChange}
-              placeholder="Form Title"
-              className="form-title-input"
-              style={{
-                fontSize: '1.5rem',
-                fontWeight: '600',
-                border: '1px solid transparent',
-                borderRadius: '4px',
-                padding: '0.5rem',
-                backgroundColor: '#f8f9fa',
-                transition: 'all 0.2s ease'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#007bff';
-                e.target.style.backgroundColor = '#fff';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'transparent';
-                e.target.style.backgroundColor = '#f8f9fa';
-              }}
-            />
-          </div>
-          
-          <div className="form-builder-actions">
-            {onPreview && (
-              <button
-                onClick={onPreview}
-                className="btn btn-secondary"
-                style={{ marginRight: '0.5rem' }}
-              >
-                👁️ Preview
+        {/* Page Management Card */}
+        <div className="page-management">
+          <div className="page-management-container">
+            <div className="page-header">
+              <h3>Pages ({pages.length})</h3>
+              <button onClick={handleAddNewPage} className="add-page-btn">
+                + Add Page
               </button>
-            )}
-            {onExport && (
-              <button
-                onClick={onExport}
-                className="btn btn-secondary"
-                style={{ marginRight: '0.5rem' }}
-              >
-                📤 Export
-              </button>
-            )}
-            {onSave && (
-              <button
-                onClick={onSave}
-                className="btn btn-primary"
-              >
-                💾 Save
-              </button>
-            )}
+            </div>
+            
+            <div className="page-list">
+              {pages.map((page, index) => (
+                <DraggablePageItem
+                  key={page.id}
+                  page={page}
+                  index={index}
+                  isActive={index === getCurrentPageIndex()}
+                  onPageClick={handlePageClick}
+                  onDeletePage={handleDeletePage}
+                  onMoveUp={movePageUp}
+                  onMoveDown={movePageDown}
+                  onReorder={reorderPages}
+                  canMoveUp={index > 0}
+                  canMoveDown={index < pages.length - 1}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
@@ -190,28 +306,232 @@ export const SIMPLE_FORM_BUILDER_STYLES = `
   background-color: #f8f9fa;
 }
 
-.form-builder-header {
+/* Page Management - Clean & Minimal */
+.page-management {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.page-management-container {
+  max-width: 600px;
+  width: 100%;
+  margin: 0 20px;
+}
+
+.page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
-  background-color: #fff;
-  border-bottom: 1px solid #dee2e6;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 16px;
 }
 
-.form-title-section {
-  flex: 1;
+.page-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
 }
 
-.form-title-input:hover {
-  border-color: #6c757d !important;
-  background-color: #fff !important;
+.add-page-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.form-builder-actions {
+.add-page-btn:hover {
+  background: #2563eb;
+}
+
+.page-list {
   display: flex;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.page-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.page-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.page-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+.page-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.page-item:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.page-item.active {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.page-item.dragging {
+  cursor: grabbing;
+  opacity: 0.7;
+  z-index: 1000;
+}
+
+.page-item.drop-over {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+.page-drag-handle {
+  color: #9ca3af;
+  cursor: grab;
+  user-select: none;
+  transition: color 0.2s;
+}
+
+.page-item:hover .page-drag-handle {
+  color: #6b7280;
+}
+
+.page-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.page-title {
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.page-item.active .page-title {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.page-component-count {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.page-item.active .page-component-count {
+  color: #6366f1;
+}
+
+.page-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.page-item:hover .page-actions {
+  opacity: 1;
+}
+
+.btn-icon {
+  padding: 4px;
+  border: none;
+  background: #f3f4f6;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 12px;
+  transition: all 0.2s;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+.btn-icon:hover:not(.disabled) {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.btn-icon.btn-danger {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.btn-icon.btn-danger:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.btn-icon.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .page-management-container {
+    max-width: none;
+    margin: 0 16px;
+  }
+  
+  .page-list {
+    max-height: 160px;
+    padding: 10px;
+  }
+  
+  .page-item {
+    padding: 10px;
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-management {
+    padding: 16px 0;
+  }
+  
+  .page-header {
+    margin-bottom: 12px;
+  }
+  
+  .page-header h3 {
+    font-size: 16px;
+  }
+  
+  .add-page-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
 }
 
 .form-builder-layout {

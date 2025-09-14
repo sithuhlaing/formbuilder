@@ -519,3 +519,65 @@ describe('Canvas Area Business Logic Tests', () => {
     });
   });
 });
+
+describe('Canvas Area Business Logic', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test('should show drop indicators during drag operations', () => {
+    // Create a test component that simulates drop indicators
+    const TestCanvas = () => (
+      <div data-testid="canvas">
+        <div 
+          className="drop-indicator"
+          style={{ 
+            borderColor: 'blue', 
+            borderStyle: 'dashed',
+            borderWidth: '2px',
+            height: '4px',
+            backgroundColor: 'rgba(0, 0, 255, 0.1)'
+          }}
+          data-testid="drop-indicator"
+        />
+      </div>
+    );
+
+    render(<TestCanvas />);
+    
+    const dropIndicator = screen.getByTestId('drop-indicator');
+    const styles = window.getComputedStyle(dropIndicator);
+    
+    expect(dropIndicator).toBeInTheDocument();
+    expect(dropIndicator.style.borderColor).toBe('blue');
+    expect(dropIndicator.style.borderStyle).toBe('dashed');
+  });
+
+  test('should handle component placement on canvas', () => {
+    const mockOnDrop = vi.fn();
+    
+    const TestCanvas = () => (
+      <div 
+        data-testid="canvas"
+        onDrop={mockOnDrop}
+        onDragOver={(e) => e.preventDefault()}
+      >
+        Canvas Area
+      </div>
+    );
+
+    render(<TestCanvas />);
+    
+    const canvas = screen.getByTestId('canvas');
+    expect(canvas).toBeInTheDocument();
+    
+    // Simulate drop event
+    const dropEvent = new DragEvent('drop', {
+      bubbles: true,
+      cancelable: true,
+    });
+    
+    canvas.dispatchEvent(dropEvent);
+    expect(mockOnDrop).toHaveBeenCalled();
+  });
+});

@@ -7,6 +7,7 @@ import React, { useCallback, memo, useEffect, useRef } from 'react';
 import { useAppState } from './hooks/useAppState';
 import { SimpleFormBuilder } from './components/SimpleFormBuilder';
 import { LazyTemplateListView } from './components/LazyComponents';
+import { PreviewModal } from './features/form-builder/components/PreviewModal';
 import { templateService } from './features/template-management';
 import { Button, Modal } from './shared/components';
 import { useSimpleFormBuilder } from './hooks/useSimpleFormBuilder';
@@ -143,19 +144,31 @@ const App: React.FC = () => {
     };
   }, [templateName, components, mode, editingTemplateId, autoSave]);
 
-  const handleJSONUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleJSONUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (e) => {
-      const jsonData = e.target?.result as string;
-      loadJSONData(jsonData);
+      try {
+        const jsonData = e.target?.result as string;
+        loadJSONData(jsonData);
+        actions.showSuccess(
+          'Import Successful',
+          'Form template has been imported successfully.'
+        );
+      } catch (error) {
+        console.error('Import error:', error);
+        actions.showError(
+          'Import Failed',
+          'Failed to import template. Please check the file format.'
+        );
+      }
     };
     
     reader.readAsText(file);
     event.target.value = ''; // Reset input
-  };
+  }, [loadJSONData, actions]);
 
   // Export template layout JSON (headless JSON for form data)
   const handleExportJSON = useCallback(() => {
@@ -172,10 +185,7 @@ const App: React.FC = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
-      actions.showSuccess(
-        'Export Successful',
-        'Form template has been exported successfully.'
-      );
+      // No success modal - just silent export
     } catch (error) {
       console.error('Export error:', error);
       actions.showError(
@@ -192,32 +202,50 @@ const App: React.FC = () => {
   const handleTemplateSelect = useCallback((template: FormTemplate) => {
     console.log('🎯 Opening template for editing:', template.name);
     
-    // Load template data into simple form builder
-    if (template.pages && template.pages.length > 0) {
-      const firstPage = template.pages[0];
-      if (firstPage.components) {
-        loadJSONData(JSON.stringify({
-          templateName: template.name,
-          components: firstPage.components
-        }));
+    try {
+      // Load template data into simple form builder with proper type checking
+      if (template.pages && Array.isArray(template.pages) && template.pages.length > 0) {
+        const firstPage = template.pages[0];
+        if (firstPage && firstPage.components && Array.isArray(firstPage.components)) {
+          loadJSONData(JSON.stringify({
+            templateName: template.name,
+            components: firstPage.components
+          }));
+        }
       }
+      
+      // Set edit mode with the template ID
+      setEditMode(template.templateId);
+      actions.setView('builder');
+    } catch (error) {
+      console.error('Error loading template:', error);
+      actions.showError(
+        'Load Failed',
+        'Failed to load template. Please try again.'
+      );
     }
-    
-    // Set edit mode with the template ID
-    setEditMode(template.templateId);
-    actions.setView('builder');
   }, [loadJSONData, setEditMode, actions]);
+
+  const handleCreateNew = useCallback(() => {
+    try {
+      // Clear form state for new template
+      clearAll();
+      actions.setView('builder');
+    } catch (error) {
+      console.error('Error creating new template:', error);
+      actions.showError(
+        'Create Failed',
+        'Failed to create new template. Please try again.'
+      );
+    }
+  }, [clearAll, actions]);
 
   // Template List View
   if (state.currentView === 'list') {
     return (
       <div className="app">
         <LazyTemplateListView
-          onCreateNew={() => {
-            // Clear form state for new template
-            clearAll();
-            actions.setView('builder');
-          }}
+          onCreateNew={handleCreateNew}
           onEditTemplate={handleTemplateSelect}
         />
       </div>
@@ -240,10 +268,19 @@ const App: React.FC = () => {
         </div>
         
         <div className="app-header__center">
-          <h1 className="app-title">Form Builder</h1>
+          <input
+            type="text"
+            value={templateName}
+            onChange={(e) => formBuilderHook.setTemplateName(e.target.value)}
+            placeholder="Enter form title..."
+            className="app-title-input"
+          />
         </div>
         
         <div className="app-header__right">
+          <Button onClick={() => actions.togglePreview(true)} variant="secondary">
+            👁️ Preview
+          </Button>
           <Button onClick={handleExportJSON} variant="secondary">
             📤 Export JSON
           </Button>
@@ -256,6 +293,9 @@ const App: React.FC = () => {
               style={{ display: 'none' }}
             />
           </label>
+          <Button onClick={() => handleSave(false)} variant="primary">
+            💾 Save Template
+          </Button>
         </div>
       </div>
 
@@ -263,9 +303,6 @@ const App: React.FC = () => {
       <SimpleFormBuilder
         // Pass the hook data to SimpleFormBuilder to share state
         formBuilderHook={formBuilderHook}
-        onSave={handleSave}
-        onExport={handleExportJSON}
-        onPreview={() => actions.togglePreview(true)}
         showPreview={state.showPreview}
         onClosePreview={() => actions.togglePreview(false)}
       />
@@ -283,6 +320,14 @@ const App: React.FC = () => {
           </Button>
         </div>
       </Modal>
+
+      {/* Preview Modal */}
+      <PreviewModal
+        isOpen={state.showPreview}
+        onClose={() => actions.togglePreview(false)}
+        templateName={templateName}
+        components={components as any} // Cast to handle type compatibility
+      />
 
       {/* Error Modal */}
       <Modal
