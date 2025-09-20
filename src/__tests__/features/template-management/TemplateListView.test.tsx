@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '../../test-utils';
+import { vi } from 'vitest';
 import { TemplateListView } from '../../../features/template-management/components/TemplateListView';
 import { templateService } from '../../../features/template-management/services/templateService';
 
@@ -38,7 +39,7 @@ describe('TemplateListView', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (templateService.getAllTemplates as any).mockResolvedValue(mockTemplates);
+    (templateService.getAllTemplates as any).mockReturnValue(mockTemplates);
   });
 
   it('renders list of templates', async () => {
@@ -53,8 +54,9 @@ describe('TemplateListView', () => {
     expect(await screen.findByText('Contact Form')).toBeInTheDocument();
     expect(screen.getByText('Survey')).toBeInTheDocument();
     
-    // Check component counts
-    expect(screen.getByText('2 components')).toBeInTheDocument();
+    // Check component counts (text might be split across elements)
+    expect(screen.getAllByText('2')).toHaveLength(2); // Both templates have 2 components
+    expect(screen.getAllByText('Components')).toHaveLength(2);
   });
 
   it('calls onEditTemplate when edit button is clicked', async () => {
@@ -68,8 +70,8 @@ describe('TemplateListView', () => {
     // Wait for templates to load
     await screen.findByText('Contact Form');
     
-    // Click edit button
-    const editButtons = screen.getAllByRole('button', { name: /edit/i });
+    // Click edit button (look for button with edit title)
+    const editButtons = screen.getAllByTitle('Edit template');
     fireEvent.click(editButtons[0]);
     
     // Verify callback was called with correct template
@@ -85,7 +87,7 @@ describe('TemplateListView', () => {
     );
 
     // Click create button
-    const createButton = screen.getByRole('button', { name: /create new template/i });
+    const createButton = screen.getByRole('button', { name: /create new form/i });
     fireEvent.click(createButton);
     
     // Verify callback was called

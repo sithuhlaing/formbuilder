@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DndProvider } from 'react-dnd';
 import { TestBackend } from 'react-dnd-test-backend';
-import App from '../App';
+import App from '../../App';
 
 describe('🔬 Simple Component Addition Test', () => {
   it('should add a single component to canvas when clicked', async () => {

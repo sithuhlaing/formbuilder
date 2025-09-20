@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, act, fireEvent, cleanup } from '@testing-library/react';
-import { FormBuilder } from '../../features/form-builder/components/FormBuilder';
+import { FormBuilder } from '../../../features/form-builder/components/FormBuilder';
 
 // Accessibility testing utilities
 class AccessibilityTester {

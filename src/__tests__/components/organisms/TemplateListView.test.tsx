@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import { TemplateListView } from '../../../../features/template-management/components/TemplateListView';
-import { templateService } from '../../../../features/template-management/services/templateService';
+import { TemplateListView } from '../../../features/template-management/components/TemplateListView';
+import { templateService } from '../../../features/template-management/services/templateService';
 import type { FormTemplate } from '../../../../types';
 
 // Mock the templateService

@@ -1,12 +1,12 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import App from '../App';
-import { templateService } from '../features/template-management';
-import type { FormTemplate } from '../types';
+import App from '../../App';
+import { templateService } from '../../features/template-management/services/templateService';
+import type { FormTemplate } from '../../types';
 
 // Mock all the services and hooks
-vi.mock('../features/template-management/services/templateService', () => ({
+vi.mock('../../features/template-management/services/templateService', () => ({
   templateService: {
     getAllTemplates: vi.fn(),
     save: vi.fn(),
@@ -16,8 +16,8 @@ vi.mock('../features/template-management/services/templateService', () => ({
   }
 }));
 
-vi.mock('../hooks/useFormBuilder', () => ({
-  useFormBuilder: vi.fn(() => ({
+vi.mock('../hooks/useSimpleFormBuilder', () => ({
+  useSimpleFormBuilder: vi.fn(() => ({
     components: [],
     selectedComponent: null,
     selectedComponentId: null,

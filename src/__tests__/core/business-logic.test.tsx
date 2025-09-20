@@ -5,22 +5,20 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useFormBuilder } from '../features/form-builder/hooks/useFormBuilder';
-import { ComponentEngine } from '../core/ComponentEngine';
-import { FormStateEngine } from '../core/FormStateEngine';
+import { useSimpleFormBuilder } from '../../hooks/useSimpleFormBuilder';
 
 describe('🎯 Business Logic Tests - Core Requirements', () => {
 
   describe('Form Builder Workflow - Complete User Journey', () => {
-    let _formBuilder: ReturnType<typeof useFormBuilder>;
+    let _formBuilder: ReturnType<typeof useSimpleFormBuilder>;
 
     beforeEach(() => {
-      const { result } = renderHook(() => useFormBuilder());
+      const { result } = renderHook(() => useSimpleFormBuilder());
       _formBuilder = result.current;
     });
 
     it('should support complete form building workflow', () => {
-      const { result } = renderHook(() => useFormBuilder());
+      const { result } = renderHook(() => useSimpleFormBuilder());
 
       act(() => {
         // Step 1: User adds text input
@@ -65,7 +63,7 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
     });
 
     it('should handle template naming correctly', () => {
-      const { result } = renderHook(() => useFormBuilder());
+      const { result } = renderHook(() => useSimpleFormBuilder());
 
       expect(result.current.formState.templateName).toBe('Untitled Form');
 
@@ -79,7 +77,7 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
 
   describe('Undo/Redo System - Critical Business Logic', () => {
     it('should track history correctly for all operations', () => {
-      const { result } = renderHook(() => useFormBuilder());
+      const { result } = renderHook(() => useSimpleFormBuilder());
 
       // Initial state - no undo/redo
       expect(result.current.canUndo).toBe(false);
@@ -116,7 +114,7 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
     });
 
     it('should handle multiple operations with undo/redo', () => {
-      const { result } = renderHook(() => useFormBuilder());
+      const { result } = renderHook(() => useSimpleFormBuilder());
 
       // Add one component
       act(() => {
@@ -166,7 +164,7 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
 
   describe('JSON Operations - Critical Business Requirements', () => {
     it('should export form data as JSON correctly', () => {
-      const { result } = renderHook(() => useFormBuilder());
+      const { result } = renderHook(() => useSimpleFormBuilder());
 
       act(() => {
         result.current.setTemplateName('Contact Form');
@@ -198,7 +196,7 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
     });
 
     it('should load JSON data correctly', () => {
-      const { result } = renderHook(() => useFormBuilder());
+      const { result } = renderHook(() => useSimpleFormBuilder());
 
       const sampleFormData = {
         templateName: 'Loaded Form',
@@ -244,7 +242,7 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
     });
 
     it('should handle invalid JSON gracefully', () => {
-      const { result } = renderHook(() => useFormBuilder());
+      const { result } = renderHook(() => useSimpleFormBuilder());
       
       const originalConsoleError = console.error;
       const consoleLogs: string[] = [];
@@ -270,7 +268,7 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
 
   describe('Clear All Functionality', () => {
     it('should clear all components and reset selection', () => {
-      const { result } = renderHook(() => useFormBuilder());
+      const { result } = renderHook(() => useSimpleFormBuilder());
 
       act(() => {
         // Add one component
@@ -294,7 +292,7 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
 
   describe('Component Selection Logic', () => {
     it('should handle component selection correctly', () => {
-      const { result } = renderHook(() => useFormBuilder());
+      const { result } = renderHook(() => useSimpleFormBuilder());
 
       act(() => {
         result.current.addComponent('text_input');
@@ -402,7 +400,7 @@ describe(' Form Validation Business Logic', () => {
 
 describe('🏆 End-to-End Business Scenarios', () => {
   it('should handle complete form creation workflow', () => {
-    const { result } = renderHook(() => useFormBuilder());
+    const { result } = renderHook(() => useSimpleFormBuilder());
 
     // Step 1: Set form name
     act(() => {
@@ -436,7 +434,7 @@ describe('🏆 End-to-End Business Scenarios', () => {
   });
 
   it('should handle form editing and recovery workflow', () => {
-    const { result } = renderHook(() => useFormBuilder());
+    const { result } = renderHook(() => useSimpleFormBuilder());
 
     act(() => {
       // Add one component

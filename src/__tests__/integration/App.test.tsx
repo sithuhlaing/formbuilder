@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import App from '../App';
+import App from '../../App';
 
 describe('App Integration Test', () => {
   it('should add a component by clicking, and then update its properties', async () => {

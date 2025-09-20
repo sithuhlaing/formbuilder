@@ -1,10 +1,10 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { useFormBuilder } from '../features/form-builder/hooks/useFormBuilder';
+import { useSimpleFormBuilder} from '../../hooks/useSimpleFormBuilder';
 
-describe('Debug useFormBuilder Hook', () => {
+describe('Debug useSimpleFormBuilder Hook', () => {
   it('should add component correctly', () => {
-    const { result } = renderHook(() => useFormBuilder());
+    const { result } = renderHook(() => useSimpleFormBuilder());
     
     console.log('Initial formState:', JSON.stringify(result.current.formState, null, 2));
     console.log('Initial currentComponents length:', result.current.currentComponents.length);
@@ -26,7 +26,7 @@ describe('Debug useFormBuilder Hook', () => {
   });
 
   it('should handle undo/redo correctly', () => {
-    const { result } = renderHook(() => useFormBuilder());
+    const { result } = renderHook(() => useSimpleFormBuilder());
     
     console.log('\n=== UNDO/REDO TEST ===');
     console.log('Initial canUndo:', result.current.canUndo);

@@ -7,7 +7,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import { DndProvider } from 'react-dnd';
 import { TestBackend } from 'react-dnd-test-backend';
-import App from '../App';
+import App from '../../App';
 import { performance } from 'perf_hooks';
 
 // Performance test utilities

@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import FormBuilder from '../features/form-builder/components/FormBuilder';
+import FormBuilder from '../../../features/form-builder/components/FormBuilder';
 
 const renderFormBuilder = () => {
   return render(

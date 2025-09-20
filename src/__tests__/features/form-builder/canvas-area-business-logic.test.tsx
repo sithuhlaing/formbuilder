@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { FormBuilder } from '../features/form-builder/components/FormBuilder';
+import { FormBuilder } from '../../../features/form-builder/components/FormBuilder';
 import { DragDropService } from '../features/drag-drop/services/DragDropService';
 import type { FormComponentData, ComponentType } from '../types/component';
 

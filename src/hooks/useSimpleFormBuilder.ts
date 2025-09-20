@@ -27,6 +27,15 @@ type FormPage = Omit<Page, 'components'> & {
   [key: string]: unknown; // Allow additional properties
 };
 
+// Helper function to create a new page
+const createInitialPage = (title = 'New Page'): FormPage => ({
+  id: `page-${uuidv4()}`,
+  title,
+  components: [],
+  layout: {},
+  order: 0
+});
+
 interface FormState {
   pages: FormPage[];
   currentPageId: string;
@@ -68,17 +77,12 @@ interface FormActions {
   components: Component[]; // Current page components for backwards compatibility
 }
 
-const createInitialPage = (): FormPage => ({
-  id: `page-${uuidv4()}`,
-  title: 'Page 1',
-  components: [],
-  layout: {},
-  order: 0
-});
 
+// Initialize first page and state
+const initialPage = createInitialPage('Page 1');
 const INITIAL_STATE: FormState = {
-  pages: [createInitialPage()],
-  currentPageId: 'page-1',
+  pages: [initialPage],
+  currentPageId: initialPage.id,
   selectedId: null,
   templateName: 'Untitled Form',
   history: [],
@@ -143,7 +147,7 @@ export function useSimpleFormBuilder(): FormState & FormActions {
       const newHistory = [...historySlice, stateToSave].slice(-MAX_HISTORY);
       
       return {
-        ...stateToSave,  // This includes all the page/component data
+        ...prev,  // Keep current state
         history: newHistory,
         historyIndex: newHistory.length - 1
       };
@@ -328,157 +332,24 @@ export function useSimpleFormBuilder(): FormState & FormActions {
         } catch (error) {
           console.error('Error updating template:', error);
           return prev;
+        }
+      }
+      return updatedState;
+    });
+  }, [saveToHistory]);
 
-const deletePage = useCallback((pageId: string) => {
-  // Don't allow deleting the last page
-  if (state.pages.length <= 1) {
-    return;
-  }
-  
-  saveToHistory();
-  setState(prev => {
-    const newPages = prev.pages.filter(page => page.id !== pageId);
-    const wasCurrentPage = prev.currentPageId === pageId;
-    
-    return {
-      ...prev,
-      pages: newPages,
-      currentPageId: wasCurrentPage ? newPages[0]?.id || 'page-1' : prev.currentPageId,
-      selectedId: wasCurrentPage ? null : prev.selectedId
-    };
-  });
-
-saveToHistory();
-setState(prev => {
-  const newPages = prev.pages.filter(page => page.id !== pageId);
-  const wasCurrentPage = prev.currentPageId === pageId;
-  
-  return {
-    ...prev,
-    pages: newPages,
-    currentPageId: wasCurrentPage ? newPages[0].id : prev.currentPageId,
-    selectedId: wasCurrentPage ? null : prev.selectedId
-  };
-});
-}, [state.pages.length, saveToHistory]);
-
-const switchToPage = useCallback((pageId: string) => {
-setState(prev => ({
-  ...prev,
-  currentPageId: pageId,
-  selectedId: null // Clear selection when switching pages
-}));
-}, []);
-
-const reorderPages = useCallback((fromIndex: number, toIndex: number) => {
-if (fromIndex === toIndex) return;
-  
-saveToHistory();
-setState(prev => {
-  const newPages = [...prev.pages];
-  const [movedPage] = newPages.splice(fromIndex, 1);
-  newPages.splice(toIndex, 0, movedPage);
-  
-  return {
-    ...prev,
-    pages: newPages
-  };
-});
-}, [saveToHistory]);
-
-const movePageUp = useCallback((pageId: string) => {
-setState(prev => {
-  const pageIndex = prev.pages.findIndex(page => page.id === pageId);
-  if (pageIndex <= 0) return prev; // Already at top or not found
-  
-  const newPages = [...prev.pages];
-  const [movedPage] = newPages.splice(pageIndex, 1);
-  newPages.splice(pageIndex - 1, 0, movedPage);
-  
-  return {
-    ...prev,
-    pages: newPages
-  };
-});
-}, []);
-
-const movePageDown = useCallback((pageId: string) => {
-setState(prev => {
-  const pageIndex = prev.pages.findIndex(page => page.id === pageId);
-  if (pageIndex < 0 || pageIndex >= prev.pages.length - 1) return prev; // At bottom or not found
-  
-  const newPages = [...prev.pages];
-  const [movedPage] = newPages.splice(pageIndex, 1);
-  newPages.splice(pageIndex + 1, 0, movedPage);
-  
-  return {
-    ...prev,
-    pages: newPages
-  };
-});
-}, []);
-
-const togglePreview = useCallback(() => {
-setState(prev => ({
-  ...prev,
-  previewMode: !prev.previewMode,
-  selectedId: prev.previewMode ? prev.selectedId : null // Clear selection in preview
-}));
-}, []);
-
-// Import/Export - simple JSON handling
-const exportJSON = useCallback(() => {
-return JSON.stringify({
-  templateName: state.templateName,
-  pages: state.pages,
-  version: '2.1-multipage'
-}, null, 2);
-}, [state.templateName, state.pages]);
-
-const importJSON = useCallback((jsonString: string) => {
-  try {
-    const data = JSON.parse(jsonString);
-    if (!data.pages || !Array.isArray(data.pages)) {
-      throw new Error('Invalid template format: missing pages array');
+  // Page Management Functions
+  const deletePage = useCallback((pageId: string) => {
+    // Don't allow deleting the last page
+    if (state.pages.length <= 1) {
+      return;
     }
-    
+
     saveToHistory();
-    
-    const importedPages = data.pages.map((page: any) => ({
-      id: page.id || `page-${uuidv4()}`,
-      title: page.title || 'Untitled Page',
-      components: page.components || [],
-      layout: page.layout || {},
-      description: page.description || '',
-      order: page.order || 0
-    }));
-    
-    setState(prev => ({
-      ...prev,
-      pages: importedPages,
-      currentPageId: importedPages[0]?.id || 'page-1',
-      templateName: data.templateName || 'Imported Form',
-      selectedId: null
-    }));
-    
-    return true;
-  
-  // Handle new multi-page format
-  if (data.pages && Array.isArray(data.pages)) {
-    setState(prev => ({
-      ...prev,
-      pages: data.pages,
-      currentPageId: data.pages.length > 0 ? data.pages[0].id : 'page-1',
-      templateName: data.templateName || 'Imported Form',
-      selectedId: null
-    }));
-  } 
-  // Handle old single-page format for backward compatibility
-  else if (data.components && Array.isArray(data.components)) {
-    setState(prev => ({
-      ...prev,
-      pages: [{
-        id: 'page-1',
+    setState(prev => {
+      const newPages = prev.pages.filter(page => page.id !== pageId);
+      const wasCurrentPage = prev.currentPageId === pageId;
+
       return {
         ...prev,
         pages: newPages,
@@ -486,7 +357,7 @@ const importJSON = useCallback((jsonString: string) => {
         selectedId: wasCurrentPage ? null : prev.selectedId
       };
     });
-  }, [state.pages.length, saveToHistory]);
+  }, [saveToHistory, state.pages.length]);
 
   const switchToPage = useCallback((pageId: string) => {
     setState(prev => ({
@@ -494,54 +365,6 @@ const importJSON = useCallback((jsonString: string) => {
       currentPageId: pageId,
       selectedId: null // Clear selection when switching pages
     }));
-  }, []);
-
-  const reorderPages = useCallback((fromIndex: number, toIndex: number) => {
-    if (fromIndex === toIndex) return;
-    
-    saveToHistory();
-    setState(prev => {
-      const newPages = [...prev.pages];
-      const [movedPage] = newPages.splice(fromIndex, 1);
-      newPages.splice(toIndex, 0, movedPage);
-      
-      return {
-        ...prev,
-        pages: newPages
-      };
-    });
-  }, [saveToHistory]);
-
-  const movePageUp = useCallback((pageId: string) => {
-    setState(prev => {
-      const pageIndex = prev.pages.findIndex(page => page.id === pageId);
-      if (pageIndex <= 0) return prev; // Already at top or not found
-      
-      const newPages = [...prev.pages];
-      const [movedPage] = newPages.splice(pageIndex, 1);
-      newPages.splice(pageIndex - 1, 0, movedPage);
-      
-      return {
-        ...prev,
-        pages: newPages
-      };
-    });
-  }, []);
-
-  const movePageDown = useCallback((pageId: string) => {
-    setState(prev => {
-      const pageIndex = prev.pages.findIndex(page => page.id === pageId);
-      if (pageIndex < 0 || pageIndex >= prev.pages.length - 1) return prev; // At bottom or not found
-      
-      const newPages = [...prev.pages];
-      const [movedPage] = newPages.splice(pageIndex, 1);
-      newPages.splice(pageIndex + 1, 0, movedPage);
-      
-      return {
-        ...prev,
-        pages: newPages
-      };
-    });
   }, []);
 
   const togglePreview = useCallback(() => {
@@ -564,9 +387,9 @@ const importJSON = useCallback((jsonString: string) => {
   const importJSON = useCallback((jsonString: string) => {
     try {
       const data = JSON.parse(jsonString);
-      
+
       saveToHistory();
-      
+
       // Handle new multi-page format
       if (data.pages && Array.isArray(data.pages)) {
         setState(prev => ({
@@ -576,7 +399,7 @@ const importJSON = useCallback((jsonString: string) => {
           templateName: data.templateName || 'Imported Form',
           selectedId: null
         }));
-      } 
+      }
       // Handle old single-page format for backward compatibility
       else if (data.components && Array.isArray(data.components)) {
         setState(prev => ({
@@ -596,7 +419,6 @@ const importJSON = useCallback((jsonString: string) => {
       }
     } catch (error) {
       console.error('Failed to import JSON:', error);
-      // In a real app, you'd show user-friendly error message
       alert('Failed to import form. Please check the JSON format.');
     }
   }, [saveToHistory]);
@@ -611,17 +433,82 @@ const importJSON = useCallback((jsonString: string) => {
   }, []);
 
   const setCreateMode = useCallback(() => {
-    setState(prev => ({
-      ...prev,
-      mode: 'create',
-      editingTemplateId: undefined
-    }));
-  }, []);
+    const newPage = createInitialPage('Page 1');
+    saveToHistory();
+    setState({
+      ...INITIAL_STATE,
+      pages: [newPage],
+      currentPageId: newPage.id,
+      history: [{
+        ...INITIAL_STATE,
+        pages: [newPage],
+        currentPageId: newPage.id
+      }],
+      historyIndex: 0
+    });
+  }, [saveToHistory]);
+
+  const reorderPages = useCallback((fromIndex: number, toIndex: number) => {
+    saveToHistory();
+    setState(prev => {
+      const newPages = [...prev.pages];
+      const [movedPage] = newPages.splice(fromIndex, 1);
+      newPages.splice(toIndex, 0, movedPage);
+      
+      return {
+        ...prev,
+        pages: newPages.map((page, index) => ({
+          ...page,
+          order: index
+        }))
+      };
+    });
+  }, [saveToHistory]);
+
+  const movePageUp = useCallback((pageId: string) => {
+    setState(prev => {
+      const index = prev.pages.findIndex(p => p.id === pageId);
+      if (index <= 0) return prev;
+      
+      const newPages = [...prev.pages];
+      [newPages[index - 1], newPages[index]] = [newPages[index], newPages[index - 1]];
+      
+      saveToHistory();
+      
+      return {
+        ...prev,
+        pages: newPages.map((page, i) => ({
+          ...page,
+          order: i
+        }))
+      };
+    });
+  }, [saveToHistory]);
+
+  const movePageDown = useCallback((pageId: string) => {
+    setState(prev => {
+      const index = prev.pages.findIndex(p => p.id === pageId);
+      if (index === -1 || index >= prev.pages.length - 1) return prev;
+      
+      const newPages = [...prev.pages];
+      [newPages[index], newPages[index + 1]] = [newPages[index + 1], newPages[index]];
+      
+      saveToHistory();
+      
+      return {
+        ...prev,
+        pages: newPages.map((page, i) => ({
+          ...page,
+          order: i
+        }))
+      };
+    });
+  }, [saveToHistory]);
 
   return {
     // State
     ...state,
-    components: getCurrentPageComponents(), // For backward compatibility
+    components: getCurrentPageComponents(),
     
     // Actions
     addComponent,
@@ -631,34 +518,89 @@ const importJSON = useCallback((jsonString: string) => {
     moveComponent,
     undo,
     redo,
-    canUndo,
-    canRedo,
-    setTemplateName,
-    clearAll,
-    togglePreview,
-    exportJSON,
+    canUndo: () => state.historyIndex > 0,
+    canRedo: () => state.historyIndex < state.history.length - 1,
+    setTemplateName: (name: string) => {
+      saveToHistory();
+      setState(prev => ({
+        ...prev,
+        templateName: name
+      }));
+    },
+    clearAll: () => {
+      const newPage = createInitialPage('Page 1');
+      saveToHistory();
+      setState({
+        ...INITIAL_STATE,
+        pages: [newPage],
+        currentPageId: newPage.id,
+        history: [{
+          ...INITIAL_STATE,
+          pages: [newPage],
+          currentPageId: newPage.id
+        }],
+        historyIndex: 0
+      });
+    },
+    togglePreview: () => {
+      setState(prev => ({
+        ...prev,
+        previewMode: !prev.previewMode
+      }));
+    },
+    exportJSON: () => {
+      return JSON.stringify({
+        templateName: state.templateName,
+        pages: state.pages.map(page => ({
+          id: page.id,
+          title: page.title,
+          components: page.components,
+          layout: page.layout,
+          description: page.description,
+          order: page.order
+        })),
+        version: '2.1-multipage'
+      }, null, 2);
+    },
     importJSON,
     setEditMode,
     setCreateMode,
-    
-    // Page management
-    addPage,
+    addPage: () => {
+      const newPage = createInitialPage(`Page ${state.pages.length + 1}`);
+      saveToHistory();
+      setState(prev => ({
+        ...prev,
+        pages: [...prev.pages, newPage],
+        currentPageId: newPage.id,
+        selectedId: null
+      }));
+    },
     deletePage,
-    switchToPage,
+    switchToPage: (pageId: string) => {
+      setState(prev => ({
+        ...prev,
+        currentPageId: pageId,
+        selectedId: null
+      }));
+    },
     reorderPages,
     movePageUp,
     movePageDown,
-    getCurrentPage
+    getCurrentPage,
+    getCurrentPageComponents
   };
 }
 
-// Helper functions moved to componentUtils.ts for reusability
-
-// Hook for getting selected component
-export function useSelectedComponent(formState: FormState & { components: Component[] }): Component | null {
-  if (!formState.selectedId) return null;
-  
-  return findComponent(formState.components, formState.selectedId);
+// Helper function to find a component by ID
+function findComponentById(components: Component[], id: string): Component | null {
+  for (const component of components) {
+    if (component.id === id) return component;
+    if (component.components) {
+      const found = findComponentById(component.components, id);
+      if (found) return found;
+    }
+  }
+  return null;
 }
 
 // Export FormPage type for external use

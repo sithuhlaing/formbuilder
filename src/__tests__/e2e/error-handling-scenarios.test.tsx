@@ -8,7 +8,7 @@ import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DndProvider } from 'react-dnd';
 import { TestBackend } from 'react-dnd-test-backend';
-import App from '../App';
+import App from '../../App';
 
 const renderAppWithErrorHandling = async () => {
   const result = render(

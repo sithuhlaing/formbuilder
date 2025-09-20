@@ -1,12 +1,12 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FormBuilder } from '../../../../features/form-builder/components/FormBuilder';
+import { FormBuilder } from '../../../features/form-builder/components/FormBuilder';
 
-// Mock the useFormBuilder hook
+// Mock the useSimpleFormBuilder hook
 const mockUseFormBuilder = vi.fn();
 
-vi.mock('../../../../features/form-builder/hooks/useFormBuilder', () => ({
-  useFormBuilder: () => mockUseFormBuilder()
+vi.mock('../../../../features/form-builder/hooks/useSimpleFormBuilder', () => ({
+  useSimpleFormBuilder: () => mockUseFormBuilder()
 }));
 
 // Mock template service
