@@ -1,11 +1,23 @@
 import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 // Re-export everything
 export * from '@testing-library/react';
 
-// Simple wrapper for tests that don't need the full context
+// Default render with DnD context for components that use react-dnd
 export function render(ui: React.ReactElement, options = {}) {
+  return rtlRender(
+    <DndProvider backend={HTML5Backend}>
+      {ui}
+    </DndProvider>,
+    options
+  );
+}
+
+// Render without DnD context for components that don't need it
+export function renderSimple(ui: React.ReactElement, options = {}) {
   return rtlRender(ui, options);
 }
 

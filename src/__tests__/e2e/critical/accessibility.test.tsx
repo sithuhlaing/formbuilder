@@ -7,6 +7,45 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, act, fireEvent, cleanup } from '@testing-library/react';
 import { FormBuilder } from '../../../features/form-builder/components/FormBuilder';
 
+// Mock the useFormBuilder hook
+vi.mock('../../../features/form-builder/hooks/useFormBuilder', () => ({
+  useFormBuilder: vi.fn(() => ({
+    formState: {
+      templateName: 'Test Form',
+      pages: [{
+        id: 'page-1',
+        title: 'Page 1',
+        components: []
+      }],
+      currentPageId: 'page-1'
+    },
+    currentComponents: [],
+    selectedComponent: null,
+    addComponent: vi.fn(),
+    updateComponent: vi.fn(),
+    deleteComponent: vi.fn(),
+    selectComponent: vi.fn(),
+    handleDrop: vi.fn(),
+    moveComponent: vi.fn(),
+    setTemplateName: vi.fn(),
+    getCurrentPageIndex: vi.fn(() => 0),
+    navigateToNextPage: vi.fn(),
+    navigateToPreviousPage: vi.fn(),
+    addNewPage: vi.fn(),
+    handleFormSubmit: vi.fn(),
+    updatePageTitle: vi.fn(),
+    clearAll: vi.fn(),
+    loadFromJSON: vi.fn(),
+    exportJSON: vi.fn(),
+    undo: vi.fn(),
+    redo: vi.fn(),
+    canUndo: false,
+    canRedo: false,
+    isPreviewMode: false,
+    togglePreview: vi.fn()
+  }))
+}));
+
 // Accessibility testing utilities
 class AccessibilityTester {
   private violations: Array<{ rule: string; element: Element; severity: string }> = [];

@@ -2,7 +2,7 @@ import React from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ComponentPalette } from './ComponentPalette';
-import { PropertiesPanel } from './PropertiesPanel';
+import { ComponentPropertiesPanel } from '../../../components/ComponentPropertiesPanel';
 import { FormPageCard } from './FormPageCard';
 import { CanvasCard } from './CanvasCard';
 // import { DragLayer } from '../../../shared/components/DragLayer';
@@ -179,11 +179,9 @@ export const FormBuilder: React.FC = () => {
 
           {/* Properties Panel */}
           <div className="form-builder__properties">
-            <PropertiesPanel
+            <ComponentPropertiesPanel
               selectedComponent={selectedComponent}
-              onUpdateComponent={(updates) => 
-                selectedComponent && updateComponent(selectedComponent.id, updates)
-              }
+              onUpdateComponent={updateComponent}
             />
           </div>
         </div>

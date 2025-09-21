@@ -81,9 +81,41 @@ export class ComponentEngine {
     }
   }
 
-  static validateComponent(component: Component): boolean {
-    return this.SUPPORTED_TYPES.includes(component.type) && 
-           component.id && 
-           component.label;
+  static validateComponent(component: Component): { valid: boolean; errors: string[] } {
+    const errors: string[] = [];
+
+    // Basic validation
+    if (!component.id) {
+      errors.push('Component ID is required');
+    }
+
+    if (!component.label || component.label.trim() === '') {
+      errors.push('Label is required');
+    }
+
+    if (!this.SUPPORTED_TYPES.includes(component.type)) {
+      errors.push(`Unsupported component type: ${component.type}`);
+    }
+
+    // Type-specific validation
+    switch (component.type) {
+      case 'select':
+      case 'radio_group':
+        if (!component.options || component.options.length === 0) {
+          errors.push('At least one option is required');
+        }
+        break;
+
+      case 'number_input':
+        if (component.min !== undefined && component.max !== undefined && component.min > component.max) {
+          errors.push('Minimum value must be less than maximum value');
+        }
+        break;
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors
+    };
   }
 }

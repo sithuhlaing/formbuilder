@@ -5,7 +5,6 @@
 import React, { useState } from 'react';
 import type { Component } from '../../../types/components';
 import type { FormPage } from '../../../core/FormState';
-import { RichTextEditor } from '../../../shared/components/RichTextEditor';
 
 interface PreviewFormProps {
   templateName: string;
@@ -96,14 +95,14 @@ export const PreviewForm: React.FC<PreviewFormProps> = ({
     switch (component.type) {
       case 'text_input':
       case 'email_input':
-      case 'password_input':
         return (
           <div key={component.id} className="preview-field">
-            <label className="preview-field__label">
+            <label className="preview-field__label" htmlFor={fieldId}>
               {component.label}{requiredMark}
             </label>
             <input
-              type={component.type === 'email_input' ? 'email' : component.type === 'password_input' ? 'password' : 'text'}
+              id={fieldId}
+              type={component.type === 'email_input' ? 'email' : 'text'}
               className={`preview-field__input ${hasError ? 'preview-field__input--error' : ''}`}
               placeholder={component.placeholder}
               value={value}
@@ -117,10 +116,11 @@ export const PreviewForm: React.FC<PreviewFormProps> = ({
       case 'number_input':
         return (
           <div key={component.id} className="preview-field">
-            <label className="preview-field__label">
+            <label className="preview-field__label" htmlFor={fieldId}>
               {component.label}{requiredMark}
             </label>
             <input
+              id={fieldId}
               type="number"
               className={`preview-field__number ${hasError ? 'preview-field__input--error' : ''}`}
               placeholder={component.placeholder}
@@ -137,10 +137,11 @@ export const PreviewForm: React.FC<PreviewFormProps> = ({
       case 'textarea':
         return (
           <div key={component.id} className="preview-field">
-            <label className="preview-field__label">
+            <label className="preview-field__label" htmlFor={fieldId}>
               {component.label}{requiredMark}
             </label>
             <textarea
+              id={fieldId}
               className={`preview-field__textarea ${hasError ? 'preview-field__textarea--error' : ''}`}
               placeholder={component.placeholder}
               value={value}
@@ -152,33 +153,15 @@ export const PreviewForm: React.FC<PreviewFormProps> = ({
           </div>
         );
 
-      case 'rich_text':
-        return (
-          <div key={component.id} className="preview-field">
-            <label className="preview-field__label">
-              {component.label}{requiredMark}
-            </label>
-            <div className="rich-text-preview">
-              <RichTextEditor
-                value={value || '<p>Enter your text here...</p>'}
-                placeholder={component.placeholder || 'Enter rich text content...'}
-                readOnly={false}
-                height="150px"
-                className={`preview-field__rich-text ${hasError ? 'preview-field__rich-text--error' : ''}`}
-                onChange={(newValue) => handleFieldChange(fieldId, newValue)}
-              />
-            </div>
-            {hasError && <div className="preview-field__error">{hasError}</div>}
-          </div>
-        );
 
       case 'select':
         return (
           <div key={component.id} className="preview-field">
-            <label className="preview-field__label">
+            <label className="preview-field__label" htmlFor={fieldId}>
               {component.label}{requiredMark}
             </label>
             <select
+              id={fieldId}
               className={`preview-field__select ${hasError ? 'preview-field__select--error' : ''}`}
               value={value}
               onChange={(e) => handleFieldChange(fieldId, e.target.value)}
@@ -199,35 +182,6 @@ export const PreviewForm: React.FC<PreviewFormProps> = ({
           </div>
         );
 
-      case 'multi_select':
-        return (
-          <div key={component.id} className="preview-field">
-            <label className="preview-field__label">
-              {component.label}{requiredMark}
-            </label>
-            <select
-              className={`preview-field__multi-select ${hasError ? 'preview-field__select--error' : ''}`}
-              multiple
-              value={Array.isArray(value) ? value : []}
-              onChange={(e) => {
-                const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-                handleFieldChange(fieldId, selectedOptions);
-              }}
-              required={component.required}
-            >
-              {(component.options || []).map((option, index) => {
-                const optionValue = typeof option === 'string' ? option : option.value;
-                const optionLabel = typeof option === 'string' ? option : option.label;
-                return (
-                  <option key={index} value={optionValue}>
-                    {optionLabel}
-                  </option>
-                );
-              })}
-            </select>
-            {hasError && <div className="preview-field__error">{hasError}</div>}
-          </div>
-        );
 
       case 'checkbox':
         return (
@@ -338,12 +292,24 @@ export const PreviewForm: React.FC<PreviewFormProps> = ({
         );
 
       case 'heading':
-        const HeadingTag = `h${component.level || 2}` as keyof JSX.IntrinsicElements;
-        return (
-          <HeadingTag key={component.id} className="preview-heading">
-            {component.content || component.label}
-          </HeadingTag>
-        );
+        const level = component.level || 2;
+        const content = component.content || component.label;
+        switch (level) {
+          case 1:
+            return <h1 key={component.id} className="preview-heading">{content}</h1>;
+          case 2:
+            return <h2 key={component.id} className="preview-heading">{content}</h2>;
+          case 3:
+            return <h3 key={component.id} className="preview-heading">{content}</h3>;
+          case 4:
+            return <h4 key={component.id} className="preview-heading">{content}</h4>;
+          case 5:
+            return <h5 key={component.id} className="preview-heading">{content}</h5>;
+          case 6:
+            return <h6 key={component.id} className="preview-heading">{content}</h6>;
+          default:
+            return <h2 key={component.id} className="preview-heading">{content}</h2>;
+        }
 
       case 'paragraph':
         return (

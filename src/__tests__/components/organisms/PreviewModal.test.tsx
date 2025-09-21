@@ -1,11 +1,12 @@
+import { vi } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent } from '../../utils/test-utils';
 import { PreviewModal } from '../../../features/form-builder/components/PreviewModal';
 import { TEST_IDS } from '../../utils/test-utils';
 
 describe('PreviewModal', () => {
-  const mockOnClose = jest.fn();
-  const mockOnSubmit = jest.fn();
+  const mockOnClose = vi.fn();
+  const mockOnSubmit = vi.fn();
   
   const defaultProps = {
     isOpen: true,
@@ -26,7 +27,7 @@ describe('PreviewModal', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders modal when isOpen is true', () => {

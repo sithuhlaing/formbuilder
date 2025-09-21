@@ -1,78 +1,81 @@
 import React from 'react';
+import { vi } from 'vitest';
 import { render, screen, fireEvent } from '../../utils/test-utils';
 import { FormPageCard } from '../../../features/form-builder/components/FormPageCard';
-import { TEST_IDS } from '../../utils/test-utils';
 
 describe('FormPageCard', () => {
-  const mockOnClick = jest.fn();
-  const mockOnDelete = jest.fn();
-  const mockOnDuplicate = jest.fn();
-  
+  const mockOnFormTitleChange = vi.fn();
+  const mockOnPreviousPage = vi.fn();
+  const mockOnNextPage = vi.fn();
+  const mockOnSubmit = vi.fn();
+  const mockOnAddPage = vi.fn();
+  const mockOnUpdatePageTitle = vi.fn();
+
   const defaultProps = {
-    id: 'page-1',
-    title: 'Test Page',
-    isSelected: false,
-    isFirst: false,
-    isLast: false,
-    onClick: mockOnClick,
-    onDelete: mockOnDelete,
-    onDuplicate: mockOnDuplicate,
-    onMoveUp: jest.fn(),
-    onMoveDown: jest.fn(),
+    formTitle: 'Test Form',
+    onFormTitleChange: mockOnFormTitleChange,
+    currentPageIndex: 0,
+    totalPages: 2,
+    currentPageTitle: 'Page 1',
+    onPreviousPage: mockOnPreviousPage,
+    onNextPage: mockOnNextPage,
+    onSubmit: mockOnSubmit,
+    onAddPage: mockOnAddPage,
+    canGoBack: false,
+    canGoNext: true,
+    isLastPage: false,
+    onUpdatePageTitle: mockOnUpdatePageTitle,
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  it('renders with title and action buttons', () => {
+  it('renders form title input', () => {
     render(<FormPageCard {...defaultProps} />);
-    
-    expect(screen.getByText('Test Page')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /duplicate/i })).toBeInTheDocument();
+
+    const titleInput = screen.getByDisplayValue('Test Form');
+    expect(titleInput).toBeInTheDocument();
+    expect(screen.getByText('Form Title')).toBeInTheDocument();
   });
 
-  it('calls onClick when clicked', () => {
+  it('renders navigation buttons', () => {
     render(<FormPageCard {...defaultProps} />);
-    
-    const card = screen.getByTestId(TEST_IDS.FORM_PAGE_CARD);
-    fireEvent.click(card);
-    
-    expect(mockOnClick).toHaveBeenCalledTimes(1);
+
+    expect(screen.getByRole('button', { name: /previous/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /next/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /add page/i })).toBeInTheDocument();
   });
 
-  it('calls onDelete when delete button is clicked', () => {
+  it('calls onFormTitleChange when title is changed', () => {
     render(<FormPageCard {...defaultProps} />);
-    
-    const deleteButton = screen.getByRole('button', { name: /delete/i });
-    fireEvent.click(deleteButton);
-    
-    expect(mockOnDelete).toHaveBeenCalledTimes(1);
-    expect(mockOnDelete).toHaveBeenCalledWith('page-1');
+
+    const titleInput = screen.getByDisplayValue('Test Form');
+    fireEvent.change(titleInput, { target: { value: 'New Title' } });
+
+    expect(mockOnFormTitleChange).toHaveBeenCalledWith('New Title');
   });
 
-  it('calls onDuplicate when duplicate button is clicked', () => {
+  it('disables previous button when canGoBack is false', () => {
+    render(<FormPageCard {...defaultProps} canGoBack={false} />);
+
+    const previousButton = screen.getByRole('button', { name: /previous/i });
+    expect(previousButton).toBeDisabled();
+  });
+
+  it('disables next button when canGoNext is false', () => {
+    render(<FormPageCard {...defaultProps} canGoNext={false} />);
+
+    const nextButton = screen.getByRole('button', { name: /next/i });
+    expect(nextButton).toBeDisabled();
+  });
+
+  it('calls onAddPage when add page button is clicked', () => {
     render(<FormPageCard {...defaultProps} />);
-    
-    const duplicateButton = screen.getByRole('button', { name: /duplicate/i });
-    fireEvent.click(duplicateButton);
-    
-    expect(mockOnDuplicate).toHaveBeenCalledTimes(1);
-    expect(mockOnDuplicate).toHaveBeenCalledWith('page-1');
-  });
 
-  it('disables move up button when isFirst is true', () => {
-    render(<FormPageCard {...defaultProps} isFirst={true} />);
-    
-    const moveUpButton = screen.getByRole('button', { name: /move up/i });
-    expect(moveUpButton).toBeDisabled();
-  });
+    const addPageButton = screen.getByRole('button', { name: /add page/i });
+    fireEvent.click(addPageButton);
 
-  it('disables move down button when isLast is true', () => {
-    render(<FormPageCard {...defaultProps} isLast={true} />);
-    
-    const moveDownButton = screen.getByRole('button', { name: /move down/i });
-    expect(moveDownButton).toBeDisabled();
+    expect(mockOnAddPage).toHaveBeenCalled();
   });
 });

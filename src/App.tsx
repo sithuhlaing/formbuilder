@@ -3,7 +3,7 @@
  * Features: Lazy loading, memoization, centralized state management
  */
 
-import React, { useCallback, memo, useEffect, useRef } from 'react';
+import React, { useCallback, memo, useEffect, useRef, Suspense } from 'react';
 import { useAppState } from './hooks/useAppState';
 import { SimpleFormBuilder } from './components/SimpleFormBuilder';
 import { LazyTemplateListView } from './components/LazyComponents';
@@ -244,10 +244,12 @@ const App: React.FC = () => {
   if (state.currentView === 'list') {
     return (
       <div className="app">
-        <LazyTemplateListView
-          onCreateNew={handleCreateNew}
-          onEditTemplate={handleTemplateSelect}
-        />
+        <Suspense fallback={<LoadingSpinner />}>
+          <LazyTemplateListView
+            onCreateNew={handleCreateNew}
+            onEditTemplate={handleTemplateSelect}
+          />
+        </Suspense>
       </div>
     );
   }

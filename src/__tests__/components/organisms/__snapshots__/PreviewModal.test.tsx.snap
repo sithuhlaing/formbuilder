@@ -1,0 +1,101 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PreviewModal > matches snapshot when open 1`] = `
+<div>
+  <div
+    class="modal-overlay"
+  >
+    <div
+      class="modal max-w-4xl"
+    >
+      <div
+        class="modal__header"
+      >
+        <h2>
+          👁️ Preview: undefined
+        </h2>
+        <button
+          class="modal__close"
+        >
+          ✕
+        </button>
+      </div>
+      <div
+        class="modal__content"
+      >
+        <div
+          class="preview-form"
+        >
+          <form
+            class="preview-form__content"
+          >
+            <div
+              class="preview-field"
+            >
+              <label
+                class="preview-field__label"
+              >
+                Test Input
+              </label>
+              <input
+                class="preview-field__input "
+                placeholder="Enter text"
+                type="text"
+                value=""
+              />
+            </div>
+            <div
+              class="preview-form__page-controls"
+            >
+              <div
+                class="preview-form__nav-buttons"
+              >
+                <button
+                  class="preview-form__submit"
+                  type="submit"
+                >
+                  Submit Form
+                </button>
+              </div>
+              <button
+                class="preview-form__reset"
+                type="button"
+              >
+                Reset Form
+              </button>
+            </div>
+          </form>
+          <div
+            class="preview-form__note"
+          >
+            <small
+              class="text-gray-500"
+            >
+              This is a preview mode. No data will be actually submitted.
+            </small>
+          </div>
+        </div>
+      </div>
+      <div
+        class="modal__footer"
+      >
+        <div
+          class="flex justify-between items-center text-sm text-gray-500"
+        >
+          <span>
+            This is a preview mode. No data will be actually submitted.
+          </span>
+          <span
+            class="font-medium"
+          >
+            Multi-page form (
+            1
+             page
+            )
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -4,7 +4,7 @@
  * Total replacement: ~800 lines → ~100 lines (87% reduction)
  */
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDrop } from 'react-dnd';
 import type { Component, ComponentType, DragItem } from '../types/components';
 import { SimpleDraggableComponent } from './SimpleDraggableComponent';
@@ -39,7 +39,42 @@ export function SimpleCanvas({
   className = '',
   emptyMessage = 'Drag components here to start building your form'
 }: SimpleCanvasProps) {
-  
+  // State to track current drop position for visual feedback
+  const [dropPosition, setDropPosition] = useState<number | null>(null);
+
+  // Calculate drop position based on mouse position
+  const calculateDropPosition = (monitor: any, canvasElement: HTMLElement): number => {
+    if (components.length === 0) {
+      return 0;
+    }
+
+    const clientOffset = monitor.getClientOffset();
+    if (!clientOffset) {
+      return components.length;
+    }
+
+    const canvasRect = canvasElement.getBoundingClientRect();
+    const mouseY = clientOffset.y - canvasRect.top;
+
+    // Find component elements and their positions
+    const componentElements = canvasElement.querySelectorAll('[data-component-index]');
+
+    for (let i = 0; i < componentElements.length; i++) {
+      const element = componentElements[i] as HTMLElement;
+      const elementRect = element.getBoundingClientRect();
+      const elementTop = elementRect.top - canvasRect.top;
+      const elementMiddle = elementTop + (elementRect.height / 2);
+
+      // If mouse is above the middle of this component, insert before it
+      if (mouseY < elementMiddle) {
+        return i;
+      }
+    }
+
+    // If we get here, insert at the end
+    return components.length;
+  };
+
   // Simple drop handling - replaces complex drop zone logic
   const [{ isOver, canDrop, dragItem }, drop] = useDrop({
     accept: ['component-type', 'existing-component'],
@@ -48,12 +83,29 @@ export function SimpleCanvas({
       if (!monitor.isOver({ shallow: true })) {
         return;
       }
-      
+
       if (item.type || item.componentType) {
+        // Calculate where to insert the component based on drop position
+        const canvasElement = drop.current;
+        const insertIndex = canvasElement ? calculateDropPosition(monitor, canvasElement) : components.length;
+
         // Dropping new component from palette
-        onDrop(item.type || item.componentType, { index: components.length });
+        onDrop(item.type || item.componentType, { index: insertIndex });
       }
+
+      // Clear drop position after drop
+      setDropPosition(null);
       // Note: Moving existing components will be handled by SimpleDraggableComponent
+    },
+    hover: (item: DragItem, monitor) => {
+      // Only track hover for new components from palette
+      if (item.type === 'component-type' && monitor.isOver({ shallow: true })) {
+        const canvasElement = drop.current;
+        if (canvasElement) {
+          const newDropPosition = calculateDropPosition(monitor, canvasElement);
+          setDropPosition(newDropPosition);
+        }
+      }
     },
     collect: (monitor) => ({
       isOver: monitor.isOver({ shallow: true }),
@@ -120,17 +172,50 @@ export function SimpleCanvas({
       ) : (
         // Render components
         <div className="simple-canvas__content">
-          {components.map((component, index) => (
-            <SimpleDraggableComponent
-              key={component.id}
-              component={component}
-              index={index}
-              selected={component.id === selectedId}
-              mode={mode}
-              onSelect={onSelect}
-              onDelete={onDelete}
-              onMove={onMove}
+          {/* Drop indicator at the beginning if needed */}
+          {dragItem?.type === 'component-type' && dropPosition === 0 && (
+            <div
+              className="drop-indicator"
+              style={{
+                height: '3px',
+                backgroundColor: '#007bff',
+                borderRadius: '2px',
+                margin: '8px 0',
+                opacity: 0.9,
+                animation: 'pulse 1s ease-in-out infinite alternate',
+                transition: 'all 0.2s ease'
+              }}
             />
+          )}
+
+          {components.map((component, index) => (
+            <React.Fragment key={component.id}>
+              <SimpleDraggableComponent
+                component={component}
+                index={index}
+                selected={component.id === selectedId}
+                mode={mode}
+                onSelect={onSelect}
+                onDelete={onDelete}
+                onMove={onMove}
+              />
+
+              {/* Drop indicator after this component if drop position matches */}
+              {dragItem?.type === 'component-type' && dropPosition === index + 1 && (
+                <div
+                  className="drop-indicator"
+                  style={{
+                    height: '3px',
+                    backgroundColor: '#007bff',
+                    borderRadius: '2px',
+                    margin: '8px 0',
+                    opacity: 0.9,
+                    animation: 'pulse 1s ease-in-out infinite alternate',
+                    transition: 'all 0.2s ease'
+                  }}
+                />
+              )}
+            </React.Fragment>
           ))}
           
           {/* Inline preview for palette drag */}

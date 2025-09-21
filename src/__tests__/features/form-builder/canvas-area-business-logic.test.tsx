@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { DndProvider } from 'react-dnd';
@@ -158,7 +159,7 @@ describe('Canvas Area Business Logic Tests', () => {
     
     test('should create first component in column layout on center drop', () => {
       const components: FormComponentData[] = [];
-      const mockCreateComponent = jest.fn().mockReturnValue({
+      const mockCreateComponent = vi.fn().mockReturnValue({
         id: 'test-1',
         type: 'text_input' as ComponentType,
         label: 'Text Input',
@@ -179,7 +180,7 @@ describe('Canvas Area Business Logic Tests', () => {
       const components: FormComponentData[] = [
         { id: 'existing-1', type: 'text_input', label: 'Existing', fieldId: 'existing_1' }
       ];
-      const mockCreateComponent = jest.fn().mockReturnValue({
+      const mockCreateComponent = vi.fn().mockReturnValue({
         id: 'test-2',
         type: 'email_input' as ComponentType,
         label: 'Email Input',
@@ -200,7 +201,7 @@ describe('Canvas Area Business Logic Tests', () => {
       const components: FormComponentData[] = [
         { id: 'target-1', type: 'text_input', label: 'Target', fieldId: 'target_1' }
       ];
-      const mockCreateComponent = jest.fn().mockReturnValue({
+      const mockCreateComponent = vi.fn().mockReturnValue({
         id: 'new-1',
         type: 'email_input' as ComponentType,
         label: 'New Component',
@@ -222,7 +223,7 @@ describe('Canvas Area Business Logic Tests', () => {
       const components: FormComponentData[] = [
         { id: 'target-1', type: 'text_input', label: 'Target', fieldId: 'target_1' }
       ];
-      const mockCreateComponent = jest.fn().mockReturnValue({
+      const mockCreateComponent = vi.fn().mockReturnValue({
         id: 'new-1',
         type: 'email_input' as ComponentType,
         label: 'New Component',
@@ -244,7 +245,7 @@ describe('Canvas Area Business Logic Tests', () => {
       const components: FormComponentData[] = [
         { id: 'target-1', type: 'text_input', label: 'Target', fieldId: 'target_1' }
       ];
-      const mockCreateComponent = jest.fn().mockReturnValue({
+      const mockCreateComponent = vi.fn().mockReturnValue({
         id: 'new-1',
         type: 'email_input' as ComponentType,
         label: 'New Component',
@@ -268,7 +269,7 @@ describe('Canvas Area Business Logic Tests', () => {
       const components: FormComponentData[] = [
         { id: 'target-1', type: 'text_input', label: 'Target', fieldId: 'target_1' }
       ];
-      const mockCreateComponent = jest.fn().mockReturnValue({
+      const mockCreateComponent = vi.fn().mockReturnValue({
         id: 'new-1',
         type: 'email_input' as ComponentType,
         label: 'New Component',
@@ -367,7 +368,7 @@ describe('Canvas Area Business Logic Tests', () => {
     
     test('should handle unknown drop positions gracefully', () => {
       const components: FormComponentData[] = [];
-      const mockCreateComponent = jest.fn().mockReturnValue({
+      const mockCreateComponent = vi.fn().mockReturnValue({
         id: 'test-1',
         type: 'text_input' as ComponentType,
         label: 'Test',
@@ -375,7 +376,7 @@ describe('Canvas Area Business Logic Tests', () => {
       });
 
       // Test with invalid position type
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation();
       
       const result = DragDropService.handleDrop(
         components,
@@ -393,14 +394,14 @@ describe('Canvas Area Business Logic Tests', () => {
       const components: FormComponentData[] = [
         { id: 'existing-1', type: 'text_input', label: 'Existing', fieldId: 'existing_1' }
       ];
-      const mockCreateComponent = jest.fn().mockReturnValue({
+      const mockCreateComponent = vi.fn().mockReturnValue({
         id: 'new-1',
         type: 'email_input' as ComponentType,
         label: 'New',
         fieldId: 'new_1'
       });
 
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation();
       
       const result = DragDropService.handleDrop(
         components,
@@ -420,7 +421,7 @@ describe('Canvas Area Business Logic Tests', () => {
     
     test('should assign unique IDs to new components', () => {
       const components: FormComponentData[] = [];
-      const mockCreateComponent = jest.fn()
+      const mockCreateComponent = vi.fn()
         .mockReturnValueOnce({
           id: 'unique-1',
           type: 'text_input' as ComponentType,
@@ -453,7 +454,7 @@ describe('Canvas Area Business Logic Tests', () => {
 
     test('should set default properties for new components', () => {
       const components: FormComponentData[] = [];
-      const mockCreateComponent = jest.fn().mockReturnValue({
+      const mockCreateComponent = vi.fn().mockReturnValue({
         id: 'test-1',
         type: 'text_input' as ComponentType,
         label: 'Text Input',

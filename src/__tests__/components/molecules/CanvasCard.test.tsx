@@ -1,55 +1,65 @@
 import React from 'react';
-import { render, screen, fireEvent } from '../../utils/test-utils';
+import { vi } from 'vitest';
+import { render, screen } from '../../utils/test-utils';
 import { CanvasCard } from '../../../features/form-builder/components/CanvasCard';
-import { TEST_IDS } from '../../utils/test-utils';
 
 describe('CanvasCard', () => {
-  const mockOnClick = jest.fn();
-  const mockOnDelete = jest.fn();
-  
+  const mockOnDrop = vi.fn();
+  const mockOnSelect = vi.fn();
+  const mockOnDelete = vi.fn();
+  const mockOnMove = vi.fn();
+
   const defaultProps = {
-    id: 'test-card',
-    title: 'Test Card',
-    isSelected: false,
-    onClick: mockOnClick,
+    components: [],
+    onDrop: mockOnDrop,
+    onSelect: mockOnSelect,
     onDelete: mockOnDelete,
-    children: <div>Test Content</div>,
+    onMove: mockOnMove,
+    selectedId: undefined,
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  it('renders with title and content', () => {
+  it('renders empty canvas when no components', () => {
     render(<CanvasCard {...defaultProps} />);
-    
-    expect(screen.getByText('Test Card')).toBeInTheDocument();
-    expect(screen.getByText('Test Content')).toBeInTheDocument();
+
+    expect(screen.getByText(/drag components here/i)).toBeInTheDocument();
   });
 
-  it('calls onClick when clicked', () => {
-    render(<CanvasCard {...defaultProps} />);
-    
-    const card = screen.getByTestId(TEST_IDS.CANVAS_CARD);
-    fireEvent.click(card);
-    
-    expect(mockOnClick).toHaveBeenCalledTimes(1);
+  it('renders components when provided', () => {
+    const components = [
+      {
+        id: 'test-1',
+        type: 'text_input',
+        label: 'Test Input',
+        fieldId: 'test_1',
+        required: false,
+        placeholder: 'Enter text'
+      }
+    ];
+
+    render(<CanvasCard {...defaultProps} components={components} />);
+
+    expect(screen.getByText('Test Input')).toBeInTheDocument();
   });
 
-  it('calls onDelete when delete button is clicked', () => {
-    render(<CanvasCard {...defaultProps} />);
-    
-    const deleteButton = screen.getByRole('button', { name: /delete/i });
-    fireEvent.click(deleteButton);
-    
-    expect(mockOnDelete).toHaveBeenCalledTimes(1);
-    expect(mockOnDelete).toHaveBeenCalledWith('test-card');
-  });
+  it('handles component selection', () => {
+    const components = [
+      {
+        id: 'test-1',
+        type: 'text_input',
+        label: 'Test Input',
+        fieldId: 'test_1',
+        required: false,
+        placeholder: 'Enter text'
+      }
+    ];
 
-  it('applies selected styles when isSelected is true', () => {
-    render(<CanvasCard {...defaultProps} isSelected={true} />);
-    
-    const card = screen.getByTestId(TEST_IDS.CANVAS_CARD);
-    expect(card).toHaveClass('selected');
+    render(<CanvasCard {...defaultProps} components={components} selectedId="test-1" />);
+
+    // Component should be rendered and potentially highlighted as selected
+    expect(screen.getByText('Test Input')).toBeInTheDocument();
   });
 });

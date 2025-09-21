@@ -32,8 +32,13 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
   // Refresh templates whenever the component mounts or when returning from builder
   useEffect(() => {
     const refreshTemplates = () => {
-      const savedTemplates = templateService.getAllTemplates();
-      setTemplates(savedTemplates);
+      try {
+        const savedTemplates = templateService.getAllTemplates();
+        setTemplates(savedTemplates || []);
+      } catch (error) {
+        console.error('Failed to load templates:', error);
+        setTemplates([]); // Fallback to empty array
+      }
     };
 
     // Load templates immediately
@@ -195,11 +200,11 @@ export const TemplateListView: React.FC<TemplateListViewProps> = ({
                     </div>
                     <div className="template-card__title-section">
                       <h3 className="template-card__title">{template.name}</h3>
-                      <span 
+                      <span
                         className="template-card__type-badge"
-                        style={{ backgroundColor: getTypeColor('assessment') }}
+                        style={{ backgroundColor: getTypeColor(template.type || 'assessment') }}
                       >
-                        assessment
+                        {template.type || 'assessment'}
                       </span>
                     </div>
                   </div>

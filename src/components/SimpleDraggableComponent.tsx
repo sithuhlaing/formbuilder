@@ -116,6 +116,8 @@ export function SimpleDraggableComponent({
       className={componentClasses}
       style={componentStyle}
       onClick={handleClick}
+      data-component-index={index}
+      data-component-id={component.id}
     >
       {/* Component content */}
       <div className="component-content">

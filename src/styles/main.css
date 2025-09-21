@@ -17,6 +17,7 @@
 @import './responsive-drawers.css';
 @import './simple-form-builder.css';
 @import './drag-feedback.css';
+@import './ComponentPropertiesPanel.css';
 /* @import './mobile-drag-drop.css'; - Moved to legacy in Phase 3 */
 /* @import './touch-drag-preview.css'; - Moved to legacy in Phase 3 */
 

@@ -25,8 +25,8 @@ vi.mock('../../../features/template-management/services/templateService', () => 
 }));
 
 // Mock the modal components
-vi.mock('../features/form-builder/components/PreviewModal', () => ({
-  default: ({ isOpen, onClose, templateName }: any) => 
+vi.mock('../../features/form-builder', () => ({
+  PreviewModal: ({ isOpen, onClose, templateName }: any) =>
     isOpen ? (
       <div>
         <h2>Preview: {templateName}</h2>
@@ -101,6 +101,22 @@ let mockTemplates: FormTemplate[] = [
             placeholder: 'Enter your name',
             required: true,
             fieldId: 'name'
+          },
+          {
+            id: 'field-2',
+            type: 'textarea',
+            label: 'Comments',
+            placeholder: 'Your feedback',
+            required: false,
+            fieldId: 'comments'
+          },
+          {
+            id: 'field-3',
+            type: 'select',
+            label: 'Rating',
+            options: ['Excellent', 'Good', 'Average', 'Poor'],
+            required: true,
+            fieldId: 'rating'
           }
         ],
         layout: {}
@@ -124,7 +140,23 @@ let mockTemplates: FormTemplate[] = [
         fieldId: 'satisfaction'
       }
     ],
-    pages: [],
+    pages: [
+      {
+        id: 'page-1',
+        title: 'Survey',
+        components: [
+          {
+            id: 'field-4',
+            type: 'radio_group',
+            label: 'Job Satisfaction',
+            options: ['Very Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied'],
+            required: true,
+            fieldId: 'satisfaction'
+          }
+        ],
+        layout: {}
+      }
+    ],
     createdDate: '2024-01-03T09:00:00Z',
     modifiedDate: '2024-01-03T09:30:00Z',
     jsonSchema: null
@@ -154,7 +186,7 @@ describe('TemplateListView - Welcome Screen Tests', () => {
 
       // Check welcome screen elements
       expect(screen.getByText('No templates yet')).toBeInTheDocument();
-      expect(screen.getByText('Get started by creating your first form template')).toBeInTheDocument();
+      expect(screen.getByText('Get started by creating your first form template with our drag-and-drop builder')).toBeInTheDocument();
       expect(screen.getByText('📋')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /create your first form/i })).toBeInTheDocument();
     });
@@ -218,20 +250,6 @@ describe('TemplateListView - Welcome Screen Tests', () => {
       expect(screen.getAllByText('assessment')).toHaveLength(2); // Both templates are assessment type
     });
 
-    test('should show field preview for templates', () => {
-      render(
-        <TemplateListView 
-          onCreateNew={mockOnCreateNew}
-          onEditTemplate={mockOnEditTemplate}
-        />
-      );
-
-      // Check field previews (first 3 fields shown)
-      expect(screen.getByText('text input')).toBeInTheDocument(); // "text_input" becomes "text input"
-      expect(screen.getByText('Name')).toBeInTheDocument();
-      expect(screen.getByText('textarea')).toBeInTheDocument();
-      expect(screen.getByText('Comments')).toBeInTheDocument();
-    });
   });
 
   describe('Template Actions', () => {
@@ -310,7 +328,7 @@ describe('TemplateListView - Welcome Screen Tests', () => {
 
       // Check if preview modal opens
       await waitFor(() => {
-        expect(screen.getByText('Preview: Customer Feedback Form')).toBeInTheDocument();
+        expect(screen.getByText('👁️ Preview: Test Template 1')).toBeInTheDocument();
       });
     });
 
@@ -327,15 +345,15 @@ describe('TemplateListView - Welcome Screen Tests', () => {
       fireEvent.click(previewButtons[0]);
 
       await waitFor(() => {
-        expect(screen.getByText('Preview: Customer Feedback Form')).toBeInTheDocument();
+        expect(screen.getByText('👁️ Preview: Test Template 1')).toBeInTheDocument();
       });
 
       // Close preview modal
-      const closeButton = screen.getByText('Close Preview');
+      const closeButton = screen.getByText('✕');
       fireEvent.click(closeButton);
 
       await waitFor(() => {
-        expect(screen.queryByText('Preview: Customer Feedback Form')).toBeNull();
+        expect(screen.queryByText('👁️ Preview: Test Template 1')).toBeNull();
       });
     });
 

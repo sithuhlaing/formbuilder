@@ -65,7 +65,7 @@ interface FormActions {
   importJSON: (jsonString: string) => void;
   setEditMode: (templateId: string) => void;  // Switch to edit mode for specific template
   setCreateMode: () => void;                  // Switch to create mode
-  
+
   // Page management actions
   addPage: () => void;
   deletePage: (pageId: string) => void;
@@ -75,6 +75,13 @@ interface FormActions {
   movePageDown: (pageId: string) => void;
   getCurrentPage: () => FormPage | null;
   components: Component[]; // Current page components for backwards compatibility
+
+  // Missing functions that tests and components expect
+  getCurrentPageIndex: () => number;
+  navigateToNextPage: () => void;
+  navigateToPreviousPage: () => void;
+  addNewPage: () => void;
+  handleDrop: (componentType: ComponentType, position?: { index: number }) => void;
 }
 
 
@@ -161,60 +168,153 @@ export function useSimpleFormBuilder(): FormState & FormActions {
       console.error('Cannot add component: Invalid type provided');
       return;
     }
-    
-    saveToHistory();
+
     const newComponent = createComponent(type);
-    
-    setState(prev => ({
-      ...prev,
-      pages: prev.pages.map(page => 
-        page.id === prev.currentPageId 
-          ? {
-              ...page,
-              components: index !== undefined 
-                ? [
-                    ...page.components.slice(0, index),
-                    newComponent,
-                    ...page.components.slice(index)
-                  ]
-                : [...page.components, newComponent]
-            }
-          : page
-      ),
-      selectedId: newComponent.id
-    }));
-  }, [saveToHistory]);
+
+    setState(prev => {
+      // First, create the new state with the component added
+      const newState = {
+        ...prev,
+        pages: prev.pages.map(page =>
+          page.id === prev.currentPageId
+            ? {
+                ...page,
+                components: index !== undefined
+                  ? [
+                      ...page.components.slice(0, index),
+                      newComponent,
+                      ...page.components.slice(index)
+                    ]
+                  : [...page.components, newComponent]
+              }
+            : page
+        ),
+        selectedId: newComponent.id
+      };
+
+      // Now save the NEW state to history
+      const stateToSave: FormState = {
+        pages: newState.pages.map(page => ({
+          ...page,
+          components: page.components.map(comp => ({ ...comp }))
+        })),
+        currentPageId: newState.currentPageId,
+        selectedId: newState.selectedId,
+        templateName: newState.templateName,
+        history: [],  // Will be set below
+        historyIndex: -1,  // Will be set below
+        previewMode: newState.previewMode,
+        mode: newState.mode,
+        editingTemplateId: newState.editingTemplateId
+      };
+
+      // If we're in the middle of the history, truncate the future history
+      const historySlice = prev.historyIndex < prev.history.length - 1
+        ? prev.history.slice(0, prev.historyIndex + 1)
+        : prev.history;
+
+      // Create new history array with the NEW state
+      const newHistory = [...historySlice, stateToSave].slice(-MAX_HISTORY);
+
+      // Return the new state with updated history
+      return {
+        ...newState,
+        history: newHistory,
+        historyIndex: newHistory.length - 1
+      };
+    });
+  }, []);
 
   const updateComponent = useCallback((id: string, updates: Partial<Component>) => {
-    saveToHistory();
-    setState(prev => ({
-      ...prev,
-      pages: prev.pages.map(page => 
-        page.id === prev.currentPageId 
-          ? {
-              ...page,
-              components: updateComponentInTree(page.components, id, updates)
-            }
-          : page
-      )
-    }));
-  }, [saveToHistory]);
+    setState(prev => {
+      // First, create the new state with the component updated
+      const newState = {
+        ...prev,
+        pages: prev.pages.map(page =>
+          page.id === prev.currentPageId
+            ? {
+                ...page,
+                components: updateComponentInTree(page.components, id, updates)
+              }
+            : page
+        )
+      };
+
+      // Now save the NEW state to history
+      const stateToSave: FormState = {
+        pages: newState.pages.map(page => ({
+          ...page,
+          components: page.components.map(comp => ({ ...comp }))
+        })),
+        currentPageId: newState.currentPageId,
+        selectedId: newState.selectedId,
+        templateName: newState.templateName,
+        history: [],
+        historyIndex: -1,
+        previewMode: newState.previewMode,
+        mode: newState.mode,
+        editingTemplateId: newState.editingTemplateId
+      };
+
+      const historySlice = prev.historyIndex < prev.history.length - 1
+        ? prev.history.slice(0, prev.historyIndex + 1)
+        : prev.history;
+
+      const newHistory = [...historySlice, stateToSave].slice(-MAX_HISTORY);
+
+      return {
+        ...newState,
+        history: newHistory,
+        historyIndex: newHistory.length - 1
+      };
+    });
+  }, []);
 
   const deleteComponent = useCallback((id: string) => {
-    saveToHistory();
-    setState(prev => ({
-      ...prev,
-      pages: prev.pages.map(page => 
-        page.id === prev.currentPageId 
-          ? {
-              ...page,
-              components: deleteComponentFromTree(page.components, id)
-            }
-          : page
-      ),
-      selectedId: prev.selectedId === id ? null : prev.selectedId
-    }));
-  }, [saveToHistory]);
+    setState(prev => {
+      // First, create the new state with the component deleted
+      const newState = {
+        ...prev,
+        pages: prev.pages.map(page =>
+          page.id === prev.currentPageId
+            ? {
+                ...page,
+                components: deleteComponentFromTree(page.components, id)
+              }
+            : page
+        ),
+        selectedId: prev.selectedId === id ? null : prev.selectedId
+      };
+
+      // Now save the NEW state to history
+      const stateToSave: FormState = {
+        pages: newState.pages.map(page => ({
+          ...page,
+          components: page.components.map(comp => ({ ...comp }))
+        })),
+        currentPageId: newState.currentPageId,
+        selectedId: newState.selectedId,
+        templateName: newState.templateName,
+        history: [],
+        historyIndex: -1,
+        previewMode: newState.previewMode,
+        mode: newState.mode,
+        editingTemplateId: newState.editingTemplateId
+      };
+
+      const historySlice = prev.historyIndex < prev.history.length - 1
+        ? prev.history.slice(0, prev.historyIndex + 1)
+        : prev.history;
+
+      const newHistory = [...historySlice, stateToSave].slice(-MAX_HISTORY);
+
+      return {
+        ...newState,
+        history: newHistory,
+        historyIndex: newHistory.length - 1
+      };
+    });
+  }, []);
 
   const selectComponent = useCallback((id: string | null) => {
     setState(prev => ({
@@ -528,18 +628,43 @@ export function useSimpleFormBuilder(): FormState & FormActions {
       }));
     },
     clearAll: () => {
-      const newPage = createInitialPage('Page 1');
-      saveToHistory();
-      setState({
-        ...INITIAL_STATE,
-        pages: [newPage],
-        currentPageId: newPage.id,
-        history: [{
+      setState(prev => {
+        const newPage = createInitialPage('Page 1');
+
+        // First, create the new cleared state
+        const newState = {
           ...INITIAL_STATE,
           pages: [newPage],
           currentPageId: newPage.id
-        }],
-        historyIndex: 0
+        };
+
+        // Now save the NEW state to history
+        const stateToSave: FormState = {
+          pages: newState.pages.map(page => ({
+            ...page,
+            components: page.components.map(comp => ({ ...comp }))
+          })),
+          currentPageId: newState.currentPageId,
+          selectedId: newState.selectedId,
+          templateName: newState.templateName,
+          history: [],
+          historyIndex: -1,
+          previewMode: newState.previewMode,
+          mode: newState.mode,
+          editingTemplateId: newState.editingTemplateId
+        };
+
+        const historySlice = prev.historyIndex < prev.history.length - 1
+          ? prev.history.slice(0, prev.historyIndex + 1)
+          : prev.history;
+
+        const newHistory = [...historySlice, stateToSave].slice(-MAX_HISTORY);
+
+        return {
+          ...newState,
+          history: newHistory,
+          historyIndex: newHistory.length - 1
+        };
       });
     },
     togglePreview: () => {
@@ -587,7 +712,47 @@ export function useSimpleFormBuilder(): FormState & FormActions {
     movePageUp,
     movePageDown,
     getCurrentPage,
-    getCurrentPageComponents
+    getCurrentPageComponents,
+
+    // Missing functions implementations
+    getCurrentPageIndex: () => {
+      return state.pages.findIndex(page => page.id === state.currentPageId);
+    },
+    navigateToNextPage: () => {
+      const currentIndex = state.pages.findIndex(page => page.id === state.currentPageId);
+      if (currentIndex < state.pages.length - 1) {
+        const nextPage = state.pages[currentIndex + 1];
+        setState(prev => ({
+          ...prev,
+          currentPageId: nextPage.id,
+          selectedId: null
+        }));
+      }
+    },
+    navigateToPreviousPage: () => {
+      const currentIndex = state.pages.findIndex(page => page.id === state.currentPageId);
+      if (currentIndex > 0) {
+        const prevPage = state.pages[currentIndex - 1];
+        setState(prev => ({
+          ...prev,
+          currentPageId: prevPage.id,
+          selectedId: null
+        }));
+      }
+    },
+    addNewPage: () => {
+      const newPage = createInitialPage(`Page ${state.pages.length + 1}`);
+      saveToHistory();
+      setState(prev => ({
+        ...prev,
+        pages: [...prev.pages, newPage],
+        currentPageId: newPage.id,
+        selectedId: null
+      }));
+    },
+    handleDrop: (componentType: ComponentType, position?: { index: number }) => {
+      addComponent(componentType, position?.index);
+    }
   };
 }
 

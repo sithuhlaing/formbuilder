@@ -6,6 +6,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useSimpleFormBuilder } from '../../hooks/useSimpleFormBuilder';
+import { ComponentEngine } from '../../core/ComponentEngine';
+import { FormStateEngine } from '../../core/FormStateEngine';
 
 describe('🎯 Business Logic Tests - Core Requirements', () => {
 
@@ -25,39 +27,39 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
         result.current.addComponent('text_input');
       });
 
-      expect(result.current.currentComponents).toHaveLength(1);
-      expect(result.current.currentComponents[0].type).toBe('text_input');
-      expect(result.current.selectedComponent).toBeTruthy();
+      expect(result.current.components).toHaveLength(1);
+      expect(result.current.components[0].type).toBe('text_input');
+      expect(result.current.selectedId).toBeTruthy();
 
       act(() => {
         // Step 2: User adds email input
         result.current.addComponent('email_input');
       });
 
-      expect(result.current.currentComponents).toHaveLength(2);
-      expect(result.current.currentComponents[1].type).toBe('email_input');
+      expect(result.current.components).toHaveLength(2);
+      expect(result.current.components[1].type).toBe('email_input');
 
       act(() => {
         // Step 3: User updates first component
-        const firstComponent = result.current.currentComponents[0];
-        result.current.updateComponent(firstComponent.id, { 
-          label: 'Full Name', 
-          required: true 
+        const firstComponent = result.current.components[0];
+        result.current.updateComponent(firstComponent.id, {
+          label: 'Full Name',
+          required: true
         });
       });
 
-      const updatedComponent = result.current.currentComponents[0];
+      const updatedComponent = result.current.components[0];
       expect(updatedComponent.label).toBe('Full Name');
       expect(updatedComponent.required).toBe(true);
 
       act(() => {
         // Step 4: User deletes second component
-        const secondComponent = result.current.currentComponents[1];
+        const secondComponent = result.current.components[1];
         result.current.deleteComponent(secondComponent.id);
       });
 
-      expect(result.current.currentComponents).toHaveLength(1);
-      expect(result.current.currentComponents[0].label).toBe('Full Name');
+      expect(result.current.components).toHaveLength(1);
+      expect(result.current.components[0].label).toBe('Full Name');
 
       // Workflow completed successfully ✅
     });
@@ -65,13 +67,13 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
     it('should handle template naming correctly', () => {
       const { result } = renderHook(() => useSimpleFormBuilder());
 
-      expect(result.current.formState.templateName).toBe('Untitled Form');
+      expect(result.current.templateName).toBe('Untitled Form');
 
       act(() => {
         result.current.setTemplateName('User Registration Form');
       });
 
-      expect(result.current.formState.templateName).toBe('User Registration Form');
+      expect(result.current.templateName).toBe('User Registration Form');
     });
   });
 
@@ -80,35 +82,35 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
       const { result } = renderHook(() => useSimpleFormBuilder());
 
       // Initial state - no undo/redo
-      expect(result.current.canUndo).toBe(false);
-      expect(result.current.canRedo).toBe(false);
+      expect(result.current.canUndo()).toBe(false);
+      expect(result.current.canRedo()).toBe(false);
 
       // Add first component
       act(() => {
         result.current.addComponent('text_input');
       });
 
-      expect(result.current.canUndo).toBe(true);
-      expect(result.current.canRedo).toBe(false);
-      expect(result.current.currentComponents).toHaveLength(1);
+      expect(result.current.canUndo()).toBe(true);
+      expect(result.current.canRedo()).toBe(false);
+      expect(result.current.components).toHaveLength(1);
 
       // Test undo after one addition
       act(() => {
         result.current.undo();
       });
 
-      expect(result.current.currentComponents).toHaveLength(0);
-      expect(result.current.canRedo).toBe(true);
-      expect(result.current.canUndo).toBe(false);
+      expect(result.current.components).toHaveLength(0);
+      expect(result.current.canRedo()).toBe(true);
+      expect(result.current.canUndo()).toBe(false);
 
       // Test redo
       act(() => {
         result.current.redo();
       });
 
-      expect(result.current.currentComponents).toHaveLength(1);
-      expect(result.current.currentComponents[0].type).toBe('text_input');
-      expect(result.current.canRedo).toBe(false);
+      expect(result.current.components).toHaveLength(1);
+      expect(result.current.components[0].type).toBe('text_input');
+      expect(result.current.canRedo()).toBe(false);
 
       // Undo/Redo working correctly ✅
     });
@@ -121,8 +123,8 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
         result.current.addComponent('text_input');
       });
 
-      expect(result.current.currentComponents).toHaveLength(1);
-      const textInputComponent = result.current.currentComponents[0];
+      expect(result.current.components).toHaveLength(1);
+      const textInputComponent = result.current.components[0];
 
       // Update the component
       act(() => {
@@ -132,31 +134,31 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
         });
       });
 
-      expect(result.current.currentComponents[0].label).toBe('Updated Label');
-      expect(result.current.currentComponents[0].required).toBe(true);
+      expect(result.current.components[0].label).toBe('Updated Label');
+      expect(result.current.components[0].required).toBe(true);
 
       // Undo the update
       act(() => {
         result.current.undo();
       });
 
-      expect(result.current.currentComponents[0].label).toBe('Text Input'); // Back to original
-      expect(result.current.currentComponents[0].required).toBe(false);
+      expect(result.current.components[0].label).toBe('Text Input'); // Back to original
+      expect(result.current.components[0].required).toBe(false);
 
       // Undo the add
       act(() => {
         result.current.undo();
       });
 
-      expect(result.current.currentComponents).toHaveLength(0);
+      expect(result.current.components).toHaveLength(0);
 
       // Redo add
       act(() => {
         result.current.redo();
       });
 
-      expect(result.current.currentComponents).toHaveLength(1);
-      expect(result.current.currentComponents[0].type).toBe('text_input');
+      expect(result.current.components).toHaveLength(1);
+      expect(result.current.components[0].type).toBe('text_input');
 
       // Multiple undo/redo working correctly ✅
     });
@@ -171,8 +173,8 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
         result.current.addComponent('text_input');
       });
 
-      expect(result.current.currentComponents).toHaveLength(1);
-      const firstComponent = result.current.currentComponents[0];
+      expect(result.current.components).toHaveLength(1);
+      const firstComponent = result.current.components[0];
 
       act(() => {
         result.current.updateComponent(firstComponent.id, { 
@@ -182,8 +184,8 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
       });
 
       const formData = {
-        templateName: result.current.formState.templateName,
-        pages: result.current.formState.pages
+        templateName: result.current.templateName,
+        pages: result.current.pages
       };
 
       expect(formData.templateName).toBe('Contact Form');
@@ -228,15 +230,15 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
       };
 
       act(() => {
-        result.current.loadFromJSON(JSON.stringify(sampleFormData));
+        result.current.importJSON(JSON.stringify(sampleFormData));
       });
 
-      expect(result.current.formState.templateName).toBe('Loaded Form');
-      expect(result.current.currentComponents).toHaveLength(2);
-      expect(result.current.currentComponents[0].label).toBe('First Name');
-      expect(result.current.currentComponents[0].required).toBe(true);
-      expect(result.current.currentComponents[1].type).toBe('select');
-      expect(result.current.currentComponents[1].options).toEqual(['USA', 'Canada', 'UK']);
+      expect(result.current.templateName).toBe('Loaded Form');
+      expect(result.current.components).toHaveLength(2);
+      expect(result.current.components[0].label).toBe('First Name');
+      expect(result.current.components[0].required).toBe(true);
+      expect(result.current.components[1].type).toBe('select');
+      expect(result.current.components[1].options).toEqual(['USA', 'Canada', 'UK']);
 
       // JSON loading working correctly ✅
     });
@@ -252,13 +254,13 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
 
       act(() => {
         // Test invalid JSON string
-        result.current.loadFromJSON('invalid json');
+        result.current.importJSON('invalid json');
       });
 
       // Should not crash, should keep original state
-      expect(result.current.formState.templateName).toBe('Untitled Form');
-      expect(result.current.currentComponents).toHaveLength(0);
-      expect(consoleLogs.some(log => log.includes('Failed to load JSON'))).toBe(true);
+      expect(result.current.templateName).toBe('Untitled Form');
+      expect(result.current.components).toHaveLength(0);
+      expect(consoleLogs.some(log => log.includes('Failed to import JSON'))).toBe(true);
 
       console.error = originalConsoleError;
 
@@ -275,16 +277,16 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
         result.current.addComponent('text_input');
       });
 
-      expect(result.current.currentComponents).toHaveLength(1);
-      expect(result.current.selectedComponent).toBeTruthy();
+      expect(result.current.components).toHaveLength(1);
+      expect(result.current.selectedId).toBeTruthy();
 
       act(() => {
         result.current.clearAll();
       });
 
-      expect(result.current.currentComponents).toHaveLength(0);
-      expect(result.current.selectedComponent).toBe(null);
-      expect(result.current.canUndo).toBe(true); // Should be able to undo clear
+      expect(result.current.components).toHaveLength(0);
+      expect(result.current.selectedId).toBe(null);
+      expect(result.current.canUndo()).toBe(true); // Should be able to undo clear
 
       // Clear all working correctly ✅
     });
@@ -298,23 +300,23 @@ describe('🎯 Business Logic Tests - Core Requirements', () => {
         result.current.addComponent('text_input');
       });
 
-      expect(result.current.currentComponents).toHaveLength(1);
-      const firstComponent = result.current.currentComponents[0];
+      expect(result.current.components).toHaveLength(1);
+      const firstComponent = result.current.components[0];
 
       // Component should be automatically selected when added
-      expect(result.current.selectedComponent?.id).toBe(firstComponent.id);
+      expect(result.current.selectedId).toBe(firstComponent.id);
 
       act(() => {
         result.current.selectComponent(null);
       });
 
-      expect(result.current.selectedComponent).toBe(null);
+      expect(result.current.selectedId).toBe(null);
 
       act(() => {
         result.current.selectComponent(firstComponent.id);
       });
 
-      expect(result.current.selectedComponent?.id).toBe(firstComponent.id);
+      expect(result.current.selectedId).toBe(firstComponent.id);
 
       // Component selection working correctly ✅
     });
@@ -408,10 +410,10 @@ describe('🏆 End-to-End Business Scenarios', () => {
       result.current.addComponent('text_input');
     });
 
-    expect(result.current.formState.templateName).toBe('Customer Feedback Form');
-    expect(result.current.currentComponents).toHaveLength(1);
+    expect(result.current.templateName).toBe('Customer Feedback Form');
+    expect(result.current.components).toHaveLength(1);
     
-    const nameField = result.current.currentComponents[0];
+    const nameField = result.current.components[0];
 
     // Step 2: Update the component
     act(() => {
@@ -422,12 +424,12 @@ describe('🏆 End-to-End Business Scenarios', () => {
       });
     });
     
-    expect(result.current.currentComponents[0].label).toBe('Full Name');
-    expect(result.current.currentComponents[0].required).toBe(true);
-    expect(result.current.currentComponents[0].placeholder).toBe('Enter your full name');
+    expect(result.current.components[0].label).toBe('Full Name');
+    expect(result.current.components[0].required).toBe(true);
+    expect(result.current.components[0].placeholder).toBe('Enter your full name');
 
     // Validate the form
-    const validation = FormStateEngine.validateFormState(result.current.formState.pages);
+    const validation = FormStateEngine.validateFormState(result.current.pages);
     expect(validation.valid).toBe(true);
 
     // End-to-end workflow completed successfully ✅
@@ -441,8 +443,8 @@ describe('🏆 End-to-End Business Scenarios', () => {
       result.current.addComponent('text_input');
     });
 
-    expect(result.current.currentComponents).toHaveLength(1);
-    const originalComponent = result.current.currentComponents[0];
+    expect(result.current.components).toHaveLength(1);
+    const originalComponent = result.current.components[0];
 
     act(() => {
       // User updates component
@@ -452,24 +454,24 @@ describe('🏆 End-to-End Business Scenarios', () => {
       });
     });
 
-    expect(result.current.currentComponents[0].label).toBe('Customer Name');
-    expect(result.current.currentComponents[0].required).toBe(true);
+    expect(result.current.components[0].label).toBe('Customer Name');
+    expect(result.current.components[0].required).toBe(true);
 
     act(() => {
       // User accidentally deletes the component
       result.current.deleteComponent(originalComponent.id);
     });
 
-    expect(result.current.currentComponents).toHaveLength(0);
+    expect(result.current.components).toHaveLength(0);
 
     act(() => {
       // User realizes mistake and undoes
       result.current.undo();
     });
 
-    expect(result.current.currentComponents).toHaveLength(1);
-    expect(result.current.currentComponents[0].label).toBe('Customer Name'); // Restored with updates
-    expect(result.current.currentComponents[0].required).toBe(true);
+    expect(result.current.components).toHaveLength(1);
+    expect(result.current.components[0].label).toBe('Customer Name'); // Restored with updates
+    expect(result.current.components[0].required).toBe(true);
 
     // Form editing and recovery workflow completed successfully ✅
   });
