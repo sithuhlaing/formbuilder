@@ -5,8 +5,8 @@ import { FormBuilder } from '../../../features/form-builder/components/FormBuild
 // Mock the useSimpleFormBuilder hook
 const mockUseFormBuilder = vi.fn();
 
-vi.mock('../../../../features/form-builder/hooks/useSimpleFormBuilder', () => ({
-  useSimpleFormBuilder: () => mockUseFormBuilder()
+vi.mock('../../../features/form-builder/hooks/useFormBuilder', () => ({
+  useFormBuilder: () => mockUseFormBuilder()
 }));
 
 // Mock template service

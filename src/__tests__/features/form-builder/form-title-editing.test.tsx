@@ -3,7 +3,44 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import FormBuilder from '../../../features/form-builder/components/FormBuilder';
+import { vi } from 'vitest';
+import { FormBuilder } from '../../../features/form-builder/components/FormBuilder';
+
+// Mock the useFormBuilder hook
+vi.mock('../../../features/form-builder/hooks/useFormBuilder', () => ({
+  useFormBuilder: vi.fn(() => ({
+    formState: {
+      pages: [{
+        id: 'page-1',
+        title: 'Page 1',
+        components: [],
+        layout: {}
+      }],
+      currentPageId: 'page-1',
+      templateName: 'Untitled Form'
+    },
+    currentComponents: [],
+    selectedComponent: null,
+    addComponent: vi.fn(),
+    updateComponent: vi.fn(),
+    deleteComponent: vi.fn(),
+    selectComponent: vi.fn(),
+    handleDrop: vi.fn(),
+    updateProperty: vi.fn(),
+    getCurrentPageIndex: vi.fn(() => 0),
+    updateTemplateName: vi.fn(),
+    onFormTitleChange: vi.fn(),
+    addNewPage: vi.fn(),
+    navigateToNextPage: vi.fn(),
+    navigateToPreviousPage: vi.fn(),
+    exportJSON: vi.fn(),
+    clearAll: vi.fn(),
+    undo: vi.fn(),
+    redo: vi.fn(),
+    canUndo: false,
+    canRedo: false
+  }))
+}));
 
 const renderFormBuilder = () => {
   return render(

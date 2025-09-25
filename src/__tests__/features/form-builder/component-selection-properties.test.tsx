@@ -3,7 +3,33 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import FormBuilder from '../../../features/form-builder/components/FormBuilder';
+import { FormBuilder } from '../../../features/form-builder/components/FormBuilder';
+import { vi } from 'vitest';
+
+// Mock the useFormBuilder hook to provide required data structure
+vi.mock('../../../features/form-builder/hooks/useFormBuilder', () => ({
+  useFormBuilder: vi.fn(() => ({
+    formState: {
+      pages: [{
+        id: 'page-1',
+        title: 'Page 1',
+        components: [],
+        layout: {}
+      }],
+      currentPageId: 'page-1',
+      templateName: 'Test Form'
+    },
+    currentComponents: [],
+    selectedComponent: null,
+    addComponent: vi.fn(),
+    updateComponent: vi.fn(),
+    deleteComponent: vi.fn(),
+    selectComponent: vi.fn(),
+    handleDrop: vi.fn(),
+    updateProperty: vi.fn(),
+    getCurrentPageIndex: vi.fn(() => 0)
+  }))
+}));
 
 const renderFormBuilder = () => {
   return render(

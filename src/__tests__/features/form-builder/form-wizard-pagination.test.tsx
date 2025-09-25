@@ -9,12 +9,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { FormBuilder } from '../../../features/form-builder/components/FormBuilder';
-import { useSimpleFormBuilder} from '../../hooks/useSimpleFormBuilder';
+import { useFormBuilder } from '../../../features/form-builder/hooks/useFormBuilder';
 
-// Mock the useSimpleFormBuilder hook for controlled testing
-vi.mock('../features/form-builder/hooks/useSimpleFormBuilder');
+// Mock the useFormBuilder hook for controlled testing
+vi.mock('../../../features/form-builder/hooks/useFormBuilder');
 
-const mockUseFormBuilder = vi.mocked(useSimpleFormBuilder);
+const mockUseFormBuilder = vi.mocked(useFormBuilder);
 
 describe('Form Wizard Pagination', () => {
   const mockFormBuilderReturn = {

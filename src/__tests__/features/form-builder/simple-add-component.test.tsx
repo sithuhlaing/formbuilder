@@ -1,9 +1,45 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DndProvider } from 'react-dnd';
 import { TestBackend } from 'react-dnd-test-backend';
-import App from '../../App';
+import App from '../../../App';
+
+// Mock the useFormBuilder hook
+vi.mock('../../../features/form-builder/hooks/useFormBuilder', () => ({
+  useFormBuilder: vi.fn(() => ({
+    formState: {
+      pages: [{
+        id: 'page-1',
+        title: 'Page 1',
+        components: [],
+        layout: {}
+      }],
+      currentPageId: 'page-1',
+      templateName: 'Test Form'
+    },
+    currentComponents: [],
+    selectedComponent: null,
+    addComponent: vi.fn(),
+    updateComponent: vi.fn(),
+    deleteComponent: vi.fn(),
+    selectComponent: vi.fn(),
+    handleDrop: vi.fn(),
+    updateProperty: vi.fn(),
+    getCurrentPageIndex: vi.fn(() => 0),
+    updateTemplateName: vi.fn(),
+    onFormTitleChange: vi.fn(),
+    addNewPage: vi.fn(),
+    navigateToNextPage: vi.fn(),
+    navigateToPreviousPage: vi.fn(),
+    exportJSON: vi.fn(),
+    clearAll: vi.fn(),
+    undo: vi.fn(),
+    redo: vi.fn(),
+    canUndo: false,
+    canRedo: false
+  }))
+}));
 
 describe('🔬 Simple Component Addition Test', () => {
   it('should add a single component to canvas when clicked', async () => {

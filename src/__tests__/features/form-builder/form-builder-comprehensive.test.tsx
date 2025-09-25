@@ -1,6 +1,6 @@
 /**
  * Comprehensive Form Builder Components Test Suite
- * Covers useSimpleFormBuilder hook, Canvas, ComponentPalette, PropertiesPanel
+ * Covers useFormBuilder hook, Canvas, ComponentPalette, PropertiesPanel
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -8,10 +8,46 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { renderHook, act } from '@testing-library/react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useSimpleFormBuilder} from '../../hooks/useSimpleFormBuilder';
-import { ComponentPalette } from '../features/form-builder/components/ComponentPalette';
-import { Canvas } from '../features/form-builder/components/Canvas';
-import { PropertiesPanel } from '../features/form-builder/components/PropertiesPanel';
+import { useFormBuilder } from '../../../features/form-builder/hooks/useFormBuilder';
+import { ComponentPalette } from '../../../features/form-builder/components/ComponentPalette';
+import { Canvas } from '../../../features/form-builder/components/Canvas';
+import { PropertiesPanel } from '../../../features/form-builder/components/PropertiesPanel';
+
+// Mock the useFormBuilder hook
+vi.mock('../../../features/form-builder/hooks/useFormBuilder', () => ({
+  useFormBuilder: vi.fn(() => ({
+    formState: {
+      pages: [{
+        id: 'page-1',
+        title: 'Page 1',
+        components: [],
+        layout: {}
+      }],
+      currentPageId: 'page-1',
+      templateName: 'Test Form'
+    },
+    currentComponents: [],
+    selectedComponent: null,
+    addComponent: vi.fn(),
+    updateComponent: vi.fn(),
+    deleteComponent: vi.fn(),
+    selectComponent: vi.fn(),
+    handleDrop: vi.fn(),
+    updateProperty: vi.fn(),
+    getCurrentPageIndex: vi.fn(() => 0),
+    updateTemplateName: vi.fn(),
+    onFormTitleChange: vi.fn(),
+    addNewPage: vi.fn(),
+    navigateToNextPage: vi.fn(),
+    navigateToPreviousPage: vi.fn(),
+    exportJSON: vi.fn(),
+    clearAll: vi.fn(),
+    undo: vi.fn(),
+    redo: vi.fn(),
+    canUndo: false,
+    canRedo: false
+  }))
+}));
 
 // Test wrapper for DnD components
 const DnDWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -22,10 +58,10 @@ const DnDWrapper = ({ children }: { children: React.ReactNode }) => (
 
 describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
 
-  describe('useSimpleFormBuilder Hook - Complete Coverage', () => {
+  describe('useFormBuilder Hook - Complete Coverage', () => {
     
     it('should initialize with default state', () => {
-      const { result } = renderHook(() => useSimpleFormBuilder());
+      const { result } = renderHook(() => useFormBuilder());
       
       expect(result.current.formState.pages).toHaveLength(1);
       expect(result.current.formState.currentPageId).toBeDefined();
@@ -36,7 +72,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
     });
 
     it('should add components correctly', () => {
-      const { result } = renderHook(() => useSimpleFormBuilder());
+      const { result } = renderHook(() => useFormBuilder());
       
       act(() => {
         result.current.addComponent('text_input');
@@ -48,7 +84,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
     });
 
     it('should update components correctly', () => {
-      const { result } = renderHook(() => useSimpleFormBuilder());
+      const { result } = renderHook(() => useFormBuilder());
       
       // Add component first
       act(() => {
@@ -71,7 +107,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
     });
 
     it('should delete components correctly', () => {
-      const { result } = renderHook(() => useSimpleFormBuilder());
+      const { result } = renderHook(() => useFormBuilder());
       
       // Add component first
       act(() => {
@@ -90,7 +126,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
     });
 
     it('should handle component selection', () => {
-      const { result } = renderHook(() => useSimpleFormBuilder());
+      const { result } = renderHook(() => useFormBuilder());
       
       // Add component first
       act(() => {
@@ -115,7 +151,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
     });
 
     it('should handle undo/redo operations', () => {
-      const { result } = renderHook(() => useSimpleFormBuilder());
+      const { result } = renderHook(() => useFormBuilder());
       
       // Add first component
       act(() => {
@@ -146,7 +182,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
     });
 
     it('should handle drag and drop operations', () => {
-      const { result } = renderHook(() => useSimpleFormBuilder());
+      const { result } = renderHook(() => useFormBuilder());
       
       // Add initial component
       act(() => {
@@ -165,7 +201,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
     });
 
     it('should clear all components', () => {
-      const { result } = renderHook(() => useSimpleFormBuilder());
+      const { result } = renderHook(() => useFormBuilder());
       
       // Add multiple components
       act(() => {
@@ -185,7 +221,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
     });
 
     it('should export JSON correctly', () => {
-      const { result } = renderHook(() => useSimpleFormBuilder());
+      const { result } = renderHook(() => useFormBuilder());
       
       // Add component
       act(() => {
@@ -206,7 +242,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
     });
 
     it('should load JSON correctly', () => {
-      const { result } = renderHook(() => useSimpleFormBuilder());
+      const { result } = renderHook(() => useFormBuilder());
       
       const sampleJSON = {
         templateName: 'Imported Form',
@@ -234,7 +270,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
     });
 
     it('should handle page navigation', () => {
-      const { result } = renderHook(() => useSimpleFormBuilder());
+      const { result } = renderHook(() => useFormBuilder());
       
       // Add second page
       act(() => {
@@ -259,7 +295,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
     });
 
     it('should update page title', () => {
-      const { result } = renderHook(() => useSimpleFormBuilder());
+      const { result } = renderHook(() => useFormBuilder());
       
       const pageId = result.current.formState.currentPageId;
       
@@ -272,7 +308,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
     });
 
     it('should handle form submission', () => {
-      const { result } = renderHook(() => useSimpleFormBuilder());
+      const { result } = renderHook(() => useFormBuilder());
       
       // Add component
       act(() => {
@@ -293,7 +329,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
     });
 
     it('should calculate current page index correctly', () => {
-      const { result } = renderHook(() => useSimpleFormBuilder());
+      const { result } = renderHook(() => useFormBuilder());
       
       expect(result.current.getCurrentPageIndex()).toBe(0);
 
