@@ -1,25 +1,25 @@
 "use client";
 import React, { useState } from "react";
-import TextInputRenderer from "./renderers/TextInputRenderer";
-import SelectRenderer from "./renderers/SelectRenderer";
+import ButtonRenderer from "./renderers/ButtonRenderer";
+import CardRenderer from "./renderers/CardRenderer";
+import CheckboxRenderer from "./renderers/CheckboxRenderer";
+import DatePickerRenderer from "./renderers/DatePickerRenderer";
 import DefaultRenderer from "./renderers/DefaultRenderer";
 import EmailInputRenderer from "./renderers/EmailInputRenderer";
-import PasswordInputRenderer from "./renderers/PasswordInputRenderer";
-import NumberInputRenderer from "./renderers/NumberInputRenderer";
-import TextAreaRenderer from "./renderers/TextAreaRenderer";
-import RichTextRenderer from "./renderers/RichTextRenderer";
-import MultiSelectRenderer from "./renderers/MultiSelectRenderer";
-import CheckboxRenderer from "./renderers/CheckboxRenderer";
-import RadioGroupRenderer from "./renderers/RadioGroupRenderer";
-import DatePickerRenderer from "./renderers/DatePickerRenderer";
 import FileUploadRenderer from "./renderers/FileUploadRenderer";
-import SignatureRenderer from "./renderers/SignatureRenderer";
-import HorizontalLayoutRenderer from "./renderers/HorizontalLayoutRenderer";
-import VerticalLayoutRenderer from "./renderers/VerticalLayoutRenderer";
-import SectionDividerRenderer from "./renderers/SectionDividerRenderer";
-import ButtonRenderer from "./renderers/ButtonRenderer";
 import HeadingRenderer from "./renderers/HeadingRenderer";
-import CardRenderer from "./renderers/CardRenderer";
+import HorizontalLayoutRenderer from "./renderers/HorizontalLayoutRenderer";
+import MultiSelectRenderer from "./renderers/MultiSelectRenderer";
+import NumberInputRenderer from "./renderers/NumberInputRenderer";
+import PasswordInputRenderer from "./renderers/PasswordInputRenderer";
+import RadioGroupRenderer from "./renderers/RadioGroupRenderer";
+import RichTextRenderer from "./renderers/RichTextRenderer";
+import SectionDividerRenderer from "./renderers/SectionDividerRenderer";
+import SelectRenderer from "./renderers/SelectRenderer";
+import SignatureRenderer from "./renderers/SignatureRenderer";
+import TextAreaRenderer from "./renderers/TextAreaRenderer";
+import TextInputRenderer from "./renderers/TextInputRenderer";
+import VerticalLayoutRenderer from "./renderers/VerticalLayoutRenderer";
 
 const componentRenderers: { [key: string]: React.ComponentType<any> } = {
   text_input: TextInputRenderer,
@@ -52,25 +52,30 @@ export default function Canvas() {
 
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const componentData = JSON.parse(e.dataTransfer.getData("application/json"));
+    const componentData = JSON.parse(
+      e.dataTransfer.getData("application/json"),
+    );
     console.log("Dropped component:", componentData);
     setDroppedComponents([...droppedComponents, componentData]);
   };
 
   const renderComponent = (component: any): React.ReactNode => {
-    console.log("Rendering component:", component.type, "Available renderers:", Object.keys(componentRenderers));
+    console.log(
+      "Rendering component:",
+      component.type,
+      "Available renderers:",
+      Object.keys(componentRenderers),
+    );
     const Renderer = componentRenderers[component.type] || DefaultRenderer;
 
     // Handle layout components with nested children
-    if (component.type === 'horizontal_layout' && component.columns) {
+    if (component.type === "horizontal_layout" && component.columns) {
       return (
         <Renderer component={component}>
           {component.columns.map((column: any, colIndex: number) => (
             <div key={colIndex} className="flex-1">
               {column.fields?.map((field: any, fieldIndex: number) => (
-                <div key={fieldIndex}>
-                  {renderComponent(field)}
-                </div>
+                <div key={fieldIndex}>{renderComponent(field)}</div>
               ))}
             </div>
           ))}
@@ -78,25 +83,21 @@ export default function Canvas() {
       );
     }
 
-    if (component.type === 'vertical_layout' && component.fields) {
+    if (component.type === "vertical_layout" && component.fields) {
       return (
         <Renderer component={component}>
           {component.fields.map((field: any, fieldIndex: number) => (
-            <div key={fieldIndex}>
-              {renderComponent(field)}
-            </div>
+            <div key={fieldIndex}>{renderComponent(field)}</div>
           ))}
         </Renderer>
       );
     }
 
-    if (component.type === 'card' && component.children) {
+    if (component.type === "card" && component.children) {
       return (
         <Renderer component={component}>
           {component.children.map((child: any, childIndex: number) => (
-            <div key={childIndex}>
-              {renderComponent(child)}
-            </div>
+            <div key={childIndex}>{renderComponent(child)}</div>
           ))}
         </Renderer>
       );

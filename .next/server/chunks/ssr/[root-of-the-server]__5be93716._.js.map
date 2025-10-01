@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 3, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"","debugId":null}},
-    {"offset": {"line": 19, "column": 0}, "map": {"version":3,"sources":["file:///Users/sithuhlaing/Projects/new_formbuilder/src/app/new-form/page.tsx"],"sourcesContent":["\nexport default function NewForm() {\n  return (\n    <main className=\"flex min-h-screen flex-col items-center justify-between p-24\">\n      <div className=\"w-full max-w-5xl\">\n        <h1 className=\"text-2xl font-bold\">Create New Form</h1>\n        {/* Form fields will go here */}\n      </div>\n    </main>\n  );\n}\n"],"names":[],"mappings":";;;;;;AACe,SAAS;IACtB,qBACE,8OAAC;QAAK,WAAU;kBACd,cAAA,8OAAC;YAAI,WAAU;sBACb,cAAA,8OAAC;gBAAG,WAAU;0BAAqB;;;;;;;;;;;;;;;;AAK3C","debugId":null}}]
-}

@@ -12,8 +12,18 @@ export default function SignatureRenderer({ component }: { component: any }) {
       <div className="border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 h-32 relative">
         <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500">
           <div className="text-center">
-            <svg className="mx-auto h-8 w-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            <svg
+              className="mx-auto h-8 w-8 mb-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+              />
             </svg>
             <p className="text-sm">Sign here</p>
           </div>

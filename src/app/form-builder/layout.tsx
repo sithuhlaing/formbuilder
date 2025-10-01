@@ -33,9 +33,7 @@ export default function FormBuilderLayout({
           </button>
         </div>
       </nav>
-      <div className="flex flex-1 overflow-hidden">
-        {children}
-      </div>
+      <div className="flex flex-1 overflow-hidden">{children}</div>
     </div>
   );
 }

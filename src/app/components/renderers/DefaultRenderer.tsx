@@ -1,5 +1,3 @@
-import React from "react";
-
 export default function DefaultRenderer({ component }: { component: any }) {
   return (
     <div className="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800">
