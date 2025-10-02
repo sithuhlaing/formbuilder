@@ -12,6 +12,7 @@ export default function TextAreaRenderer({ component }: { component: any }) {
       <textarea
         placeholder={component.properties.placeholder}
         rows={4}
+        required={component.properties.required}
         className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md p-2 text-sm resize-vertical"
         readOnly
       />

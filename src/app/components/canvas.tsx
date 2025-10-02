@@ -20,6 +20,11 @@ import SignatureRenderer from "./renderers/SignatureRenderer";
 import TextAreaRenderer from "./renderers/TextAreaRenderer";
 import TextInputRenderer from "./renderers/TextInputRenderer";
 import VerticalLayoutRenderer from "./renderers/VerticalLayoutRenderer";
+import {
+  generateId,
+  getSchemaType,
+  getComponentType,
+} from "../datas/schema";
 
 const componentRenderers: { [key: string]: React.ComponentType<any> } = {
   text_input: TextInputRenderer,
@@ -43,11 +48,68 @@ const componentRenderers: { [key: string]: React.ComponentType<any> } = {
   card: CardRenderer,
 };
 
-export default function Canvas() {
+interface CanvasProps {
+  selectedComponent: any;
+  setSelectedComponent: (component: any) => void;
+}
+
+export default function Canvas({
+  selectedComponent,
+  setSelectedComponent,
+}: CanvasProps) {
   const [droppedComponents, setDroppedComponents] = useState<any[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  // Update the component in the canvas when selectedComponent changes
+  React.useEffect(() => {
+    if (selectedComponent && selectedIndex !== null) {
+      setDroppedComponents((prev) => {
+        const updated = [...prev];
+        updated[selectedIndex] = selectedComponent;
+        return updated;
+      });
+    }
+  }, [selectedComponent, selectedIndex]);
 
   const onDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+  };
+
+  const transformComponentToSchema = (component: any) => {
+    const id = generateId();
+    const schemaType = getSchemaType(component.type);
+
+    // For layout components
+    if (component.type === "horizontal_layout") {
+      return {
+        id,
+        type: schemaType,
+        isLayout: true,
+        columns: [
+          { id: `col-1-${id}`, fields: [] },
+          { id: `col-2-${id}`, fields: [] },
+        ],
+      };
+    }
+
+    if (component.type === "vertical_layout") {
+      return {
+        id,
+        type: schemaType,
+        isLayout: true,
+        fields: [],
+      };
+    }
+
+    // For regular form fields
+    return {
+      id,
+      type: schemaType,
+      label: component.properties?.label || component.label || "",
+      required: component.properties?.required || false,
+      placeholder: component.properties?.placeholder || "",
+      ...component.properties,
+    };
   };
 
   const onDrop = (e: React.DragEvent) => {
@@ -56,8 +118,28 @@ export default function Canvas() {
       e.dataTransfer.getData("application/json"),
     );
     console.log("Dropped component:", componentData);
-    setDroppedComponents([...droppedComponents, componentData]);
+
+    const transformedComponent = transformComponentToSchema(componentData);
+    console.log("Transformed component:", transformedComponent);
+
+    setDroppedComponents([...droppedComponents, transformedComponent]);
   };
+
+  const handleComponentClick = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedIndex(index);
+    setSelectedComponent(droppedComponents[index]);
+  };
+
+  const handleCanvasClick = () => {
+    setSelectedIndex(null);
+    setSelectedComponent(null);
+  };
+
+  // Log the current state for debugging
+  React.useEffect(() => {
+    console.log("Canvas items:", droppedComponents);
+  }, [droppedComponents]);
 
   const renderComponent = (component: any): React.ReactNode => {
     console.log(
@@ -66,7 +148,22 @@ export default function Canvas() {
       "Available renderers:",
       Object.keys(componentRenderers),
     );
-    const Renderer = componentRenderers[component.type] || DefaultRenderer;
+
+    // Convert schema type back to component type for renderer
+    const rendererType = getComponentType(component.type);
+    const Renderer = componentRenderers[rendererType] || DefaultRenderer;
+
+    // Normalize component structure for renderers (convert flat schema to nested properties)
+    const normalizedComponent = {
+      ...component,
+      type: rendererType,
+      properties: {
+        label: component.label,
+        placeholder: component.placeholder,
+        required: component.required,
+        ...component.properties,
+      },
+    };
 
     // Handle layout components with nested children
     if (component.type === "horizontal_layout" && component.columns) {
@@ -104,19 +201,30 @@ export default function Canvas() {
     }
 
     // For regular components (input fields, etc.)
-    return <Renderer component={component} />;
+    return <Renderer component={normalizedComponent} />;
   };
 
   return (
     <div
       onDragOver={onDragOver}
       onDrop={onDrop}
-      className="flex-1 bg-gray-100 dark:bg-gray-800 p-8"
+      onClick={handleCanvasClick}
+      className="flex-1 bg-gray-100 dark:bg-gray-800 p-8 overflow-y-auto"
     >
       <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 min-h-full border-2 border-dashed border-gray-300 dark:border-gray-700">
         {droppedComponents.length > 0 ? (
           droppedComponents.map((component, index) => (
-            <div key={index}>{renderComponent(component)}</div>
+            <div
+              key={index}
+              onClick={(e) => handleComponentClick(index, e)}
+              className={`cursor-pointer p-2 rounded transition-all ${
+                selectedIndex === index
+                  ? "ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                  : "hover:bg-gray-50 dark:hover:bg-gray-800"
+              }`}
+            >
+              {renderComponent(component)}
+            </div>
           ))
         ) : (
           <div className="flex items-center justify-center h-full">

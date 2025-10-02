@@ -16,6 +16,7 @@ export default function PasswordInputRenderer({
       <input
         type="password"
         placeholder={component.properties.placeholder}
+        required={component.properties.required}
         className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md p-2 text-sm"
         readOnly
       />
