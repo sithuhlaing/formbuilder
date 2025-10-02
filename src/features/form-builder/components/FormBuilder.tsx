@@ -15,6 +15,7 @@ export const FormBuilder: React.FC = () => {
     selectedComponent,
     addComponent,
     updateComponent,
+    updateComponents,
     deleteComponent,
     selectComponent,
     handleDrop,
@@ -173,6 +174,7 @@ export const FormBuilder: React.FC = () => {
               onSelect={selectComponent}
               onDelete={deleteComponent}
               onMove={moveComponent}
+              onUpdateComponents={updateComponents}
               selectedId={selectedComponent?.id}
             />
           </div>

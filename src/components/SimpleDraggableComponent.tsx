@@ -17,6 +17,8 @@ export interface SimpleDraggableComponentProps {
   onSelect: (id: string | null) => void;
   onDelete: (id: string) => void;
   onMove: (fromIndex: number, toIndex: number) => void;
+  dropZone?: 'before' | 'after' | 'left' | 'right' | 'inside';
+  componentRef?: (el: HTMLDivElement | null) => void;
 }
 
 interface DragItem {
@@ -32,7 +34,9 @@ export function SimpleDraggableComponent({
   mode,
   onSelect,
   onDelete,
-  onMove
+  onMove,
+  dropZone,
+  componentRef
 }: SimpleDraggableComponentProps) {
 
   // Simple drag handling for existing components
@@ -69,6 +73,9 @@ export function SimpleDraggableComponent({
   const dragDropRef = (node: HTMLDivElement | null) => {
     drag(node);
     drop(node);
+    if (componentRef) {
+      componentRef(node);
+    }
   };
 
   const handleClick = (e: React.MouseEvent) => {
@@ -143,6 +150,94 @@ export function SimpleDraggableComponent({
                 backgroundColor: 'rgba(0, 123, 255, 0.1)'
               }}
             />
+          )}
+
+          {/* Drop zone indicators for smart layout */}
+          {dropZone && (
+            <>
+              {dropZone === 'left' && (
+                <div
+                  className="drop-zone-indicator drop-zone-left"
+                  style={{
+                    position: 'absolute',
+                    left: '0',
+                    top: '0',
+                    bottom: '0',
+                    width: '4px',
+                    backgroundColor: '#28a745',
+                    zIndex: 15,
+                    boxShadow: '0 0 10px rgba(40, 167, 69, 0.6)',
+                    animation: 'pulse 0.8s ease-in-out infinite alternate'
+                  }}
+                />
+              )}
+              {dropZone === 'right' && (
+                <div
+                  className="drop-zone-indicator drop-zone-right"
+                  style={{
+                    position: 'absolute',
+                    right: '0',
+                    top: '0',
+                    bottom: '0',
+                    width: '4px',
+                    backgroundColor: '#28a745',
+                    zIndex: 15,
+                    boxShadow: '0 0 10px rgba(40, 167, 69, 0.6)',
+                    animation: 'pulse 0.8s ease-in-out infinite alternate'
+                  }}
+                />
+              )}
+              {dropZone === 'before' && (
+                <div
+                  className="drop-zone-indicator drop-zone-before"
+                  style={{
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    right: '0',
+                    height: '4px',
+                    backgroundColor: '#007bff',
+                    zIndex: 15,
+                    boxShadow: '0 0 10px rgba(0, 123, 255, 0.6)',
+                    animation: 'pulse 0.8s ease-in-out infinite alternate'
+                  }}
+                />
+              )}
+              {dropZone === 'after' && (
+                <div
+                  className="drop-zone-indicator drop-zone-after"
+                  style={{
+                    position: 'absolute',
+                    bottom: '0',
+                    left: '0',
+                    right: '0',
+                    height: '4px',
+                    backgroundColor: '#007bff',
+                    zIndex: 15,
+                    boxShadow: '0 0 10px rgba(0, 123, 255, 0.6)',
+                    animation: 'pulse 0.8s ease-in-out infinite alternate'
+                  }}
+                />
+              )}
+              {dropZone === 'inside' && (
+                <div
+                  className="drop-zone-indicator drop-zone-inside"
+                  style={{
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    right: '0',
+                    bottom: '0',
+                    border: '3px dashed #ffc107',
+                    borderRadius: '4px',
+                    backgroundColor: 'rgba(255, 193, 7, 0.15)',
+                    zIndex: 15,
+                    pointerEvents: 'none',
+                    animation: 'pulse 0.8s ease-in-out infinite alternate'
+                  }}
+                />
+              )}
+            </>
           )}
 
           {/* Component controls */}

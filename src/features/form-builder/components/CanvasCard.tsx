@@ -13,6 +13,7 @@ interface CanvasCardProps {
   onSelect: (componentId: string) => void;
   onDelete: (componentId: string) => void;
   onMove: (fromIndex: number, toIndex: number) => void;
+  onUpdateComponents?: (components: FormComponentData[]) => void;
   selectedId?: string;
 }
 
@@ -22,6 +23,7 @@ export const CanvasCard: React.FC<CanvasCardProps> = ({
   onSelect,
   onDelete,
   onMove,
+  onUpdateComponents,
   selectedId,
 }) => {
   return (
@@ -32,7 +34,7 @@ export const CanvasCard: React.FC<CanvasCardProps> = ({
           Drag components from the left panel to build your form
         </p>
       </div>
-      
+
       <div className="canvas-card__content">
         <Canvas
           components={components}
@@ -40,6 +42,7 @@ export const CanvasCard: React.FC<CanvasCardProps> = ({
           onSelect={onSelect}
           onDelete={onDelete}
           onMove={onMove}
+          onUpdateComponents={onUpdateComponents}
           selectedId={selectedId}
         />
       </div>

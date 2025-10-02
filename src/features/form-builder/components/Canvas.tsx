@@ -14,6 +14,7 @@ interface CanvasProps {
   onSelect: (componentId: string) => void;
   onDelete: (componentId: string) => void;
   onMove: (sourceId: string, targetId: string, position: 'before' | 'after') => void;
+  onUpdateComponents?: (components: Component[]) => void;
 }
 
 export const Canvas: React.FC<CanvasProps> = ({
@@ -23,6 +24,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   onSelect,
   onDelete,
   onMove,
+  onUpdateComponents,
 }) => {
   return (
     <div data-testid="canvas" className="form-builder-canvas form-canvas">
@@ -34,6 +36,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           onSelect={onSelect}
           onDelete={onDelete}
           onMove={onMove}
+          onUpdateComponents={onUpdateComponents}
           mode="builder"
         />
       </div>

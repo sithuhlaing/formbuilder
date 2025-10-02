@@ -316,6 +316,52 @@ export function useSimpleFormBuilder(): FormState & FormActions {
     });
   }, []);
 
+  // Update all components at once (for smart drop handler)
+  const updateComponents = useCallback((newComponents: Component[]) => {
+    setState(prev => {
+      // First, create the new state with the components replaced
+      const newState = {
+        ...prev,
+        pages: prev.pages.map(page =>
+          page.id === prev.currentPageId
+            ? {
+                ...page,
+                components: newComponents
+              }
+            : page
+        )
+      };
+
+      // Now save the NEW state to history
+      const stateToSave: FormState = {
+        pages: newState.pages.map(page => ({
+          ...page,
+          components: page.components.map(comp => ({ ...comp }))
+        })),
+        currentPageId: newState.currentPageId,
+        selectedId: newState.selectedId,
+        templateName: newState.templateName,
+        history: [],
+        historyIndex: -1,
+        previewMode: newState.previewMode,
+        mode: newState.mode,
+        editingTemplateId: newState.editingTemplateId
+      };
+
+      const historySlice = prev.historyIndex < prev.history.length - 1
+        ? prev.history.slice(0, prev.historyIndex + 1)
+        : prev.history;
+
+      const newHistory = [...historySlice, stateToSave].slice(-MAX_HISTORY);
+
+      return {
+        ...newState,
+        history: newHistory,
+        historyIndex: newHistory.length - 1
+      };
+    });
+  }, []);
+
   const selectComponent = useCallback((id: string | null) => {
     setState(prev => ({
       ...prev,
@@ -609,10 +655,11 @@ export function useSimpleFormBuilder(): FormState & FormActions {
     // State
     ...state,
     components: getCurrentPageComponents(),
-    
+
     // Actions
     addComponent,
     updateComponent,
+    updateComponents,
     deleteComponent,
     selectComponent,
     moveComponent,

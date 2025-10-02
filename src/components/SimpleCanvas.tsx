@@ -4,24 +4,36 @@
  * Total replacement: ~800 lines → ~100 lines (87% reduction)
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import { useDrop } from 'react-dnd';
-import type { Component, ComponentType, DragItem } from '../types/components';
+import type { Component, ComponentType } from '../types/components';
 import { SimpleDraggableComponent } from './SimpleDraggableComponent';
 import { renderSimpleComponent } from './SimpleRenderer';
 import { createComponent } from '../core/componentUtils';
+import { calculateDropZone, handleSmartDrop } from '../core/smartDropHandler';
+import type { DropZoneInfo } from '../core/smartDropHandler';
+
+// Internal drag item type for React DnD
+interface InternalDragItem {
+  type: string; // 'component-type' or 'existing-component'
+  componentType?: ComponentType;
+  id?: string;
+  index?: number;
+  component?: Component;
+}
 
 export interface SimpleCanvasProps {
   // Core data
   components: Component[];
   selectedId: string | null;
-  
+
   // Event handlers
   onDrop: (componentType: ComponentType, position?: { index: number }) => void;
   onSelect: (id: string | null) => void;
   onDelete: (id: string) => void;
   onMove: (fromIndex: number, toIndex: number) => void;
-  
+  onUpdateComponents?: (components: Component[]) => void; // For smart drop handler
+
   // Display options
   mode?: 'builder' | 'preview';
   className?: string;
@@ -35,12 +47,15 @@ export function SimpleCanvas({
   onSelect,
   onDelete,
   onMove,
+  onUpdateComponents,
   mode = 'builder',
   className = '',
   emptyMessage = 'Drag components here to start building your form'
 }: SimpleCanvasProps) {
   // State to track current drop position for visual feedback
   const [dropPosition, setDropPosition] = useState<number | null>(null);
+  const [dropZoneInfo, setDropZoneInfo] = useState<DropZoneInfo | null>(null);
+  const componentRefs = useRef<Map<string, HTMLElement>>(new Map());
 
   // Calculate drop position based on mouse position
   const calculateDropPosition = (monitor: any, canvasElement: HTMLElement): number => {
@@ -75,42 +90,85 @@ export function SimpleCanvas({
     return components.length;
   };
 
-  // Simple drop handling - replaces complex drop zone logic
-  const [{ isOver, canDrop, dragItem }, drop] = useDrop({
+  // Smart drop handling - implements 2.3 and 2.4
+  const [{ isOver, canDrop, dragItem }, dropRef] = useDrop({
     accept: ['component-type', 'existing-component'],
-    drop: (item: DragItem, monitor) => {
+    drop: (item: InternalDragItem, monitor) => {
       // Only handle drops directly on canvas (not nested drops)
       if (!monitor.isOver({ shallow: true })) {
         return;
       }
 
-      if (item.type || item.componentType) {
-        // Calculate where to insert the component based on drop position
-        const canvasElement = drop.current;
-        const insertIndex = canvasElement ? calculateDropPosition(monitor, canvasElement) : components.length;
-
-        // Dropping new component from palette
-        onDrop(item.type || item.componentType, { index: insertIndex });
+      const componentType = item.componentType;
+      if (componentType) {
+        // Use smart drop handler if we have drop zone info
+        if (dropZoneInfo && onUpdateComponents) {
+          const result = handleSmartDrop(components, componentType, dropZoneInfo);
+          onUpdateComponents(result.components);
+          onSelect(result.selectedId);
+        } else {
+          // Fallback to simple drop
+          const insertIndex = dropPosition !== null ? dropPosition : components.length;
+          onDrop(componentType, { index: insertIndex });
+        }
       }
 
-      // Clear drop position after drop
+      // Clear drop zone info after drop
       setDropPosition(null);
-      // Note: Moving existing components will be handled by SimpleDraggableComponent
+      setDropZoneInfo(null);
     },
-    hover: (item: DragItem, monitor) => {
+    hover: (item: InternalDragItem, monitor) => {
       // Only track hover for new components from palette
       if (item.type === 'component-type' && monitor.isOver({ shallow: true })) {
-        const canvasElement = drop.current;
-        if (canvasElement) {
-          const newDropPosition = calculateDropPosition(monitor, canvasElement);
-          setDropPosition(newDropPosition);
+        const clientOffset = monitor.getClientOffset();
+        if (!clientOffset) {
+          return;
+        }
+
+        // Find which component we're hovering over
+        let hoveredComponentId: string | null = null;
+        let hoveredElement: HTMLElement | null = null;
+
+        componentRefs.current.forEach((element, id) => {
+          const rect = element.getBoundingClientRect();
+          if (
+            clientOffset.x >= rect.left &&
+            clientOffset.x <= rect.right &&
+            clientOffset.y >= rect.top &&
+            clientOffset.y <= rect.bottom
+          ) {
+            hoveredComponentId = id;
+            hoveredElement = element;
+          }
+        });
+
+        if (hoveredComponentId && hoveredElement) {
+          const component = components.find(c => c.id === hoveredComponentId);
+          const isLayoutComponent = component?.type === 'horizontal_layout' || component?.type === 'vertical_layout';
+          const elementRect = hoveredElement.getBoundingClientRect();
+
+          const dropPosition = calculateDropZone(clientOffset, elementRect, isLayoutComponent);
+          const componentIndex = components.findIndex(c => c.id === hoveredComponentId);
+
+          setDropZoneInfo({
+            targetComponentId: hoveredComponentId,
+            position: dropPosition,
+            index: componentIndex
+          });
+        } else {
+          // Hovering over empty space - use simple position based on vertical position
+          setDropPosition(null);
+          setDropZoneInfo({
+            position: 'after',
+            index: components.length
+          });
         }
       }
     },
     collect: (monitor) => ({
       isOver: monitor.isOver({ shallow: true }),
       canDrop: monitor.canDrop(),
-      dragItem: monitor.getItem() as DragItem
+      dragItem: monitor.getItem() as InternalDragItem | null
     })
   });
 
@@ -122,17 +180,17 @@ export function SimpleCanvas({
   ].filter(Boolean).join(' ');
 
   // Create preview component for palette drags
-  const previewComponent = dragItem?.type === 'component-type' && isOver && canDrop
-    ? createComponent(dragItem.componentType || dragItem.type)
+  const previewComponent = dragItem?.type === 'component-type' && isOver && canDrop && dragItem.componentType
+    ? createComponent(dragItem.componentType)
     : null;
 
   // Determine drag type for visual feedback
-  const dragType = dragItem?.type === 'component-type' ? 'palette' : 
+  const dragType = dragItem?.type === 'component-type' ? 'palette' :
                    dragItem?.type === 'existing-component' ? 'reorder' : null;
 
   return (
-    <div 
-      ref={drop}
+    <div
+      ref={dropRef}
       className={canvasClasses}
       data-drag-type={dragType}
       onClick={() => mode === 'builder' && onSelect(null)} // Clear selection when clicking canvas
@@ -198,6 +256,14 @@ export function SimpleCanvas({
                 onSelect={onSelect}
                 onDelete={onDelete}
                 onMove={onMove}
+                dropZone={dropZoneInfo?.targetComponentId === component.id ? dropZoneInfo.position : undefined}
+                componentRef={(el) => {
+                  if (el) {
+                    componentRefs.current.set(component.id, el);
+                  } else {
+                    componentRefs.current.delete(component.id);
+                  }
+                }}
               />
 
               {/* Drop indicator after this component if drop position matches */}
