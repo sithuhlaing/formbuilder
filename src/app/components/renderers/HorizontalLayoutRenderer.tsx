@@ -1,38 +1,28 @@
 import React from "react";
 
-export default function HorizontalLayoutRenderer({
-  component,
-  children,
-}: {
+type HorizontalLayoutRendererProps = {
   component: any;
   children?: React.ReactNode;
-}) {
+};
+
+export default function HorizontalLayoutRenderer({ component, children }: HorizontalLayoutRendererProps) {
+  const childCount = component?.columns?.length ?? React.Children.count(children);
+
   return (
-    <div className="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-md">
-      {children ? (
-        <div className="flex space-x-4">{children}</div>
-      ) : (
-        <div className="flex space-x-4">
-          <div className="flex-1 min-h-[100px] border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md flex items-center justify-center text-gray-400 dark:text-gray-500">
-            <div className="text-center">
-              <svg
-                className="mx-auto h-8 w-8 mb-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-              <p className="text-sm">Drop components here</p>
-            </div>
+    <div className="rounded-2xl border border-dashed border-blue-200/60 bg-blue-50/40 p-4">
+      <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-wide text-blue-700">
+        <span>Row layout</span>
+        <span className="rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
+          {childCount}/4 slots
+        </span>
+      </div>
+      <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(childCount || 1, 4)}, minmax(0, 1fr))` }}>
+        {children ?? (
+          <div className="flex h-24 items-center justify-center rounded-xl border border-blue-200 bg-white/60 text-sm text-blue-500">
+            Drop a component to fill this row
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

@@ -100,8 +100,7 @@ export default function TemplateDetailsPage() {
           <EmptyState
             title="Template unavailable"
             description={error}
-            actionLabel="Back to templates"
-            onAction={handleBack}
+            onAction={{ text: "Back to templates", onClick: handleBack }}
           />
         ) : template ? (
           <TemplateDetails
@@ -114,8 +113,7 @@ export default function TemplateDetailsPage() {
           <EmptyState
             title="Template not found"
             description="We could not locate the requested template. It might have been deleted or is no longer available."
-            actionLabel="Back to templates"
-            onAction={handleBack}
+            onAction={{ text: "Back to templates", onClick: handleBack }}
           />
         )}
       </div>

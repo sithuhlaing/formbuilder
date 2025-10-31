@@ -143,8 +143,8 @@ Democratize form creation by providing a powerful yet easy-to-use visual builder
 
 #### FR-011: Automatic Container Dissolution
 **MUST** automatically dissolve horizontal layout containers when they contain ≤1 child component:
-- If 1 child remains: promote child to canvas column level, delete container
-- If 0 children remain: delete container entirely
+- If **1 child remains**: **the child MUST remain visible on the canvas**; promote it back to the vertical column layout while deleting only the now-empty row container
+- If **0 children remain**: delete the empty container entirely while leaving other siblings unaffected
 
 #### FR-012: Mixed Layout Support
 **MUST** support complex layouts combining vertical and horizontal arrangements:

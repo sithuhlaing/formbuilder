@@ -672,15 +672,15 @@ const Canvas: React.FC<CanvasProps> = ({
         onDragOver={(event) => handleDragOverComponent(event, node)}
         onDragLeave={handleDragLeave}
         onClick={() => handleSelection(node as FormComponent)}
-        className={`relative w-full flex-1 rounded-lg border border-dashed border-gray-300 bg-white p-3 shadow-sm transition-all hover:border-blue-300 ${
-          isSelected ? "ring-2 ring-blue-500" : ""
+        className={`relative w-full flex-1 rounded-xl border border-blue-100 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-lg ${
+          isSelected ? "ring-2 ring-cyan-400" : ""
         }`}
       >
         {dropBefore && (
-          <div className="absolute inset-y-0 -left-2 w-1 rounded-full bg-blue-500" />
+          <div className="absolute inset-y-0 -left-2 w-1 rounded-full bg-cyan-400" />
         )}
         {dropAfter && (
-          <div className="absolute inset-y-0 -right-2 w-1 rounded-full bg-blue-500" />
+          <div className="absolute inset-y-0 -right-2 w-1 rounded-full bg-cyan-400" />
         )}
         <Renderer component={node} />
       </div>
@@ -694,24 +694,24 @@ const Canvas: React.FC<CanvasProps> = ({
 
   return (
     <div
-      className="flex-1 overflow-y-auto bg-gray-100 p-6 dark:bg-gray-800"
+      className="flex-1 overflow-y-auto bg-gradient-to-br from-white via-sky-50 to-cyan-50 p-6"
       onDragOver={(event) => event.preventDefault()}
       onDrop={handleCanvasDrop}
     >
-      <div className="min-h-full rounded-lg border-2 border-dashed border-gray-300 bg-white p-6 shadow-inner dark:border-gray-600 dark:bg-gray-900">
+      <div className="min-h-full rounded-3xl border border-blue-100 bg-white p-8 shadow-sm">
         {errorMessage && (
-          <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          <div className="mb-4 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 shadow-sm">
             {errorMessage}
           </div>
         )}
         {renderedNodes.length > 0 ? (
           renderedNodes
         ) : (
-          <div className="flex h-full min-h-[240px] flex-col items-center justify-center text-center text-gray-500 dark:text-gray-400">
-            <p className="text-lg font-semibold">Drop components here</p>
-            <p className="mt-1 text-sm">
-              Drag a component from the left panel. Drop beside an existing
-              component to create a row automatically.
+          <div className="flex h-full min-h-[320px] flex-col items-center justify-center gap-3 text-center text-sky-500">
+            <div className="rounded-full bg-cyan-100 p-4 text-3xl text-cyan-600">🧩</div>
+            <p className="text-lg font-semibold text-sky-800">Drop components to begin</p>
+            <p className="max-w-md text-sm text-sky-600">
+              Drag fields from the component library on the left. Drop near another field to build a responsive row automatically.
             </p>
           </div>
         )}

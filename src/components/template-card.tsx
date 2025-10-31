@@ -29,17 +29,17 @@ export default function TemplateCard({
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'text-green-600 bg-green-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'hard': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'easy': return 'text-emerald-600 bg-emerald-100';
+      case 'medium': return 'text-amber-600 bg-amber-100';
+      case 'hard': return 'text-rose-600 bg-rose-100';
+      default: return 'text-cyan-600 bg-cyan-100';
     }
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'medical': return 'bg-blue-500';
-      case 'general': return 'bg-gray-500';
+      case 'medical': return 'bg-cyan-500';
+      case 'general': return 'bg-sky-500';
       default: return 'bg-purple-500';
     }
   };
@@ -50,150 +50,125 @@ export default function TemplateCard({
 
   if (compact) {
     return (
-      <div className="border rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <h3 className="text-sm font-semibold truncate">{template.name}</h3>
-            <div className="flex items-center gap-2 mt-1">
-              <span className={`text-xs px-2 py-1 rounded ${getDifficultyColor(template.difficulty)}`}>
+      <div className="group cursor-grab rounded-2xl border border-blue-100 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-md">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-sky-900">{template.name}</p>
+            <p className="mt-1 text-xs text-sky-500">{template.fieldCount} fields • {template.estimatedTime}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${getDifficultyColor(template.difficulty)}`}>
                 {template.difficulty}
               </span>
-              <span className="text-xs text-gray-500">
-                {template.fieldCount} fields
-              </span>
+              {template.isHipaaCompliant && (
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                  HIPAA
+                </span>
+              )}
             </div>
           </div>
-          {template.isHipaaCompliant && (
-            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-              HIPAA
-            </span>
-          )}
+          <div className="rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white">
+            {template.category.split('-')[0]}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-all duration-200 bg-white">
-      {/* Thumbnail/Preview Area */}
-      <div className="mb-4">
-        {template.thumbnailUrl ? (
-          <img 
-            src={template.thumbnailUrl} 
-            alt={template.name}
-            className="w-full h-32 object-cover rounded border"
-          />
-        ) : (
-          <div className="w-full h-32 bg-gray-100 rounded border flex items-center justify-center">
-            <div className="text-gray-400 text-center">
-              <div className="text-2xl mb-2">📋</div>
-              <div className="text-xs">No Preview</div>
-            </div>
-          </div>
-        )}
+    <div className="group flex h-full flex-col rounded-3xl border border-blue-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-xl font-semibold text-sky-900 group-hover:text-cyan-600">{template.name}</h3>
+          <p className="mt-2 text-sm text-sky-600 line-clamp-2">{template.description}</p>
+        </div>
+        <div className="rounded-2xl bg-cyan-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-600">
+          {template.category.replace(/-/g, ' ')}
+        </div>
       </div>
 
-      {/* Template Info */}
-      <div className="mb-3">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-          {template.name}
-        </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-          {template.description}
-        </p>
-      </div>
-
-      {/* Metadata */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        <span className={`text-xs px-2 py-1 rounded ${getDifficultyColor(template.difficulty)}`}>
-          {template.difficulty}
+      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium">
+        <span className={`rounded-full px-3 py-1 ${getDifficultyColor(template.difficulty)}`}>
+          {template.difficulty} build
         </span>
-        <span className={`text-xs px-2 py-1 rounded text-white ${getCategoryColor(template.category)}`}>
-          {template.category}
+        <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-600">
+          {template.fieldCount} fields
+        </span>
+        <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-600">
+          ~{template.estimatedTime}
         </span>
         {template.isHipaaCompliant && (
-          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-            HIPAA-ready
+          <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">
+            HIPAA ready
           </span>
         )}
         {template.isCustom && (
-          <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+          <span className="rounded-full bg-purple-100 px-3 py-1 text-purple-700">
             Custom
           </span>
         )}
       </div>
 
-      {/* Stats */}
-      <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-        <span>{template.fieldCount} fields</span>
-        <span>~{template.estimatedTime}</span>
-      </div>
-
-      {/* Tags */}
       {template.tags && template.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-4">
-          {template.tags.slice(0, 3).map((tag, index) => (
-            <span 
-              key={index}
-              className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
-            >
-              {tag}
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {template.tags.slice(0, 4).map((tag) => (
+            <span key={tag} className="rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-medium text-sky-600">
+              #{tag}
             </span>
           ))}
-          {template.tags.length > 3 && (
-            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-              +{template.tags.length - 3}
+          {template.tags.length > 4 && (
+            <span className="rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-medium text-sky-500">
+              +{template.tags.length - 4}
             </span>
           )}
         </div>
       )}
 
-      {/* Actions */}
-      {showActions && (
-        <div className="flex gap-2">
-          {onViewDetails ? (
-            <button
-              onClick={handleViewDetails}
-              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-            >
-              View Details
-            </button>
-          ) : (
-            <a
-              href={`/templates/${template.id}`}
-              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors text-center block"
-            >
-              View Details
-            </a>
-          )}
-          
-          {onUseTemplate ? (
-            <button
-              onClick={handleUseTemplate}
-              className="flex-1 px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-            >
-              Use Template
-            </button>
-          ) : (
-            <a
-              href={builderHref}
-              className="block flex-1 rounded bg-blue-600 px-3 py-2 text-center text-sm text-white transition-colors hover:bg-blue-700"
-            >
-              Use Template
-            </a>
-          )}
-        </div>
-      )}
+      <div className="mt-auto pt-6">
+        {showActions && (
+          <div className="flex gap-3">
+            {onViewDetails ? (
+              <button
+                onClick={handleViewDetails}
+                className="flex-1 rounded-xl border border-blue-100 bg-white px-4 py-2 text-sm font-semibold text-sky-700 shadow-sm transition hover:border-cyan-300 hover:text-cyan-600"
+              >
+                View outline
+              </button>
+            ) : (
+              <a
+                href={`/templates/${template.id}`}
+                className="flex-1 rounded-xl border border-blue-100 bg-white px-4 py-2 text-center text-sm font-semibold text-sky-700 shadow-sm transition hover:border-cyan-300 hover:text-cyan-600"
+              >
+                View outline
+              </a>
+            )}
 
-      {/* Version Info */}
-      {template.version && (
-        <div className="mt-3 text-xs text-gray-400">
-          Version {template.version}
-          {template.updatedAt && (
-            <span> • Updated {new Date(template.updatedAt).toLocaleDateString()}</span>
-          )}
-        </div>
-      )}
+            {onUseTemplate ? (
+              <button
+                onClick={handleUseTemplate}
+                className="flex-1 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-cyan-600"
+              >
+                Use template
+              </button>
+            ) : (
+              <a
+                href={builderHref}
+                className="flex-1 rounded-xl bg-cyan-500 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-cyan-600"
+              >
+                Use template
+              </a>
+            )}
+          </div>
+        )}
+
+        {template.version && (
+          <p className="mt-3 text-xs text-sky-400">
+            Version {template.version}
+            {template.updatedAt && (
+              <span> • Updated {new Date(template.updatedAt).toLocaleDateString()}</span>
+            )}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
