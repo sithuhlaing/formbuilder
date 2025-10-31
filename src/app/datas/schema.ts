@@ -17,6 +17,10 @@ const section_divider = 'section_divider';
 const button = 'button';
 const heading = 'heading';
 const card = 'card';
+const patient_id = 'patient_id';
+const medical_record_number = 'medical_record_number';
+const insurance_member_number = 'insurance_member_number';
+const nhs_number = 'nhs_number';
 
 export const componentTypes = {
   text_input,
@@ -38,6 +42,10 @@ export const componentTypes = {
   button,
   heading,
   card,
+  patient_id,
+  medical_record_number,
+  insurance_member_number,
+  nhs_number,
 };
 
 export const InputComponentTypes = [
@@ -46,7 +54,11 @@ export const InputComponentTypes = [
   password_input,
   number_input,
   textarea,
-  rich_text
+  rich_text,
+  patient_id,
+  medical_record_number,
+  insurance_member_number,
+  nhs_number
 ]; 
 
 export const LayoutComponentTypes = [
@@ -97,6 +109,10 @@ export const TYPE_MAPPINGS: Record<string, string> = {
   button: "button",
   heading: "heading",
   card: "card",
+  patient_id: "patient_id",
+  medical_record_number: "medical_record_number",
+  insurance_member_number: "insurance_member_number",
+  nhs_number: "nhs_number",
 };
 
 // Reverse mapping from schema types to component types
@@ -120,6 +136,10 @@ export const REVERSE_TYPE_MAPPINGS: Record<string, string> = {
   button: "button",
   heading: "heading",
   card: "card",
+  patient_id: "patient_id",
+  medical_record_number: "medical_record_number",
+  insurance_member_number: "insurance_member_number",
+  nhs_number: "nhs_number",
 };
 
 // Helper function to generate unique IDs

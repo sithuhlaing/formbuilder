@@ -68,6 +68,80 @@ export const components = {
           content: "Initial content",
         },
       },
+      {
+        type: "patient_id",
+        icon: "🆔",
+        label: "Patient ID",
+        description: "Standardised patient identifier with validation",
+        properties: {
+          label: "Patient ID",
+          placeholder: "e.g. PAT-123456",
+          required: true,
+          validation: [
+            { type: "required", message: "Patient ID is required" },
+            {
+              type: "pattern",
+              pattern: "^PAT-[0-9]{6}$",
+              message: "Use format PAT-123456",
+            },
+          ],
+        },
+      },
+      {
+        type: "medical_record_number",
+        icon: "📁",
+        label: "Medical Record Number",
+        description: "Unique MRN capture with format guardrails",
+        properties: {
+          label: "Medical Record Number",
+          placeholder: "e.g. MRN-00000001",
+          required: true,
+          validation: [
+            { type: "required", message: "Medical record number is required" },
+            {
+              type: "pattern",
+              pattern: "^MRN-[0-9]{8}$",
+              message: "Use format MRN-00000000",
+            },
+          ],
+        },
+      },
+      {
+        type: "insurance_member_number",
+        icon: "💳",
+        label: "Insurance Member Number",
+        description: "Capture insurance membership identifiers",
+        properties: {
+          label: "Insurance Member Number",
+          placeholder: "e.g. HMO-1234-5678",
+          required: false,
+          validation: [
+            {
+              type: "pattern",
+              pattern: "^[A-Z]{2,3}-[0-9]{4}-[0-9]{4}$",
+              message: "Use format HMO-1234-5678",
+            },
+          ],
+        },
+      },
+      {
+        type: "nhs_number",
+        icon: "🏥",
+        label: "NHS Number",
+        description: "UK NHS compliant patient identifier",
+        properties: {
+          label: "NHS Number",
+          placeholder: "000 000 0000",
+          required: false,
+          validation: [
+            {
+              type: "pattern",
+              pattern: "^[0-9]{3}\\s?[0-9]{3}\\s?[0-9]{4}$",
+              message: "Enter a 10 digit NHS number",
+            },
+          ],
+        },
+      },
     ],
   },
   selection_components: {

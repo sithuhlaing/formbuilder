@@ -34,7 +34,12 @@ export default function LeftPanel() {
   };
 
   const onDragStart = (e: React.DragEvent, component: any) => {
-    e.dataTransfer.setData("application/json", JSON.stringify(component));
+    const payload = {
+      source: "palette" as const,
+      component,
+    };
+    e.dataTransfer.effectAllowed = "copy";
+    e.dataTransfer.setData("application/json", JSON.stringify(payload));
   };
 
   return (
