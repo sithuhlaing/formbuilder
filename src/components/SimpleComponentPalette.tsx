@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { useDrag } from 'react-dnd';
 import type { ComponentType } from '../types/components';
 import { COMPONENT_CATEGORIES, DEFAULT_COMPONENT_LABELS } from '../types/components';
+import type { DragData } from '../core/smartDropHandler';
 
 export interface SimpleComponentPaletteProps {
   onAddComponent: (type: ComponentType) => void;
@@ -25,7 +26,11 @@ interface PaletteItemProps {
 function PaletteItem({ type, label, icon, onAddComponent }: PaletteItemProps) {
   const [{ isDragging }, drag] = useDrag({
     type: 'component-type',
-    item: { type, componentType: type }, // Pass both for compatibility
+    item: {
+      dragType: 'new-item' as const,
+      componentType: type,
+      // No sourceId or item for new components
+    } as DragData,
     collect: (monitor) => ({
       isDragging: monitor.isDragging()
     })

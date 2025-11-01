@@ -10,8 +10,18 @@ import type { Component, ComponentType } from '../types/components';
 import { SimpleDraggableComponent } from './SimpleDraggableComponent';
 import { renderSimpleComponent } from './SimpleRenderer';
 import { createComponent } from '../core/componentUtils';
-import { calculateDropZone, handleSmartDrop } from '../core/smartDropHandler';
-import type { DropZoneInfo } from '../core/smartDropHandler';
+import { 
+  calculateDropZone, 
+  handleSmartDrop, 
+  DropPosition,
+  type DropZoneInfo,
+  type DragData,
+  createHorizontalLayoutComplete,
+  checkAndDissolveRowContainer,
+  moveRowLayout,
+  validateRowLayoutDrop,
+  createRowDragData
+} from '../core/smartDropHandler';
 
 // Internal drag item type for React DnD
 interface InternalDragItem {
@@ -144,23 +154,26 @@ export function SimpleCanvas({
 
         if (hoveredComponentId && hoveredElement) {
           const component = components.find(c => c.id === hoveredComponentId);
-          const isLayoutComponent = component?.type === 'horizontal_layout' || component?.type === 'vertical_layout';
-          const elementRect = hoveredElement.getBoundingClientRect();
+          const elementRect = (hoveredElement as HTMLElement).getBoundingClientRect();
 
-          const dropPosition = calculateDropZone(clientOffset, elementRect, isLayoutComponent);
+          const dropPosition = calculateDropZone(clientOffset, elementRect, component || { type: 'text_input', id: '', label: '', required: false, validation: {} });
           const componentIndex = components.findIndex(c => c.id === hoveredComponentId);
 
-          setDropZoneInfo({
-            targetComponentId: hoveredComponentId,
-            position: dropPosition,
-            index: componentIndex
-          });
+          if (dropPosition) {
+            setDropZoneInfo({
+              targetComponentId: hoveredComponentId,
+              position: dropPosition,
+              index: componentIndex,
+              isValid: true
+            });
+          }
         } else {
           // Hovering over empty space - use simple position based on vertical position
           setDropPosition(null);
           setDropZoneInfo({
             position: 'after',
-            index: components.length
+            index: components.length,
+            isValid: true
           });
         }
       }
@@ -190,7 +203,7 @@ export function SimpleCanvas({
 
   return (
     <div
-      ref={dropRef}
+      ref={dropRef as any}
       className={canvasClasses}
       data-drag-type={dragType}
       onClick={() => mode === 'builder' && onSelect(null)} // Clear selection when clicking canvas
@@ -256,7 +269,7 @@ export function SimpleCanvas({
                 onSelect={onSelect}
                 onDelete={onDelete}
                 onMove={onMove}
-                dropZone={dropZoneInfo?.targetComponentId === component.id ? dropZoneInfo.position : undefined}
+                dropZone={dropZoneInfo?.targetComponentId === component.id ? (dropZoneInfo.position === 'center' ? undefined : dropZoneInfo.position) : undefined}
                 componentRef={(el) => {
                   if (el) {
                     componentRefs.current.set(component.id, el);

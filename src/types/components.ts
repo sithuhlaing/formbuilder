@@ -63,12 +63,16 @@ export interface Component {
     maxLength?: number;
     min?: number;
     max?: number;
+    email?: boolean;
     message?: string;
   };
   
   // === Simple Styling (replacing complex ComponentLayout) ===
   style?: React.CSSProperties;
   className?: string;
+  
+  // === Extended Properties (for layout configs, etc.) ===
+  properties?: Record<string, any>;
   
   // === Type-Specific Properties ===
   
