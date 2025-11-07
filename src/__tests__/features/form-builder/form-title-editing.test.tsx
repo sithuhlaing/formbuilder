@@ -6,7 +6,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { vi } from 'vitest';
 import { FormBuilder } from '../../../features/form-builder/components/FormBuilder';
 
-// Mock the useFormBuilder hook
+// Mock useFormBuilder hook
 vi.mock('../../../features/form-builder/hooks/useFormBuilder', () => ({
   useFormBuilder: vi.fn(() => ({
     formState: {
@@ -28,7 +28,7 @@ vi.mock('../../../features/form-builder/hooks/useFormBuilder', () => ({
     handleDrop: vi.fn(),
     updateProperty: vi.fn(),
     getCurrentPageIndex: vi.fn(() => 0),
-    updateTemplateName: vi.fn(),
+    setTemplateName: vi.fn(),
     onFormTitleChange: vi.fn(),
     addNewPage: vi.fn(),
     navigateToNextPage: vi.fn(),
@@ -76,7 +76,7 @@ describe('Form Title Editing', () => {
   });
 
   describe('Title Editing Functionality', () => {
-    it('should allow editing the form title', async () => {
+    it('should allow editing form title', async () => {
       const user = userEvent.setup();
       renderFormBuilder();
       
@@ -157,7 +157,7 @@ describe('Form Title Editing', () => {
       await user.clear(titleInput);
       await user.type(titleInput, longTitle);
       
-      expect(titleInput.value.length).toBeLessThanOrEqual(100);
+      expect((titleInput as HTMLInputElement).value.length).toBeLessThanOrEqual(100);
     });
   });
 
@@ -177,7 +177,7 @@ describe('Form Title Editing', () => {
         const exportButton = screen.getByText('Export JSON');
         fireEvent.click(exportButton);
         
-        // Verify the exported JSON contains the updated title
+        // Verify that exported JSON contains updated title
         // This would need to be implemented based on your export functionality
       });
     });
@@ -249,7 +249,7 @@ describe('Form Title Editing', () => {
       // Focus should add visual indicator
       await user.click(titleInput);
       expect(titleInput).toHaveFocus();
-      expect(titleInput).toHaveClass(/focused|editing/);
+      expect(titleInput).toHaveClass('focused', 'editing');
     });
 
     it('should show save indicator when title changes', async () => {
