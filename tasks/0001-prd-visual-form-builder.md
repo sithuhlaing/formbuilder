@@ -132,8 +132,8 @@ Democratize form creation by providing a powerful yet easy-to-use visual builder
 - **Left/Right** (25% left, 25% right edges): Create or expand horizontal row layout
 - **Inside/Center** (middle area): Add to container or canvas center
 
-#### FR-009: Horizontal Layout Capacity
-**MUST** limit horizontal layouts to a maximum of 4 components. **MUST** display error message if user attempts to exceed this limit.
+#### FR-009: Horizontal Layout Display
+**MUST** display horizontal layouts with proper spacing and alignment. **SHOULD** provide visual feedback when adding components to rows (e.g., component count indicator).
 
 #### FR-010: Horizontal Layout Constraints
 **MUST** enforce the following rules:
@@ -143,8 +143,8 @@ Democratize form creation by providing a powerful yet easy-to-use visual builder
 
 #### FR-011: Automatic Container Dissolution
 **MUST** automatically dissolve horizontal layout containers when they contain ≤1 child component:
-- If **1 child remains**: **the child MUST remain visible on the canvas**; promote it back to the vertical column layout while deleting only the now-empty row container
-- If **0 children remain**: delete the empty container entirely while leaving other siblings unaffected
+- If 1 child remains: promote child to canvas column level, delete container
+- If 0 children remain: delete container entirely
 
 #### FR-012: Mixed Layout Support
 **MUST** support complex layouts combining vertical and horizontal arrangements:
@@ -327,23 +327,40 @@ The builder interface is optimized for desktop use only. Responsive forms for mo
 
 ## 6. Design Considerations
 
+**For detailed wireframes and screen flows, see: `0002-wireframes-visual-form-builder.md`**
+
 ### 6.1 User Interface Guidelines
 
 #### Three-Panel Layout
 - **Left Panel**: Component palette with categorized sections (collapsible groups)
+  - Width: 280px
+  - Scrollable content
+  - Search bar at top
+  - 5 collapsible component categories with icons
 - **Center Canvas**: Drag-and-drop workspace with visual drop indicators
+  - Width: Flexible (800-1200px based on viewport)
+  - Scrollable vertical canvas
+  - Drop zone indicators appear during drag operations
 - **Right Panel**: Properties panel for selected component configuration
+  - Width: 320px
+  - Context-sensitive (shows component or page properties)
+  - Collapsible sections for organization
 
 #### Visual Feedback
 - Clear drop zone indicators (blue lines for valid drops, red for invalid)
-- Selected component highlighting with border/shadow
-- Hover states on draggable components
-- Drag preview showing component being moved (semi-transparent)
+- Selected component highlighting with border/shadow (█ indicator)
+- Hover states on draggable components (shows drag handle ⋮⋮)
+- Drag preview showing component being moved (semi-transparent ghost)
+- Drop position detection zones:
+  - Top/Bottom: 30% of element height (vertical positioning)
+  - Left/Right: 20% of element width (horizontal positioning)
+  - Center: 60% blocked for row interior (invalid drop zone)
 
 #### Responsive Canvas Behavior
 - Canvas width adapts to browser size
 - Horizontal layouts wrap to vertical on mobile preview mode
 - Desktop-first design for builder interface
+- Preview mode supports: Desktop (💻), Tablet (📱), Mobile (📱) views
 
 ### 6.2 Component Visual Design
 
@@ -351,24 +368,281 @@ The builder interface is optimized for desktop use only. Responsive forms for mo
 Each component on canvas displays:
 - Component icon/type indicator
 - Label text (editable inline)
-- Action buttons (delete, duplicate, settings)
-- Drag handle for repositioning
+- Action buttons on hover: ✎ Edit, ⎘ Duplicate, 🗑 Delete
+- Drag handle for repositioning (⋮⋮)
+- Border and shadow for selected state
+- Help text displayed below field (if configured)
 
 #### Row Layout Containers
 Horizontal layouts visually distinguished by:
-- Subtle background color or border
-- Drag handle for moving entire row
+- Container border with header
+- Row drag handle (⋮⋮⋮) for moving entire row as unit
 - Capacity indicator (e.g., "2/4 components")
+- Subtle background color differentiation
+- Individual component drag handles within row
+- Drop zone restrictions clearly indicated
 
-### 6.3 Accessibility
-- Keyboard navigation support for all drag-drop operations
-- Screen reader compatible labels and announcements
-- Sufficient color contrast for all text and indicators
-- Focus indicators for keyboard users
+#### Domain-Specific Adaptations
+- Component palette filters based on domain selection
+- Terminology updates throughout UI:
+  - Forms: "Field", "Component", "Form"
+  - Surveys: "Question", "Question Type", "Survey"
+  - Workflows: "Step", "Action", "Workflow"
+- Domain indicator always visible at top of screen
+
+### 6.3 Screen States
+
+#### Empty State (Initial Load)
+- Large centered call-to-action
+- Options: "Get Started" or "Load Template"
+- Clear instructions for first-time users
+- No components selected, properties panel shows helper text
+
+#### Building State (Active Work)
+- Components arranged on canvas
+- Properties panel active with selected component details
+- Status bar shows: component count, layout summary, save status
+- Undo/Redo counters visible
+
+#### Error States
+- Clear error messages with actionable guidance
+- Visual indicators (⚠, 🚫) for blocked operations
+- Specific instructions on how to resolve issues
+- Examples: Row capacity exceeded, invalid component type for domain
+
+### 6.4 Navigation & Routes
+
+**Primary Routes:**
+- `/` - Landing page with domain selection
+- `/builder` - Main builder interface
+- `/builder/preview` - Live preview mode
+- `/templates` - Template library browser
+- `/templates/:id/preview` - Template preview modal
+- `/templates/my` - User's saved templates
+
+**URL Parameters:**
+- `?domain=forms|surveys|workflows` - Pre-select domain
+- `?templateId=abc123` - Load specific template
+
+### 6.5 Accessibility
+
+#### Keyboard Navigation
+- All interactive elements keyboard accessible
+- Drag-drop operations have keyboard alternatives:
+  - `Space` to activate drag on focused component
+  - `Arrow Keys` to move component during keyboard drag
+  - `Enter` to drop component at current position
+  - `Esc` to cancel drag operation
+- Tab order follows logical reading flow
+
+#### Screen Reader Support
+- ARIA labels on all form controls
+- Screen reader announcements for:
+  - Component additions/deletions
+  - Drag-drop operations
+  - Validation errors
+  - Row container creation/dissolution
+  - Undo/redo operations
+- Status messages use aria-live regions
+
+#### Visual Accessibility
+- Color contrast meets WCAG AA standards (4.5:1 text, 3:1 UI)
+- Focus indicators visible and clear (2px outline)
+- No color-only indicators (icons + text for all states)
+- Sufficient touch target sizes (44x44px minimum)
+
+### 6.6 Performance Considerations
+
+#### Visual Optimization
+- Skeleton loaders during data fetch (< 2 seconds)
+- Lazy loading of off-screen components
+- Virtualization for large forms (> 100 components)
+- Debounced property updates (50ms delay)
+- Cached layout calculations
+
+#### User Feedback
+- Immediate visual response to all interactions (< 100ms)
+- Loading indicators for async operations
+- Progress bars for multi-step operations
+- Success/error notifications with auto-dismiss
+
+---
+
+## 6A. User Flows & Screen Transitions
+
+**For detailed interaction flows and state diagrams, see: `0002-wireframes-visual-form-builder.md`**
+
+### Primary User Journeys
+
+#### Journey 1: Create Form from Scratch (Non-Technical User)
+1. **Landing** → Select domain (Forms/Surveys/Workflows)
+2. **Builder Empty State** → View empty canvas with "Get Started" prompt
+3. **Drag Components** → Drag from palette to canvas (creates new instances)
+4. **Arrange Layout** → Position vertically (top/bottom) or horizontally (left/right)
+5. **Configure Properties** → Edit labels, validation, required fields
+6. **Add More Components** → Build complex layouts with rows and columns
+7. **Preview & Test** → Switch to preview mode, test validation
+8. **Save Template** → Save as reusable template with metadata
+9. **Export JSON** → Export for integration with existing systems
+
+**Success Criteria:** User creates functional form in < 15 minutes without technical assistance
+
+#### Journey 2: Use Existing Template (Quick Start)
+1. **Template Library** → Browse, filter, search templates by domain/category
+2. **Template Preview** → View detailed preview with all components and metadata
+3. **Use Template** → Load pre-configured form into builder
+4. **Modify Content** → Update labels, add/remove components as needed
+5. **Customize Layout** → Rearrange components, adjust validation rules
+6. **Save as Custom** → Optional: Save modified version as new template
+7. **Export** → Export final form as JSON
+
+**Success Criteria:** User creates customized form from template in < 5 minutes
+
+#### Journey 3: Build Complex Multi-Page Form
+1. **Start in Builder** → Begin with empty canvas or template
+2. **Add Page** → Click "+ Add Page" to create multi-page structure
+3. **Build Page 1** → Add components, arrange layout for first page
+4. **Switch to Page 2** → Click page tab, build second page
+5. **Configure Page Navigation** → Set validation rules, enable "Next" buttons
+6. **Test Flow** → Preview mode to test multi-page navigation
+7. **Export Complete Form** → Export all pages as single JSON structure
+
+**Success Criteria:** User creates 3-page form with page-level validation in < 20 minutes
+
+### Key Interaction Patterns
+
+#### Pattern 1: Horizontal Layout Creation
+**Trigger:** Drop component LEFT or RIGHT of existing component (within 20% edge zones)
+**Action Sequence:**
+1. User drags component from palette or canvas
+2. Hovers over target component
+3. Drop zone indicator appears (blue vertical line on left/right edge)
+4. User releases mouse
+5. System creates horizontal row container
+6. Both components now inside row (2/4 capacity shown)
+7. Properties panel updates to show row settings
+8. Undo action added to history
+
+**Visual Feedback:** Blue drop line → Row container border → Capacity indicator (2/4)
+
+#### Pattern 2: Row Container Auto-Dissolution
+**Trigger:** Row container reduced to ≤1 child (via delete or drag-out)
+**Action Sequence:**
+1. User deletes component from 2-element row OR drags component out
+2. System detects row now has ≤1 child
+3. Auto-dissolution logic triggers
+4. Remaining child(ren) extracted
+5. Row container deleted
+6. Children promoted to canvas column level
+7. Notification shown: "Row dissolved, components promoted"
+8. Undo action added to history
+
+**Visual Feedback:** Component removal → Row border disappears → Standalone component styling
+
+#### Pattern 3: Component Property Editing
+**Trigger:** Click component on canvas
+**Action Sequence:**
+1. User clicks component
+2. Component highlights with selection border (█)
+3. Properties panel updates with component details
+4. User edits property (label, validation, etc.)
+5. Change reflected on canvas immediately (< 50ms)
+6. Save status updates: "All changes saved locally"
+7. Action added to undo history
+
+**Visual Feedback:** Selection border → Properties panel update → Real-time canvas update
+
+#### Pattern 4: Undo/Redo Operation
+**Trigger:** Ctrl+Z (Undo) or Ctrl+Shift+Z (Redo) or button click
+**Action Sequence:**
+1. User triggers undo
+2. Last action retrieved from history stack
+3. State reverted to previous snapshot
+4. Action moved to redo stack
+5. Undo counter decremented, redo counter incremented
+6. Canvas and properties panel update to reflect previous state
+7. Status notification: "Undone: [action description]"
+
+**Visual Feedback:** Counter updates → Canvas state changes → Status message
+
+### State Management & Transitions
+
+#### Canvas States
+- **EMPTY** → First component added → **ONE ELEMENT**
+- **ONE ELEMENT** → Add component top/bottom → **COLUMN LAYOUT**
+- **ONE ELEMENT** → Add component left/right → **ROW CREATED**
+- **COLUMN LAYOUT** → Continue adding → **MIXED LAYOUT** (rows + columns)
+- **ROW CREATED** → Add to row → **ROW EXPANDED** (up to 4 components)
+- **ROW EXPANDED** → Delete to ≤1 → **AUTO-DISSOLVE** → Back to column
+
+#### Component Selection States
+- **NO SELECTION** → Click component → **COMPONENT SELECTED**
+- **COMPONENT SELECTED** → Edit properties → **EDITING PROPERTIES**
+- **COMPONENT SELECTED** → Click canvas → **NO SELECTION**
+- **COMPONENT SELECTED** → Click different component → **NEW SELECTION**
+
+#### Drag-Drop States
+- **IDLE** → Mouse down on component → **DRAGGING**
+- **DRAGGING** → Mouse move over target → **OVER TARGET**
+- **OVER TARGET** → Calculate position → **SHOW DROP ZONE**
+- **SHOW DROP ZONE** → Mouse up (valid) → **INSERT COMPONENT** → **IDLE**
+- **SHOW DROP ZONE** → Mouse up (invalid) → **ERROR MESSAGE** → **IDLE**
+- **DRAGGING** → Esc key → **CANCEL** → **IDLE**
+
+### Error Handling Flows
+
+#### Error Flow 1: Row Capacity Exceeded
+1. User drags 5th component to full row (4/4)
+2. System detects capacity violation
+3. Drop zone shows red "blocked" indicator (🚫)
+4. Cursor changes to "not-allowed"
+5. User attempts drop → Action prevented
+6. Error modal appears with clear explanation and alternatives
+7. User clicks "OK" → Modal closes, drag operation cancelled
+
+#### Error Flow 2: Invalid Component for Domain
+1. User in "Surveys" domain attempts to add "Password Input"
+2. Component grayed out in palette (indicates unavailable)
+3. User attempts drag → Drag prevented at source
+4. Tooltip appears: "Not available in Surveys domain"
+5. User hovers over info icon → Expanded explanation shown
+6. User switches to "Forms" domain → Component becomes available
+
+#### Error Flow 3: Template Save Validation Failure
+1. User clicks "Save Template"
+2. Modal opens with form
+3. User leaves required fields empty
+4. User clicks "Save Template" button
+5. Validation runs, detects empty required fields
+6. Error messages appear adjacent to invalid fields (red text + icon)
+7. Save button disabled until issues resolved
+8. User fixes issues → Validation clears → Save enabled
+
+### Performance Optimization Flows
+
+#### Flow 1: Large Form Loading (> 100 components)
+1. User loads template with 500 components
+2. Loading indicator appears immediately (< 100ms)
+3. Skeleton placeholders render for above-fold components
+4. Virtual scrolling activated for off-screen components
+5. Components render progressively (50 at a time)
+6. Above-fold components visible within 2 seconds
+7. Full form interactive within 5 seconds
+8. Status: "Loaded 500 components"
+
+#### Flow 2: Real-Time Property Updates
+1. User types in label field
+2. Input debounced (50ms delay)
+3. After 50ms pause, update propagates to canvas
+4. Canvas component re-renders with new label
+5. History snapshot created
+6. Total time from keystroke to canvas update: < 100ms
 
 ---
 
 ## 7. Technical Considerations
+
+**For complete layout implementation logic, see: `0003-layout-logic-implementation.md`**
 
 ### 7.1 Technology Stack Integration
 
@@ -623,6 +897,7 @@ A form is considered successfully completed when:
 - **Domain**: Specific use case category (forms, surveys, workflows)
 
 ### B. References
+- **Wireframes & Screen Flows**: `0002-wireframes-visual-form-builder.md` (comprehensive visual documentation)
 - Business Logic & Functional Requirements Document (attached)
 - Existing Tech Stack Documentation (TBD)
 - Data Schema Specifications (TBD)
