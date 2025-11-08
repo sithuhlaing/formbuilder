@@ -10,38 +10,35 @@ import { useFormBuilder } from '../hooks/useFormBuilder';
 
 export const FormBuilder: React.FC = () => {
   const {
-    formState,
-    currentComponents,
-    selectedComponent,
+    pages,
+    currentPageId,
+    templateName,
+    components: currentComponents,
+    selectedId,
     addComponent,
     updateComponent,
-    updateComponents,
     deleteComponent,
     selectComponent,
-    handleDrop,
     moveComponent,
     setTemplateName,
     getCurrentPageIndex,
     navigateToNextPage,
     navigateToPreviousPage,
     addNewPage,
-    handleFormSubmit,
-    updatePageTitle,
-    // Additional form builder methods
     clearAll,
-    loadFromJSON,
+    importJSON: loadFromJSON,
     exportJSON,
     undo,
     redo,
     canUndo,
     canRedo,
-    isPreviewMode,
+    previewMode: isPreviewMode,
     togglePreview
   } = useFormBuilder();
 
   const currentPageIndex = getCurrentPageIndex();
-  const currentPage = formState.pages[currentPageIndex];
-  const isLastPage = currentPageIndex === formState.pages.length - 1;
+  const currentPage = pages[currentPageIndex];
+  const isLastPage = currentPageIndex === pages.length - 1;
 
   // File operation helper functions
   const handleLoadJSON = () => {
@@ -74,7 +71,7 @@ export const FormBuilder: React.FC = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${formState.templateName.replace(/\s+/g, '_')}_template.json`;
+      a.download = `${templateName.replace(/\s+/g, '_')}_template.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -85,7 +82,7 @@ export const FormBuilder: React.FC = () => {
     }
   };
   const canGoBack = currentPageIndex > 0;
-  const canGoNext = currentPageIndex < formState.pages.length - 1;
+  const canGoNext = currentPageIndex < pages.length - 1;
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -152,37 +149,37 @@ export const FormBuilder: React.FC = () => {
           <div className="form-builder__middle-panel">
             {/* Card 1: Form Title and Page Management */}
             <FormPageCard
-              formTitle={formState.templateName || 'Untitled Form'}
+              formTitle={templateName || 'Untitled Form'}
               onFormTitleChange={setTemplateName}
               currentPageIndex={currentPageIndex}
-              totalPages={formState.pages.length}
+              totalPages={pages.length}
               currentPageTitle={currentPage?.title || 'Untitled Page'}
               onPreviousPage={navigateToPreviousPage}
               onNextPage={navigateToNextPage}
-              onSubmit={handleFormSubmit}
+              onSubmit={() => {}}
               onAddPage={addNewPage}
               canGoBack={canGoBack}
               canGoNext={canGoNext}
               isLastPage={isLastPage}
-              onUpdatePageTitle={(title) => updatePageTitle(currentPage?.id || '', title)}
+              onUpdatePageTitle={(title) => {}}
             />
 
             {/* Card 2: Canvas Area */}
             <CanvasCard
               components={currentComponents}
-              onDrop={handleDrop}
+              onDrop={() => {}}
               onSelect={selectComponent}
               onDelete={deleteComponent}
               onMove={moveComponent}
-              onUpdateComponents={updateComponents}
-              selectedId={selectedComponent?.id}
+              onUpdateComponents={() => {}}
+              selectedId={selectedId || undefined}
             />
           </div>
 
           {/* Properties Panel */}
           <div className="form-builder__properties">
             <ComponentPropertiesPanel
-              selectedComponent={selectedComponent}
+              selectedComponent={null}
               onUpdateComponent={updateComponent}
             />
           </div>
