@@ -9,39 +9,18 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { FormBuilder } from '../../../features/form-builder/components/FormBuilder';
-import { useFormBuilder } from '../../../features/form-builder/hooks/useFormBuilder';
-
-// Mock the useFormBuilder hook for controlled testing
-vi.mock('../../../features/form-builder/hooks/useFormBuilder');
-
-const mockUseFormBuilder = vi.mocked(useFormBuilder);
+import { createMockFormBuilderState, mockUseFormBuilder } from '../../mocks/useFormBuilderMock';
 
 describe('Form Wizard Pagination', () => {
   const mockFormBuilderReturn = {
-    formState: {
-      pages: [
-        { id: 'page1', title: 'Personal Information', components: [], layout: {} },
-        { id: 'page2', title: 'Contact Details', components: [], layout: {} },
-        { id: 'page3', title: 'Preferences', components: [], layout: {} }
-      ],
-      currentPageId: 'page1',
-      selectedComponentId: null,
-      templateName: 'Multi-Page Form',
-      templateId: null
-    },
-    currentComponents: [],
-    selectedComponent: null,
-    addComponent: vi.fn(),
-    updateComponent: vi.fn(),
-    deleteComponent: vi.fn(),
-    selectComponent: vi.fn(),
-    handleDrop: vi.fn(),
-    moveComponent: vi.fn(),
-    setTemplateName: vi.fn(),
-    getCurrentPageIndex: vi.fn(() => 0),
-    navigateToNextPage: vi.fn(),
-    navigateToPreviousPage: vi.fn(),
-    addNewPage: vi.fn(),
+    ...createMockFormBuilderState(),
+    templateName: 'Multi-Page Form',
+    pages: [
+      { id: 'page1', title: 'Personal Information', components: [], layout: {}, order: 0 },
+      { id: 'page2', title: 'Contact Details', components: [], layout: {}, order: 1 },
+      { id: 'page3', title: 'Preferences', components: [], layout: {}, order: 2 }
+    ],
+    currentPageId: 'page1',
     handleFormSubmit: vi.fn(() => true),
     updatePageTitle: vi.fn()
   };
@@ -100,14 +79,13 @@ describe('Form Wizard Pagination', () => {
 
     it('should navigate to previous page when previous button is clicked', () => {
       // Mock being on page 2
-      mockFormBuilderReturn.getCurrentPageIndex = vi.fn(() => 1);
-      mockUseFormBuilder.mockReturnValue({
+      const mockStatePage2 = {
         ...mockFormBuilderReturn,
-        formState: {
-          ...mockFormBuilderReturn.formState,
-          currentPageId: 'page2'
-        }
-      });
+        pages: mockFormBuilderReturn.pages,
+        currentPageId: 'page2',
+        getCurrentPageIndex: vi.fn(() => 1)
+      };
+      mockUseFormBuilder.mockReturnValue(mockStatePage2);
 
       renderFormBuilder();
 
@@ -130,14 +108,13 @@ describe('Form Wizard Pagination', () => {
   describe('Last Page Submission Workflow', () => {
     beforeEach(() => {
       // Mock being on the last page
-      mockFormBuilderReturn.getCurrentPageIndex = vi.fn(() => 2);
-      mockUseFormBuilder.mockReturnValue({
+      const mockStateLastPage = {
         ...mockFormBuilderReturn,
-        formState: {
-          ...mockFormBuilderReturn.formState,
-          currentPageId: 'page3'
-        }
-      });
+        pages: mockFormBuilderReturn.pages,
+        currentPageId: 'page3',
+        getCurrentPageIndex: vi.fn(() => 2)
+      };
+      mockUseFormBuilder.mockReturnValue(mockStateLastPage);
     });
 
     it('should show submit button on last page instead of next button', () => {
@@ -179,15 +156,13 @@ describe('Form Wizard Pagination', () => {
     });
 
     it('should show placeholder when page title is empty', () => {
-      mockUseFormBuilder.mockReturnValue({
+      const mockStateEmptyTitle = {
         ...mockFormBuilderReturn,
-        formState: {
-          ...mockFormBuilderReturn.formState,
-          pages: [
-            { id: 'page1', title: '', components: [], layout: {} }
-          ]
-        }
-      });
+        pages: [
+          { id: 'page1', title: '', components: [], layout: {}, order: 0 }
+        ]
+      };
+      mockUseFormBuilder.mockReturnValue(mockStateEmptyTitle);
 
       renderFormBuilder();
 
@@ -199,15 +174,15 @@ describe('Form Wizard Pagination', () => {
   describe('Form Wizard Integration with Drag and Drop', () => {
     it('should create multi-page form with drag and drop components', async () => {
       // Mock form state with components on different pages
-      const formStateWithComponents = {
-        ...mockFormBuilderReturn.formState,
+      const mockStateWithComponents = {
+        ...mockFormBuilderReturn,
         pages: [
           {
             id: 'page1',
             title: 'Personal Information',
             components: [
-              { id: 'comp1', type: 'text_input', label: 'First Name', required: true },
-              { id: 'comp2', type: 'text_input', label: 'Last Name', required: true }
+              { id: 'comp1', type: 'text_input', label: 'First Name', required: true, fieldId: 'first_name' },
+              { id: 'comp2', type: 'text_input', label: 'Last Name', required: true, fieldId: 'last_name' }
             ],
             layout: {}
           },
@@ -215,19 +190,15 @@ describe('Form Wizard Pagination', () => {
             id: 'page2',
             title: 'Contact Details',
             components: [
-              { id: 'comp3', type: 'email_input', label: 'Email Address', required: true },
-              { id: 'comp4', type: 'text_input', label: 'Phone Number', required: false }
+              { id: 'comp3', type: 'email_input', label: 'Email Address', required: true, fieldId: 'email' },
+              { id: 'comp4', type: 'text_input', label: 'Phone Number', required: false, fieldId: 'phone' }
             ],
             layout: {}
           }
         ]
       };
 
-      mockUseFormBuilder.mockReturnValue({
-        ...mockFormBuilderReturn,
-        formState: formStateWithComponents,
-        currentComponents: formStateWithComponents.pages[0].components
-      });
+      mockUseFormBuilder.mockReturnValue(mockStateWithComponents);
 
       renderFormBuilder();
 
@@ -240,15 +211,12 @@ describe('Form Wizard Pagination', () => {
       fireEvent.click(nextBtn);
 
       // Mock navigation to page 2
-      mockFormBuilderReturn.getCurrentPageIndex = vi.fn(() => 1);
-      mockUseFormBuilder.mockReturnValue({
-        ...mockFormBuilderReturn,
-        formState: {
-          ...formStateWithComponents,
-          currentPageId: 'page2'
-        },
-        currentComponents: formStateWithComponents.pages[1].components
-      });
+      const mockStatePage2 = {
+        ...mockStateWithComponents,
+        currentPageId: 'page2',
+        getCurrentPageIndex: vi.fn(() => 1)
+      };
+      mockUseFormBuilder.mockReturnValue(mockStatePage2);
 
       // Re-render to simulate state change
       renderFormBuilder();
@@ -258,14 +226,13 @@ describe('Form Wizard Pagination', () => {
 
     it('should handle form submission with validation', () => {
       // Mock form with empty pages (should fail validation)
-      mockFormBuilderReturn.handleFormSubmit = vi.fn(() => false);
-      mockUseFormBuilder.mockReturnValue({
+      const mockStateFailValidation = {
         ...mockFormBuilderReturn,
-        formState: {
-          ...mockFormBuilderReturn.formState,
-          currentPageId: 'page3'
-        }
-      });
+        handleFormSubmit: vi.fn(() => false),
+        currentPageId: 'page3',
+        getCurrentPageIndex: vi.fn(() => 2)
+      };
+      mockUseFormBuilder.mockReturnValue(mockStateFailValidation);
 
       renderFormBuilder();
 
@@ -286,14 +253,12 @@ describe('Form Wizard Pagination', () => {
 
     it('should update progress when navigating pages', () => {
       // Mock being on page 2
-      mockFormBuilderReturn.getCurrentPageIndex = vi.fn(() => 1);
-      mockUseFormBuilder.mockReturnValue({
+      const mockStatePage2 = {
         ...mockFormBuilderReturn,
-        formState: {
-          ...mockFormBuilderReturn.formState,
-          currentPageId: 'page2'
-        }
-      });
+        currentPageId: 'page2',
+        getCurrentPageIndex: vi.fn(() => 1)
+      };
+      mockUseFormBuilder.mockReturnValue(mockStatePage2);
 
       renderFormBuilder();
 

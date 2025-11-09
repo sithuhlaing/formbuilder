@@ -1,11 +1,79 @@
 import { beforeEach, vi, expect, beforeAll } from 'vitest';
+import React from 'react';
 import '@testing-library/jest-dom/vitest';
 
 // Import test compatibility layer
 import './test-compatibility';
 
+// Global mock for useFormBuilder hook
+import { mockUseFormBuilder, createMockFormBuilderState } from './mocks/useFormBuilderMock';
+
+// Set up default mock state for all tests
+const defaultMockState = createMockFormBuilderState();
+
+// Ensure the mock always returns a valid state
+mockUseFormBuilder.mockImplementation(() => defaultMockState);
+
+// Mock DnD globally for all tests
+vi.mock('react-dnd', () => ({
+  DndProvider: ({ children }: { children: React.ReactNode }) => children,
+  useDrag: () => [{ isDragging: false }, () => {}, vi.fn()],
+  useDrop: () => [{ isOver: false }, () => {}],
+}));
+
+vi.mock('react-dnd-html5-backend', () => ({
+  HTML5Backend: 'html5-backend',
+  getEmptyImage: vi.fn(() => ({ img: new Image() }))
+}));
+
+// Mock useFormBuilder globally
+vi.mock('../../features/form-builder/hooks/useFormBuilder', () => ({
+  useFormBuilder: () => mockUseFormBuilder()
+}));
+
+// Mock SimpleDraggableComponent callbacks globally
+vi.mock('../../components/SimpleDraggableComponent', () => ({
+  SimpleDraggableComponent: ({ 
+    component, 
+    selected, 
+    mode, 
+    onSelect, 
+    onDelete, 
+    ...props 
+  }: any) => {
+    const handleClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (mode === 'builder' && typeof onSelect === 'function') {
+        onSelect(selected ? null : component.id);
+      }
+    };
+    
+    const handleDelete = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (typeof onDelete === 'function') {
+        onDelete(component.id);
+      }
+    };
+
+    return React.createElement('div', {
+      'data-testid': `draggable-component-${component.id}`,
+      onClick: handleClick,
+      style: { border: selected ? '2px solid blue' : '1px solid gray' },
+      ...props
+    }, [
+      React.createElement('span', {}, component.label || component.type),
+      mode === 'builder' && React.createElement('button', {
+        onClick: handleDelete,
+        'data-testid': `delete-${component.id}`
+      }, 'Delete')
+    ]);
+  }
+}));
+
+// Reset mock before each test to ensure clean state
 beforeEach(() => {
   vi.clearAllMocks();
+  mockUseFormBuilder.mockReturnValue(defaultMockState);
 });
 
 // Mock IntersectionObserver
@@ -108,6 +176,24 @@ beforeAll(() => {
   // Mock DragEvent
   global.DragEvent = class DragEvent extends Event {
     dataTransfer: DataTransfer;
+    altKey: boolean = false;
+    button: number = 0;
+    buttons: number = 0;
+    clientX: number = 0;
+    clientY: number = 0;
+    ctrlKey: boolean = false;
+    metaKey: boolean = false;
+    offsetX: number = 0;
+    offsetY: number = 0;
+    pageX: number = 0;
+    pageY: number = 0;
+    relatedTarget: EventTarget | null = null;
+    screenX: number = 0;
+    screenY: number = 0;
+    shiftKey: boolean = false;
+    view: Window | null = null;
+    which: number = 0;
+    
     constructor(type: string, eventInitDict?: DragEventInit) {
       super(type, eventInitDict);
       this.dataTransfer = {
@@ -122,7 +208,7 @@ beforeAll(() => {
         setDragImage: vi.fn(),
       } as DataTransfer;
     }
-  };
+  } as any;
 });
 
 // Mock ResizeObserver
