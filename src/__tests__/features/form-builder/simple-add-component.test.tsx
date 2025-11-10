@@ -20,7 +20,8 @@ describe('🔬 Simple Component Addition Test', () => {
       </DndProvider>
     );
     
-    const createNewButton = screen.getByText('+ Create New Form');
+    // Wait for lazy component to load and button to appear
+    const createNewButton = await screen.findByText('+ Create New Form');
     await userEvent.click(createNewButton);
     
     console.log('=== BEFORE ADDING COMPONENT ===');
@@ -30,9 +31,9 @@ describe('🔬 Simple Component Addition Test', () => {
     const initialCount = canvas.querySelectorAll('[data-testid="canvas-item"]').length;
     console.log('Initial canvas elements:', initialCount);
     
-    // Find and click "Text Input Field" component (matches ComponentEngine label)
-    const textInputComponent = screen.getByText('Text Input Field');
-    console.log('Found Text Input Field component:', textInputComponent.textContent);
+    // Find and click "Text Input" component (matches DEFAULT_COMPONENT_LABELS)
+    const textInputComponent = screen.getByText('Text Input');
+    console.log('Found Text Input component:', textInputComponent.textContent);
     
     // Click to add
     await userEvent.click(textInputComponent);

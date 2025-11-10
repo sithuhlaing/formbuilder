@@ -123,6 +123,7 @@ export function SimpleDraggableComponent({
       className={componentClasses}
       style={componentStyle}
       onClick={handleClick}
+      data-testid="canvas-item"
       data-component-index={index}
       data-component-id={component.id}
     >

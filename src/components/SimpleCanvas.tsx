@@ -205,6 +205,7 @@ export function SimpleCanvas({
     <div
       ref={dropRef as any}
       className={canvasClasses}
+      data-testid="canvas"
       data-drag-type={dragType}
       onClick={() => mode === 'builder' && onSelect(null)} // Clear selection when clicking canvas
       style={{

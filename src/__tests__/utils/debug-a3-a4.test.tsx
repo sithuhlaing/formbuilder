@@ -14,7 +14,7 @@ describe('🔍 Debug A3 and A4 Issues', () => {
     );
     
     // Navigate to form builder
-    const createNewButton = screen.getByText('+ Create New Form');
+    const createNewButton = await screen.findByText('+ Create New Form');
     await userEvent.click(createNewButton);
     
     // Add first element

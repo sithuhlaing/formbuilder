@@ -246,7 +246,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
         result.current.updatePageTitle(pageId, 'Updated Page Title');
       });
 
-      const currentPage = result.current.formState.pages.find(p => p.id === pageId);
+      const currentPage = result.current.formState.pages.find((p: any) => p.id === pageId);
       expect(currentPage?.title).toBe('Updated Page Title');
     });
 
@@ -376,9 +376,9 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
       const mockProps = {
         components: [],
         selectedId: null,
-        onSelectComponent: vi.fn(),
-        onUpdateComponent: vi.fn(),
-        onDeleteComponent: vi.fn(),
+        onSelect: vi.fn(),
+        onDelete: vi.fn(),
+        onMove: vi.fn(),
         onDrop: vi.fn(),
         previewMode: false
       };
@@ -414,9 +414,9 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
       const mockProps = {
         components: mockComponents,
         selectedId: null,
-        onSelectComponent: vi.fn(),
-        onUpdateComponent: vi.fn(),
-        onDeleteComponent: vi.fn(),
+        onSelect: vi.fn(),
+        onDelete: vi.fn(),
+        onMove: vi.fn(),
         onDrop: vi.fn(),
         previewMode: false
       };
@@ -432,7 +432,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
     });
 
     it('should handle component selection', () => {
-      const mockOnSelectComponent = vi.fn();
+      const mockOnSelect = vi.fn();
       const mockComponents = [
         {
           id: 'comp1',
@@ -446,9 +446,9 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
       const mockProps = {
         components: mockComponents,
         selectedId: null,
-        onSelectComponent: mockOnSelectComponent,
-        onUpdateComponent: vi.fn(),
-        onDeleteComponent: vi.fn(),
+        onSelect: mockOnSelect,
+        onDelete: vi.fn(),
+        onMove: vi.fn(),
         onDrop: vi.fn(),
         previewMode: false
       };
@@ -462,7 +462,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
       const componentElement = screen.getByText('Name');
       fireEvent.click(componentElement);
 
-      expect(mockOnSelectComponent).toHaveBeenCalledWith('comp1');
+      expect(mockOnSelect).toHaveBeenCalledWith('comp1');
     });
 
     it('should show selected component with highlight', () => {
@@ -479,9 +479,9 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
       const mockProps = {
         components: mockComponents,
         selectedId: 'comp1',
-        onSelectComponent: vi.fn(),
-        onUpdateComponent: vi.fn(),
-        onDeleteComponent: vi.fn(),
+        onSelect: vi.fn(),
+        onDelete: vi.fn(),
+        onMove: vi.fn(),
         onDrop: vi.fn(),
         previewMode: false
       };
@@ -498,7 +498,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
     });
 
     it('should handle component deletion', () => {
-      const mockOnDeleteComponent = vi.fn();
+      const mockOnDelete = vi.fn();
       const mockComponents = [
         {
           id: 'comp1',
@@ -512,9 +512,9 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
       const mockProps = {
         components: mockComponents,
         selectedId: 'comp1',
-        onSelectComponent: vi.fn(),
-        onUpdateComponent: vi.fn(),
-        onDeleteComponent: mockOnDeleteComponent,
+        onSelect: vi.fn(),
+        onDelete: mockOnDelete,
+        onMove: vi.fn(),
         onDrop: vi.fn(),
         previewMode: false
       };
@@ -528,7 +528,7 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
       const deleteButton = screen.getByTitle('Delete component');
       fireEvent.click(deleteButton);
 
-      expect(mockOnDeleteComponent).toHaveBeenCalledWith('comp1');
+      expect(mockOnDelete).toHaveBeenCalledWith('comp1');
     });
 
     it('should handle drop operations', () => {
@@ -536,9 +536,9 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
       const mockProps = {
         components: [],
         selectedId: null,
-        onSelectComponent: vi.fn(),
-        onUpdateComponent: vi.fn(),
-        onDeleteComponent: vi.fn(),
+        onSelect: vi.fn(),
+        onDelete: vi.fn(),
+        onMove: vi.fn(),
         onDrop: mockOnDrop,
         previewMode: false
       };
@@ -576,9 +576,9 @@ describe('🎨 Form Builder Components - Comprehensive Coverage', () => {
       const mockProps = {
         components: mockComponents,
         selectedId: null,
-        onSelectComponent: vi.fn(),
-        onUpdateComponent: vi.fn(),
-        onDeleteComponent: vi.fn(),
+        onSelect: vi.fn(),
+        onDelete: vi.fn(),
+        onMove: vi.fn(),
         onDrop: vi.fn(),
         previewMode: true
       };
