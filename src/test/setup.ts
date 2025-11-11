@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import { vi } from 'vitest'
+import { vi, beforeEach } from 'vitest'
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -41,3 +41,8 @@ const localStorageMock = {
   clear: vi.fn(),
 }
 vi.stubGlobal('localStorage', localStorageMock)
+
+// Clean up mocks before each test
+beforeEach(() => {
+  vi.clearAllMocks()
+})
