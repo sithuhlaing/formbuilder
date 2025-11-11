@@ -81,7 +81,7 @@ describe('Comprehensive Drag-Drop Testing', () => {
       const dropZone = calculateDropZone(
         { x: 150, y: 125 }, // Center of target
         mockRect,
-        { type: 'text_input', id: 'test', label: 'Test' } as Component
+        { type: 'text_input' as ComponentType, id: 'test', label: 'Test' }
       );
 
       expect(dropZone).toBeDefined();
@@ -113,7 +113,7 @@ describe('Comprehensive Drag-Drop Testing', () => {
         const dropZone = calculateDropZone(
           { x: 30, y: 25 }, // 15% from left (in 20% zone)
           mockRect,
-          mockComponent
+          { ...mockComponent, label: 'Test', type: 'text_input' as ComponentType }
         );
 
         expect(dropZone).toBe('left');
@@ -249,7 +249,11 @@ describe('Comprehensive Drag-Drop Testing', () => {
       };
 
       const components = [rowWithOneChild];
-      const result = checkAndDissolveRowContainer(rowWithOneChild, components);
+      const result = checkAndDissolveRowContainer({
+        rowLayout: rowWithOneChild,
+        parentComponents: components,
+        trigger: 'manual'
+      });
 
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('child1'); // Child promoted to canvas level
@@ -265,7 +269,11 @@ describe('Comprehensive Drag-Drop Testing', () => {
       };
 
       const components = [emptyRow];
-      const result = checkAndDissolveRowContainer(emptyRow, components);
+      const result = checkAndDissolveRowContainer({
+        rowLayout: emptyRow,
+        parentComponents: components,
+        trigger: 'manual'
+      });
 
       expect(result).toHaveLength(0); // Row deleted, no children to promote
     });
@@ -282,7 +290,11 @@ describe('Comprehensive Drag-Drop Testing', () => {
       };
 
       const components = [rowWithTwoChildren];
-      const result = checkAndDissolveRowContainer(rowWithTwoChildren, components);
+      const result = checkAndDissolveRowContainer({
+        rowLayout: rowWithTwoChildren,
+        parentComponents: components,
+        trigger: 'manual'
+      });
 
       expect(result).toHaveLength(1);
       expect(result[0].type).toBe('horizontal_layout'); // Row preserved
@@ -302,13 +314,14 @@ describe('Comprehensive Drag-Drop Testing', () => {
         ]
       };
 
-      const components = [
-        { id: 'sep1', type: 'text_input', label: 'Separator 1' },
+      const components: Component[] = [
+        { id: 'sep1', type: 'text_input' as ComponentType, label: 'Separator 1' },
         rowLayout,
-        { id: 'sep2', type: 'text_input', label: 'Separator 2' }
+        { id: 'sep2', type: 'text_input' as ComponentType, label: 'Separator 2' }
       ];
 
-      const result = moveRowLayout(rowLayout, 'sep2', 'after', components);
+      const targetComponent = { id: 'sep2', type: 'text_input' as ComponentType, label: 'Separator 2' };
+      const result = moveRowLayout(rowLayout, targetComponent, 'after', components);
 
       expect(result[0].id).toBe('sep1');
       expect(result[1].id).toBe('sep2');
@@ -316,17 +329,24 @@ describe('Comprehensive Drag-Drop Testing', () => {
     });
 
     test('should block horizontal positioning of row layouts', () => {
-      const validation = validateRowLayoutDrop(
-        { type: 'text_input', id: 'target' },
-        'left'
-      );
+      const testRowLayout = { type: 'horizontal_layout' as ComponentType, id: 'row1', label: 'Row 1' };
+      const dragData = {
+        dragType: 'existing-item' as const,
+        sourceId: 'row1',
+        componentType: 'horizontal_layout' as const,
+        item: testRowLayout,
+        isRowLayout: true as const
+      };
+      const targetComponent = { type: 'text_input' as ComponentType, id: 'target', label: 'Target' };
+
+      const validation = validateRowLayoutDrop(dragData, targetComponent, 'left');
 
       expect(validation.valid).toBe(false);
       expect(validation.reason).toContain('only be repositioned vertically');
     });
 
     test('should prevent circular references', () => {
-      const childComponent = { type: 'text_input', id: 'child1' };
+      const childComponent = { type: 'text_input' as ComponentType, id: 'child1', label: 'Child 1' };
       const rowLayout: Component = {
         id: 'row1',
         type: 'horizontal_layout',
@@ -334,7 +354,16 @@ describe('Comprehensive Drag-Drop Testing', () => {
         children: [childComponent]
       };
 
-      const validation = validateRowLayoutDrop(childComponent, 'after');
+      const dragData = {
+        dragType: 'existing-item' as const,
+        sourceId: 'row1',
+        componentType: 'horizontal_layout' as const,
+        item: rowLayout,
+        isRowLayout: true as const
+      };
+      const targetComponent = { type: 'text_input' as ComponentType, id: 'child1', label: 'Child 1' };
+
+      const validation = validateRowLayoutDrop(dragData, targetComponent, 'after');
 
       expect(validation.valid).toBe(false);
       expect(validation.reason).toContain('circular reference');
