@@ -28,3 +28,28 @@ dev-dist-ssr
 coverage/
 dev-dist/
 .env
+
+# Next.js
+.next/
+out/
+build/
+.turbo/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
