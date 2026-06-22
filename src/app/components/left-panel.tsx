@@ -67,7 +67,7 @@ export default function LeftPanel() {
   return (
     <aside
       style={{ width: isCollapsed ? "92px" : `${width}px` }}
-      className="relative border-r border-blue-100 bg-gradient-to-b from-white via-sky-50 to-cyan-50 text-sky-700 transition-all duration-300"
+      className="h-full relative border-r border-blue-100 bg-gradient-to-b from-white via-sky-50 to-cyan-50 text-sky-700 transition-all duration-300"
     >
       <button
         onClick={() => setIsCollapsed((prev) => !prev)}
