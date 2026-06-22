@@ -68,6 +68,8 @@ const componentRenderers: Record<ComponentKind, React.ComponentType<any>> = {
 interface CanvasProps {
   selectedComponent: FormComponent | null;
   setSelectedComponent: (component: FormComponent | null) => void;
+  nodes: FormNode[];
+  setNodes: React.Dispatch<React.SetStateAction<FormNode[]>>;
 }
 
 const randomId = () =>
@@ -334,8 +336,9 @@ const getComponentRenderer = (component: FormComponent | RowContainer) => {
 const Canvas: React.FC<CanvasProps> = ({
   selectedComponent,
   setSelectedComponent,
+  nodes,
+  setNodes,
 }) => {
-  const [nodes, setNodes] = useState<FormNode[]>([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(
     null,
