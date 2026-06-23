@@ -56,6 +56,134 @@ a {
 }
 
 *:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #ffe300;
   outline-offset: 2px;
 }
+
+/* ==========================================================================
+   NHS Inspired Theme Custom Styles (Nice and Clear)
+   ========================================================================== */
+
+/* 1. Remove double border wrapper boxes inside form builder & preview modes */
+.form-preview-container .mb-4.p-4.border.border-gray-200.rounded-md {
+  border: none !important;
+  padding: 0 !important;
+  background: transparent !important;
+  margin-bottom: 2rem !important;
+}
+
+/* 2. Flat and accessible labels */
+.form-preview-container label {
+  display: block !important;
+  font-size: 1.125rem !important;
+  font-weight: 700 !important;
+  color: #212b32 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.form-preview-container label .text-red-500 {
+  color: #d5281b !important;
+}
+
+/* 3. High-contrast clinical input fields */
+.form-preview-container input[type="text"],
+.form-preview-container input[type="email"],
+.form-preview-container input[type="password"],
+.form-preview-container input[type="number"],
+.form-preview-container select,
+.form-preview-container textarea {
+  border: 2px solid #212b32 !important;
+  border-radius: 4px !important;
+  padding: 0.5rem 0.75rem !important;
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  color: #212b32 !important;
+  background-color: #ffffff !important;
+  width: 100% !important;
+}
+
+.form-preview-container input:focus,
+.form-preview-container select:focus,
+.form-preview-container textarea:focus {
+  outline: 3px solid #ffe300 !important;
+  outline-offset: 0 !important;
+  border-color: #212b32 !important;
+  box-shadow: none !important;
+}
+
+/* 4. Large checkbox and radio button style overrides */
+.form-preview-container input[type="checkbox"] {
+  width: 28px !important;
+  height: 28px !important;
+  border: 2px solid #212b32 !important;
+  border-radius: 4px !important;
+  background-color: #ffffff !important;
+  margin-right: 0.5rem !important;
+}
+
+.form-preview-container input[type="radio"] {
+  width: 28px !important;
+  height: 28px !important;
+  border: 2px solid #212b32 !important;
+  border-radius: 50% !important;
+  background-color: #ffffff !important;
+  margin-right: 0.5rem !important;
+}
+
+.form-preview-container input[type="checkbox"]:focus,
+.form-preview-container input[type="radio"]:focus {
+  outline: 3px solid #ffe300 !important;
+  outline-offset: 0 !important;
+}
+
+/* 5. Flat Action Buttons */
+.form-preview-container button {
+  border-radius: 4px !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  padding: 0.75rem 1.5rem !important;
+  box-shadow: none !important;
+}
+
+.form-preview-container button.bg-blue-600 {
+  background-color: #007f3b !important; /* NHS success green button */
+  color: #ffffff !important;
+  border-bottom: 4px solid #00401d !important;
+}
+
+.form-preview-container button.bg-blue-600:hover {
+  background-color: #005a26 !important;
+}
+
+.form-preview-container button.bg-gray-600 {
+  background-color: #4c5860 !important; /* NHS neutral secondary button */
+  color: #ffffff !important;
+  border-bottom: 4px solid #212b32 !important;
+}
+
+.form-preview-container button.bg-gray-600:hover {
+  background-color: #212b32 !important;
+}
+
+.form-preview-container button.bg-white {
+  background-color: #ffffff !important;
+  border: 2px solid #212b32 !important;
+  color: #212b32 !important;
+}
+
+.form-preview-container button.bg-white:hover {
+  background-color: #f0f4f5 !important;
+}
+
+/* 6. Date picker icon / container spacing adjustments */
+.form-preview-container input[type="date"] {
+  border: 2px solid #212b32 !important;
+  border-radius: 4px !important;
+}
+
+/* 7. Signature Pad clear line styling */
+.form-preview-container canvas {
+  border: 2px solid #212b32 !important;
+  border-radius: 4px !important;
+}
+

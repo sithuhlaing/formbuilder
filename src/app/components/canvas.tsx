@@ -70,6 +70,7 @@ interface CanvasProps {
   setSelectedComponent: (component: FormComponent | null) => void;
   nodes: FormNode[];
   setNodes: React.Dispatch<React.SetStateAction<FormNode[]>>;
+  previewMode?: boolean;
 }
 
 const randomId = () =>
@@ -338,12 +339,20 @@ const Canvas: React.FC<CanvasProps> = ({
   setSelectedComponent,
   nodes,
   setNodes,
+  previewMode = false,
 }) => {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(
     null,
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (previewMode) {
+      setSelectedNodeId(null);
+      setSelectedComponent(null);
+    }
+  }, [previewMode, setSelectedComponent]);
 
   useEffect(() => {
     if (!selectedComponent || !selectedNodeId) return;
@@ -397,12 +406,13 @@ const Canvas: React.FC<CanvasProps> = ({
   const computeDropPosition = (
     event: React.DragEvent<HTMLElement>,
   ): DropPosition => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const offsetX = event.clientX - rect.left;
-    const offsetY = event.clientY - rect.top;
+    const currentTarget = event.currentTarget;
+    const rect = currentTarget ? currentTarget.getBoundingClientRect() : null;
+    const offsetX = rect ? event.clientX - rect.left : 0;
+    const offsetY = rect ? event.clientY - rect.top : 0;
 
-    const verticalFraction = offsetY / rect.height;
-    const horizontalFraction = offsetX / rect.width;
+    const verticalFraction = rect ? offsetY / rect.height : 0;
+    const horizontalFraction = rect ? offsetX / rect.width : 0;
 
     if (verticalFraction < 0.3) return "before";
     if (verticalFraction > 0.7) return "after";
@@ -490,6 +500,7 @@ const Canvas: React.FC<CanvasProps> = ({
           resultNodes = insertResult.nodes;
         }
       } else if (indicator.position === "left" || indicator.position === "right") {
+        let insertedInRow = false;
         if (indicator.parentRowId) {
           const insertResult = insertIntoRow(
             workingNodes,
@@ -498,10 +509,15 @@ const Canvas: React.FC<CanvasProps> = ({
             movingNode,
             indicator.position,
           );
-          resultNodes = insertResult.nodes;
-          error = insertResult.error;
-        } else {
-          const target = findNodeById(nodes, indicator.targetId);
+          if (insertResult.inserted) {
+            resultNodes = insertResult.nodes;
+            error = insertResult.error;
+            insertedInRow = true;
+          }
+        }
+        
+        if (!insertedInRow) {
+          const target = findNodeById(workingNodes, indicator.targetId);
           if (target && !isRowContainer(target)) {
             const row = createRow(target, movingNode, indicator.position);
             resultNodes = replaceNode(workingNodes, target.nodeId, row);
@@ -516,7 +532,11 @@ const Canvas: React.FC<CanvasProps> = ({
           movingNode,
           "after",
         );
-        resultNodes = insertResult.nodes;
+        if (!insertResult.inserted) {
+          resultNodes = [...workingNodes, movingNode];
+        } else {
+          resultNodes = insertResult.nodes;
+        }
       }
     } else if ("targetRowId" in indicator) {
       const insertResult = insertIntoRow(
@@ -570,6 +590,18 @@ const Canvas: React.FC<CanvasProps> = ({
   const renderComponentNode = (node: FormNode) => {
     if (isRowContainer(node)) {
       const Renderer = HorizontalLayoutRenderer;
+      if (previewMode) {
+        return (
+          <div key={node.nodeId} className="mb-4">
+            <Renderer component={{ columns: node.children }}>
+              {node.children.map((child) =>
+                renderRowChild(child, node.nodeId),
+              )}
+            </Renderer>
+          </div>
+        );
+      }
+
       const appendIndicator =
         dropIndicator &&
         "targetRowId" in dropIndicator &&
@@ -598,6 +630,14 @@ const Canvas: React.FC<CanvasProps> = ({
     }
 
     const Renderer = getComponentRenderer(node) ?? DefaultRenderer;
+    if (previewMode) {
+      return (
+        <div key={node.nodeId} className="mb-4">
+          <Renderer component={node} />
+        </div>
+      );
+    }
+
     const isSelected = selectedNodeId === node.nodeId;
     const dropBefore =
       dropIndicator &&
@@ -628,21 +668,21 @@ const Canvas: React.FC<CanvasProps> = ({
         onDragOver={(event) => handleDragOverComponent(event, node)}
         onDragLeave={handleDragLeave}
         onClick={() => handleSelection(node as FormComponent)}
-        className={`relative mb-3 rounded-lg border border-transparent bg-white p-3 shadow-sm transition-all hover:border-blue-200 hover:shadow-md ${
-          isSelected ? "ring-2 ring-blue-500" : ""
+        className={`relative mb-3 rounded-md border border-gray-200 bg-white p-3 shadow-sm transition-all hover:border-[#005eb8]/50 hover:shadow ${
+          isSelected ? "ring-2 ring-[#005eb8] ring-offset-1" : ""
         }`}
       >
         {dropBefore && (
-          <div className="absolute inset-x-0 -top-2 h-1 rounded-full bg-blue-500" />
+          <div className="absolute inset-x-0 -top-2 h-1 rounded-full bg-[#005eb8]" />
         )}
         {dropAfter && (
-          <div className="absolute inset-x-0 -bottom-2 h-1 rounded-full bg-blue-500" />
+          <div className="absolute inset-x-0 -bottom-2 h-1 rounded-full bg-[#005eb8]" />
         )}
         {dropLeft && (
-          <div className="absolute -left-2 inset-y-0 w-1 rounded-full bg-blue-500" />
+          <div className="absolute -left-2 inset-y-0 w-1 rounded-full bg-[#005eb8]" />
         )}
         {dropRight && (
-          <div className="absolute -right-2 inset-y-0 w-1 rounded-full bg-blue-500" />
+          <div className="absolute -right-2 inset-y-0 w-1 rounded-full bg-[#005eb8]" />
         )}
         <Renderer component={node} />
       </div>
@@ -655,6 +695,14 @@ const Canvas: React.FC<CanvasProps> = ({
     }
 
     const Renderer = getComponentRenderer(node);
+    if (previewMode) {
+      return (
+        <div key={node.nodeId} className="w-full flex-1">
+          <Renderer component={node} />
+        </div>
+      );
+    }
+
     const isSelected = selectedNodeId === node.nodeId;
     const dropBefore =
       dropIndicator &&
@@ -675,15 +723,15 @@ const Canvas: React.FC<CanvasProps> = ({
         onDragOver={(event) => handleDragOverComponent(event, node)}
         onDragLeave={handleDragLeave}
         onClick={() => handleSelection(node as FormComponent)}
-        className={`relative w-full flex-1 rounded-xl border border-blue-100 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-lg ${
-          isSelected ? "ring-2 ring-cyan-400" : ""
+        className={`relative w-full flex-1 rounded-md border border-gray-200 bg-white px-4 py-3 shadow-sm transition hover:border-[#005eb8]/50 hover:shadow ${
+          isSelected ? "ring-2 ring-[#005eb8] ring-offset-1" : ""
         }`}
       >
         {dropBefore && (
-          <div className="absolute inset-y-0 -left-2 w-1 rounded-full bg-cyan-400" />
+          <div className="absolute inset-y-0 -left-2 w-1 rounded-full bg-[#005eb8]" />
         )}
         {dropAfter && (
-          <div className="absolute inset-y-0 -right-2 w-1 rounded-full bg-cyan-400" />
+          <div className="absolute inset-y-0 -right-2 w-1 rounded-full bg-[#005eb8]" />
         )}
         <Renderer component={node} />
       </div>
@@ -697,23 +745,31 @@ const Canvas: React.FC<CanvasProps> = ({
 
   return (
     <div
-      className="flex-1 overflow-y-auto bg-gradient-to-br from-white via-sky-50 to-cyan-50 p-6"
+      className="flex-1 overflow-y-auto bg-[#f0f4f5] p-6"
       onDragOver={(event) => event.preventDefault()}
       onDrop={handleCanvasDrop}
     >
-      <div className="min-h-full rounded-3xl border border-blue-100 bg-white p-8 shadow-sm">
+      <div className="min-h-full rounded-md border border-gray-200 bg-white p-8 shadow-sm form-preview-container">
         {errorMessage && (
-          <div className="mb-4 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 shadow-sm">
+          <div className="mb-4 flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 shadow-sm">
             {errorMessage}
           </div>
         )}
         {renderedNodes.length > 0 ? (
           renderedNodes
+        ) : previewMode ? (
+          <div className="flex h-full min-h-[320px] flex-col items-center justify-center gap-3 text-center text-gray-400">
+            <div className="rounded-full bg-gray-100 p-4 text-3xl text-gray-500">📋</div>
+            <p className="text-lg font-semibold text-gray-700">Preview Form</p>
+            <p className="max-w-md text-sm text-gray-500">
+              No components have been added yet. Go back to Edit Mode to build your form layout.
+            </p>
+          </div>
         ) : (
-          <div className="flex h-full min-h-[320px] flex-col items-center justify-center gap-3 text-center text-sky-500">
-            <div className="rounded-full bg-cyan-100 p-4 text-3xl text-cyan-600">🧩</div>
-            <p className="text-lg font-semibold text-sky-800">Drop components to begin</p>
-            <p className="max-w-md text-sm text-sky-600">
+          <div className="flex h-full min-h-[320px] flex-col items-center justify-center gap-3 text-center text-gray-500">
+            <div className="rounded-full bg-gray-100 p-4 text-3xl text-gray-500">🧩</div>
+            <p className="text-lg font-semibold text-gray-800">Drop components to begin</p>
+            <p className="max-w-md text-sm text-gray-600">
               Drag fields from the component library on the left. Drop near another field to build a responsive row automatically.
             </p>
           </div>

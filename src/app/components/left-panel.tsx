@@ -67,11 +67,11 @@ export default function LeftPanel() {
   return (
     <aside
       style={{ width: isCollapsed ? "92px" : `${width}px` }}
-      className="h-full relative border-r border-blue-100 bg-gradient-to-b from-white via-sky-50 to-cyan-50 text-sky-700 transition-all duration-300"
+      className="h-full relative border-r border-gray-200 bg-white text-gray-700 transition-all duration-300"
     >
       <button
         onClick={() => setIsCollapsed((prev) => !prev)}
-        className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-blue-100 bg-white text-blue-400 shadow-sm transition hover:bg-blue-100 hover:text-blue-600"
+        className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:bg-gray-100 hover:text-gray-700"
         title={isCollapsed ? "Expand palette" : "Collapse palette"}
       >
         <svg
@@ -91,7 +91,7 @@ export default function LeftPanel() {
             {catalog.map((category) => (
               <span
                 key={category.label}
-                className="flex h-12 w-12 items-center justify-center rounded-xl border border-blue-100 bg-white text-2xl text-blue-400 shadow"
+                className="flex h-12 w-12 items-center justify-center rounded-lg border border-gray-200 bg-white text-2xl text-gray-400 shadow-sm"
                 title={category.label}
               >
                 {category.icon}
@@ -102,13 +102,13 @@ export default function LeftPanel() {
           <>
             <div className="space-y-5 px-6 pb-4 pt-16">
               <div>
-                <span className="inline-flex items-center rounded-full bg-cyan-50 px-3 py-1 text-xs font-medium text-cyan-600">
+                <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[#005eb8]">
                   Component library
                 </span>
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-sky-900">
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-gray-900">
                   Drag a block into your flow
                 </h2>
-                <p className="mt-2 text-sm text-sky-600">
+                <p className="mt-2 text-sm text-gray-500">
                   Drop any component onto the canvas. Drop beside another field to form a row automatically.
                 </p>
               </div>
@@ -118,12 +118,12 @@ export default function LeftPanel() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search components…"
-                  className="w-full rounded-xl border border-blue-100 bg-white px-4 py-3 text-sm text-sky-700 shadow-sm placeholder:text-blue-300 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-200"
+                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 shadow-sm placeholder:text-gray-400 focus:border-[#005eb8] focus:outline-none focus:ring-2 focus:ring-[#ffe300]"
                 />
                 {query && (
                   <button
                     onClick={() => setQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-300 transition hover:text-cyan-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-gray-600"
                   >
                     ✕
                   </button>
@@ -136,10 +136,10 @@ export default function LeftPanel() {
                     <button
                       key={category.label}
                       onClick={() => setActiveCategory(category.label)}
-                      className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                      className={`rounded-md px-3 py-1.5 text-xs font-semibold border transition ${
                         activeCategory === category.label
-                          ? "bg-cyan-500 text-white"
-                          : "bg-white text-sky-600 shadow-sm hover:bg-sky-50"
+                          ? "bg-[#005eb8] border-[#005eb8] text-white"
+                          : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                       }`}
                     >
                       {category.label}
@@ -157,33 +157,33 @@ export default function LeftPanel() {
 
                 return (
                   <div key={category.label} className="space-y-3">
-                    <div className="flex items-center justify-between text-sky-600">
+                    <div className="flex items-center justify-between text-gray-500">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg text-cyan-500">{category.icon}</span>
-                        <span className="text-sm font-semibold uppercase tracking-wide text-sky-700">
+                        <span className="text-lg text-[#005eb8]">{category.icon}</span>
+                        <span className="text-sm font-semibold uppercase tracking-wide text-gray-700">
                           {category.label}
                         </span>
                       </div>
-                      <span className="text-xs text-sky-400">
+                      <span className="text-xs text-gray-400">
                         {category.components.length} item{category.components.length === 1 ? "" : "s"}
                       </span>
                     </div>
                     <div className="grid gap-3">
                       {category.components.map((component) => (
-                        <button
+                        <div
                           key={component.type}
                           draggable
                           onDragStart={(event) => onDragStart(event, component)}
-                          className="group flex items-start gap-3 rounded-2xl border border-blue-100 bg-white px-4 py-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-200"
+                          className="group flex items-start gap-3 rounded-md border border-gray-200 bg-white px-4 py-3 text-left shadow-sm transition hover:border-[#005eb8] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#ffe300] cursor-grab select-none"
                         >
-                          <span className="mt-1 text-xl text-cyan-500">{component.icon}</span>
+                          <span className="mt-1 text-xl text-[#005eb8]">{component.icon}</span>
                           <div className="space-y-1">
-                            <p className="text-sm font-semibold text-sky-800 group-hover:text-cyan-600">
+                            <p className="text-sm font-semibold text-gray-800 group-hover:text-[#005eb8]">
                               {component.label}
                             </p>
-                            <p className="text-xs text-sky-500">{component.description}</p>
+                            <p className="text-xs text-gray-500">{component.description}</p>
                           </div>
-                        </button>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -197,7 +197,7 @@ export default function LeftPanel() {
       {!isCollapsed && (
         <div
           onMouseDown={handleMouseDown}
-          className="absolute top-0 right-0 h-full w-1 cursor-col-resize bg-cyan-200/50 transition hover:bg-cyan-400"
+          className="absolute top-0 right-0 h-full w-1 cursor-col-resize bg-gray-200/50 transition hover:bg-gray-400"
         />
       )}
     </aside>

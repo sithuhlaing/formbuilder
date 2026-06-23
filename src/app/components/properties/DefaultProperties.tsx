@@ -42,6 +42,29 @@ export default function DefaultProperties({
         </div>
       )}
 
+      {component.properties?.options !== undefined && (
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Options (one per line)
+          </label>
+          <textarea
+            value={component.properties.options.join("\n")}
+            onChange={(e) =>
+              onChange({
+                ...component,
+                properties: {
+                  ...component.properties,
+                  options: e.target.value.split("\n").filter((val) => val.trim() !== ""),
+                },
+              })
+            }
+            rows={5}
+            className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 text-sm font-mono focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Option 1&#10;Option 2&#10;Option 3"
+          />
+        </div>
+      )}
+
       {component.properties?.required !== undefined && (
         <div className="flex items-center mb-4">
           <input

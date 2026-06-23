@@ -70,26 +70,26 @@ export default function RightPanel({ selectedComponent, setSelectedComponent }: 
     const Renderer = propertyRenderer;
     return (
       <div className="space-y-6">
-        <div className="rounded-2xl border border-blue-100 bg-white px-5 py-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-cyan-500">Selected component</p>
+        <div className="rounded-md border border-gray-200 bg-white px-5 py-4 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#005eb8]">Selected component</p>
           <div className="mt-2 flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-sky-800">{selectedComponent.label ?? "Untitled field"}</p>
-              <p className="text-xs text-sky-500">ID: {selectedComponent.fieldId ?? "–"}</p>
+              <p className="text-sm font-semibold text-gray-800">{selectedComponent.label ?? "Untitled field"}</p>
+              <p className="text-xs text-gray-500">ID: {selectedComponent.fieldId ?? "–"}</p>
             </div>
-            <span className="inline-flex items-center rounded-full bg-cyan-100 px-3 py-1 text-xs font-medium text-cyan-600">
+            <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-[#005eb8]">
               {selectedComponent.type?.replace(/_/g, " ")}
             </span>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm">
+        <div className="rounded-md border border-gray-200 bg-white p-4 shadow-sm">
           <Renderer component={selectedComponent} onChange={setSelectedComponent} />
         </div>
 
-        <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-cyan-50 via-white to-white p-4 shadow-sm">
-          <h3 className="text-sm font-semibold text-sky-800">Need more controls?</h3>
-          <p className="mt-1 text-xs text-sky-500">
+        <div className="rounded-md border border-gray-200 bg-[#f0f4f5] p-4 shadow-sm">
+          <h3 className="text-sm font-semibold text-gray-800">Need more controls?</h3>
+          <p className="mt-1 text-xs text-gray-500">
             Advanced validation, conditional logic, and data bindings can be configured after export.
           </p>
         </div>
@@ -100,11 +100,11 @@ export default function RightPanel({ selectedComponent, setSelectedComponent }: 
   return (
     <aside
       style={{ width: collapsed ? "92px" : `${width}px` }}
-      className="relative flex h-full flex-col border-l border-blue-100 bg-gradient-to-b from-white via-sky-50 to-cyan-50 transition-all duration-300"
+      className="relative flex h-full flex-col border-l border-gray-200 bg-white transition-all duration-300"
     >
       <button
         onClick={() => setCollapsed((prev) => !prev)}
-        className="absolute left-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-blue-100 bg-white text-cyan-500 shadow transition hover:bg-cyan-50"
+        className="absolute left-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:bg-gray-100"
         title={collapsed ? "Expand properties" : "Collapse properties"}
       >
         <svg
@@ -121,11 +121,11 @@ export default function RightPanel({ selectedComponent, setSelectedComponent }: 
       <div className={`flex-1 overflow-y-auto px-6 pb-8 pt-16 ${collapsed ? "hidden" : "block"}`}>
         <div className="flex items-center justify-between">
           <div>
-            <span className="inline-flex items-center rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-600">Properties</span>
-            <h2 className="mt-3 text-xl font-semibold text-sky-900">Fine-tune the selection</h2>
+            <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[#005eb8]">Properties</span>
+            <h2 className="mt-3 text-xl font-bold text-gray-900">Fine-tune the selection</h2>
           </div>
           <div className="text-right">
-            <p className="text-xs uppercase tracking-wide text-cyan-400">Changes autosave</p>
+            <p className="text-xs uppercase tracking-wide text-gray-400">Changes autosave</p>
           </div>
         </div>
 
@@ -135,7 +135,7 @@ export default function RightPanel({ selectedComponent, setSelectedComponent }: 
       {!collapsed && (
         <div
           onMouseDown={handleMouseDown}
-          className="absolute left-0 top-0 h-full w-1 cursor-col-resize bg-cyan-200/50 transition hover:bg-cyan-400/70"
+          className="absolute left-0 top-0 h-full w-1 cursor-col-resize bg-gray-200/50 transition hover:bg-gray-400"
         />
       )}
     </aside>

@@ -624,4 +624,140 @@ export class LayoutEngine {
   }
 }
 
+export function calculateDropPosition(
+  boundingBox: { width: number; height: number; left?: number; top?: number },
+  cursor: { x: number; y: number },
+  isTopLevel: boolean,
+  targetIndex: number
+) {
+  if (!isTopLevel) {
+    // RULE B: We are inside a row. If the cursor is at the outer right edge, we treat it as dropping outside (vertical).
+    if (cursor.x >= boundingBox.width * 0.75) {
+      return {
+        type: 'BETWEEN',
+        index: targetIndex + 1
+      };
+    }
+    // Otherwise, calculate left/right reordering based on a 50% midpoint.
+    const isLeftHalf = cursor.x < (boundingBox.width / 2);
+    return {
+      type: 'COLUMN_BETWEEN',
+      direction: isLeftHalf ? 'left' : 'right',
+      targetColumnIndex: targetIndex
+    };
+  } else {
+    // RULE A: We are on the main canvas. Check the 30% thresholds for row creation.
+    if (cursor.x < boundingBox.width * 0.30) {
+      return { type: 'SIDE', position: 'left' };
+    }
+    if (cursor.x > boundingBox.width * 0.70) {
+      return { type: 'SIDE', position: 'right' };
+    }
+    
+    // Vertical midpoint splicing
+    const isBottomHalf = cursor.y > (boundingBox.height / 2);
+    return {
+      type: 'BETWEEN',
+      index: isBottomHalf ? targetIndex + 1 : targetIndex
+    };
+  }
+}
+
+export function executeLayoutCleanup(components: any[]): any[] {
+  return components.flatMap(component => {
+    if (component.type === 'horizontal_layout' || component.isLayout) {
+      const updatedColumns = (component.columns || []).map((col: any) => ({
+        ...col,
+        fields: executeLayoutCleanup(col.fields || [])
+      }));
+      
+      const allFields = updatedColumns.flatMap((col: any) => col.fields || []);
+      
+      if (allFields.length <= 1) {
+        return allFields;
+      }
+      
+      return [{
+        ...component,
+        columns: updatedColumns
+      }];
+    }
+    
+    return [component];
+  });
+}
+
+export function executeLayoutMutation(
+  state: any,
+  draggedComponent: any,
+  command: any
+): any {
+  if (Array.isArray(state)) {
+    const activeCanvas = state as any[];
+    
+    if (command.type === 'INVALID_DROP_ZONE') {
+      return activeCanvas;
+    }
+    
+    if (command.type === 'BETWEEN') {
+      const targetIndex = command.index;
+      const currentIndex = activeCanvas.findIndex(c => c.id === draggedComponent.id);
+      
+      if (currentIndex === -1) {
+        const result = [...activeCanvas];
+        result.splice(targetIndex, 0, draggedComponent);
+        return result;
+      }
+      
+      const result = [...activeCanvas];
+      const [removed] = result.splice(currentIndex, 1);
+      
+      let insertIndex = targetIndex;
+      if (currentIndex < targetIndex) {
+        insertIndex = targetIndex - 1;
+      }
+      
+      result.splice(insertIndex, 0, removed);
+      return result;
+    }
+    
+    return activeCanvas;
+  } else {
+    const activeRow = state;
+    
+    if (command.type === 'COLUMN_BETWEEN') {
+      const targetColumnIndex = command.targetColumnIndex;
+      
+      const currentIndex = activeRow.columns.findIndex((col: any) => 
+        col.fields?.some((f: any) => f.id === draggedComponent.id)
+      );
+      
+      if (currentIndex === -1) {
+        return activeRow;
+      }
+      
+      const newColumns = activeRow.columns.map((col: any) => ({
+        ...col,
+        fields: [...(col.fields || [])]
+      }));
+      
+      const draggedField = newColumns[currentIndex].fields.find((f: any) => f.id === draggedComponent.id);
+      
+      newColumns[currentIndex].fields = newColumns[currentIndex].fields.filter((f: any) => f.id !== draggedComponent.id);
+      
+      const temp = newColumns[targetColumnIndex].fields;
+      newColumns[targetColumnIndex].fields = [draggedField];
+      newColumns[currentIndex].fields = temp;
+      
+      return {
+        ...activeRow,
+        columns: newColumns
+      };
+    }
+    
+    return activeRow;
+  }
+}
+
 export default LayoutEngine;
+

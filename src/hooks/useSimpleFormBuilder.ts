@@ -82,6 +82,8 @@ interface FormActions {
   navigateToPreviousPage: () => void;
   addNewPage: () => void;
   handleDrop: (componentType: ComponentType, position?: { index: number }) => void;
+  handleSave: () => void;
+  loadExistingTemplate: (templateId: string) => void;
 }
 
 
@@ -578,6 +580,55 @@ export function useSimpleFormBuilder(): FormState & FormActions {
     }));
   }, []);
 
+  const handleSave = useCallback(() => {
+    setState(prev => {
+      const pagesForService = prev.pages.map(page => ({
+        title: page.title,
+        components: page.components
+      }));
+      if (prev.mode === 'edit' && prev.editingTemplateId) {
+        templateService.updateTemplate(prev.editingTemplateId, {
+          name: prev.templateName,
+          pages: pagesForService
+        });
+        return prev;
+      } else {
+        const saved = templateService.saveTemplate({
+          name: prev.templateName,
+          pages: pagesForService
+        });
+        if (saved && saved.templateId) {
+          return {
+            ...prev,
+            mode: 'edit',
+            editingTemplateId: saved.templateId
+          };
+        }
+      }
+      return prev;
+    });
+  }, []);
+
+  const loadExistingTemplate = useCallback((templateId: string) => {
+    const template = templateService.loadTemplate(templateId);
+    if (template) {
+      const hydratedPages = template.pages.map((p: any) => ({
+        id: p.id || `p-${uuidv4()}`,
+        title: p.title || p.name || 'Untitled Page',
+        components: p.components || p.items || []
+      }));
+      setState(prev => ({
+        ...prev,
+        mode: 'edit',
+        editingTemplateId: templateId,
+        templateName: template.name,
+        pages: hydratedPages.length > 0 ? hydratedPages : [createInitialPage('Page 1')],
+        currentPageId: hydratedPages[0]?.id || prev.currentPageId
+      }));
+    }
+  }, []);
+
+
   const setCreateMode = useCallback(() => {
     const newPage = createInitialPage('Page 1');
     saveToHistory();
@@ -799,7 +850,9 @@ export function useSimpleFormBuilder(): FormState & FormActions {
     },
     handleDrop: (componentType: ComponentType, position?: { index: number }) => {
       addComponent(componentType, position?.index);
-    }
+    },
+    handleSave,
+    loadExistingTemplate
   };
 }
 
