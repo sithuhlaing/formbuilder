@@ -229,26 +229,7 @@ export const components = {
       },
     ],
   },
-  layout_components: {
-    icon: "📐",
-    label: "Layout Components",
-    components: [
-      {
-        type: "horizontal_layout",
-        icon: "↔️",
-        label: "Horizontal Layout",
-        description: "Container for side-by-side components",
-        properties: {},
-      },
-      {
-        type: "vertical_layout",
-        icon: "↕️",
-        label: "Vertical Layout",
-        description: "Container for stacked components",
-        properties: {},
-      },
-    ],
-  },
+
   ui_components: {
     icon: "🎨",
     label: "UI Components",

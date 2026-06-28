@@ -28,6 +28,13 @@ describe('Layout Engine - Strict Coordinate Precedence', () => {
     expect(result.type).toBe('BETWEEN');
     expect(result.index).toBe(targetIndex + 1);
   });
+
+  it('detects top half of center drop', () => {
+    const cursor = { x: 50, y: 20 }; // center-top: x=50, y=20 (top 20%)
+    const result = calculateDropPosition(boundingBox, cursor, true, 2);
+    expect(result.type).toBe('BETWEEN');
+    expect(result.index).toBe(2);
+  });
 });
 
 describe('Layout Engine - Structural Integrity Guards', () => {
@@ -86,6 +93,14 @@ describe('Layout Engine - Nested Row Reordering (Rule B)', () => {
     // Engine MUST return a column reorder command targeting the left side
     expect(dropPosition.type).toBe('COLUMN_BETWEEN');
     expect(dropPosition.direction).toBe('left'); 
+  });
+
+  it('evaluates right half direction when inside a row', () => {
+    const boundingBox = { top: 0, bottom: 100, left: 0, right: 100, height: 100, width: 100 };
+    const cursorPosition = { x: 60, y: 50 }; // cursor on right half: x=60
+    const dropPosition = calculateDropPosition(boundingBox, cursorPosition, false, 1);
+    expect(dropPosition.type).toBe('COLUMN_BETWEEN');
+    expect(dropPosition.direction).toBe('right');
   });
 
   it('[3.2] executes column array swap when dragging within the same horizontal_layout', () => {
@@ -170,5 +185,126 @@ describe('Layout Engine - Canvas Reordering & Safety (Bug Fixes)', () => {
     // Verification: No data loss. 
     expect(resultCanvas.length).toBe(2);
     expect(resultCanvas[1].id).toBe('comp_B');
+  });
+
+  it('[4.4] handles splicing a new component onto the canvas', () => {
+    const activeCanvas: Component[] = [
+      { id: 'comp_A', type: 'text_input', label: 'A' }
+    ];
+    const newComponent = { id: 'comp_B', type: 'email_input', label: 'B' };
+    const mutationCommand = { type: 'BETWEEN', index: 0 };
+
+    const result = executeLayoutMutation(activeCanvas, newComponent, mutationCommand);
+    expect(result.length).toBe(2);
+    expect(result[0].id).toBe('comp_B');
+    expect(result[1].id).toBe('comp_A');
+  });
+
+  it('[4.5] handles row creation via SIDE drop mutation (both left and right)', () => {
+    const activeCanvas: Component[] = [
+      { id: 'comp_A', type: 'text_input', label: 'A' }
+    ];
+    const draggedComponent = { id: 'comp_B', type: 'email_input', label: 'B' };
+
+    // Left Drop
+    const leftCommand = { type: 'SIDE', position: 'left', targetIndex: 0 };
+    const resultLeft = executeLayoutMutation(activeCanvas, draggedComponent, leftCommand);
+    expect(resultLeft.length).toBe(1);
+    expect(resultLeft[0].type).toBe('horizontal_layout');
+    expect(resultLeft[0].columns[0].fields[0].id).toBe('comp_B');
+    expect(resultLeft[0].columns[1].fields[0].id).toBe('comp_A');
+
+    // Right Drop
+    const rightCommand = { type: 'SIDE', position: 'right', targetIndex: 0 };
+    const resultRight = executeLayoutMutation(activeCanvas, draggedComponent, rightCommand);
+    expect(resultRight[0].columns[0].fields[0].id).toBe('comp_A');
+    expect(resultRight[0].columns[1].fields[0].id).toBe('comp_B');
+
+    // Target Component missing fallback
+    const invalidTargetCommand = { type: 'SIDE', position: 'left', targetIndex: 5 };
+    const resultInvalid = executeLayoutMutation(activeCanvas, draggedComponent, invalidTargetCommand);
+    expect(resultInvalid).toEqual(activeCanvas);
+  });
+
+  it('[4.6] handles reordering nested columns where dragged component is not found in row', () => {
+    const activeRow: Component = {
+      id: 'row_1',
+      type: 'horizontal_layout',
+      columns: [
+        { id: 'col_1', fields: [{ id: 'input_A', type: 'text_input', label: 'A' }] }
+      ]
+    };
+    const draggedComponent = { id: 'input_B', type: 'text_input', label: 'B' };
+    const command = { type: 'COLUMN_BETWEEN', direction: 'left', targetColumnIndex: 0 };
+
+    const result = executeLayoutMutation(activeRow, draggedComponent, command);
+    expect(result).toEqual(activeRow);
+  });
+
+  it('[4.7] fallback return on unknown drop command type', () => {
+    const activeCanvas: Component[] = [{ id: 'comp_A', type: 'text_input' }];
+    const command = { type: 'UNKNOWN_TYPE' };
+    const result = executeLayoutMutation(activeCanvas, {}, command);
+    expect(result).toEqual(activeCanvas);
+  });
+});
+
+describe('Layout Engine - Edge Cases', () => {
+  it('detects right side drop positions on the main canvas', () => {
+    const boundingBox = { top: 0, bottom: 100, left: 0, right: 100, height: 100, width: 100 };
+    const cursor = { x: 85, y: 50 }; // Right threshold: > 70%
+    const result = calculateDropPosition(boundingBox, cursor, true, 0);
+
+    expect(result.type).toBe('SIDE');
+    expect(result.position).toBe('right');
+  });
+
+  it('preserves row layouts that have 2 or more components during cleanup', () => {
+    const mockState: Component[] = [
+      {
+        id: 'row_1',
+        type: 'horizontal_layout',
+        columns: [
+          { id: 'col_1', fields: [{ id: 'input_A', type: 'text_input' }] },
+          { id: 'col_2', fields: [{ id: 'input_B', type: 'email_input' }] }
+        ]
+      },
+      {
+        id: 'comp_C',
+        type: 'text_input'
+      }
+    ];
+
+    const result = executeLayoutCleanup(mockState);
+    expect(result.length).toBe(2);
+    expect(result[0].type).toBe('horizontal_layout');
+    expect(result[1].id).toBe('comp_C');
+  });
+
+  it('covers fallback branches for empty parameters', () => {
+    // 1. cleanup with missing columns
+    const emptyRow = executeLayoutCleanup([{ id: 'row_1', type: 'horizontal_layout' }]);
+    expect(emptyRow).toEqual([]);
+
+    // 2. mutation with invalid activeCanvas (not array) for BETWEEN
+    const betResult = executeLayoutMutation(null, { id: 'A' }, { type: 'BETWEEN', index: 0 });
+    expect(betResult).toEqual([{ id: 'A' }]);
+
+    // 3. mutation with invalid activeCanvas for SIDE
+    const sideResult = executeLayoutMutation(null, { id: 'A' }, { type: 'SIDE', position: 'left', targetIndex: 0 });
+    expect(sideResult).toBeNull(); // returns activeCanvas which was null
+
+    // 4. COLUMN_BETWEEN with missing fields in column mapping branch
+    const missingFieldsRow: Component = {
+      id: 'row_1',
+      type: 'horizontal_layout',
+      columns: [
+        { id: 'col_1' }, // fields is missing
+        { id: 'col_2', fields: [{ id: 'input_B' }] }
+      ]
+    };
+    const colResult = executeLayoutMutation(missingFieldsRow, { id: 'input_B' }, { type: 'COLUMN_BETWEEN', targetColumnIndex: 0 });
+    expect(colResult.columns[0].fields).toEqual([{ id: 'input_B' }]);
+    expect(colResult.columns[1].fields).toEqual([]);
   });
 });

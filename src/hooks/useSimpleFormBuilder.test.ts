@@ -169,3 +169,320 @@ describe('FormStateEngine - Page Management & Skill Guards', () => {
   });
 });
 
+describe('FormStateEngine - Interactive Operations & History API', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('exercises all hook operations sequentially for maximum coverage', async () => {
+    const { result } = renderHook(() => useSimpleFormBuilder());
+
+    // 1. addComponent and handleDrop
+    act(() => {
+      result.current.addComponent('text_input');
+    });
+    expect(result.current.components.length).toBe(1);
+    const textId = result.current.components[0].id;
+
+    act(() => {
+      result.current.handleDrop('email_input', { index: 0 });
+    });
+    expect(result.current.components.length).toBe(2);
+    expect(result.current.components[0].type).toBe('email_input');
+    const emailId = result.current.components[0].id;
+
+    // 2. selectComponent
+    act(() => {
+      result.current.selectComponent(textId);
+    });
+    expect(result.current.selectedId).toBe(textId);
+
+    // 3. updateComponent
+    act(() => {
+      result.current.updateComponent(textId, { label: 'New Label', required: true });
+    });
+    expect(result.current.components[1].label).toBe('New Label');
+    expect(result.current.components[1].required).toBe(true);
+
+    // 4. moveComponent
+    act(() => {
+      result.current.moveComponent(0, 1);
+    });
+    expect(result.current.components[0].id).toBe(textId);
+    expect(result.current.components[1].id).toBe(emailId);
+
+    // Try moving to same index (early return)
+    act(() => {
+      result.current.moveComponent(0, 0);
+    });
+    expect(result.current.components[0].id).toBe(textId);
+
+    // 5. undo and redo
+    act(() => {
+      result.current.undo();
+    });
+    // Should revert back to before move (email at 0, text at 1)
+    expect(result.current.components[0].id).toBe(emailId);
+    expect(result.current.components[1].id).toBe(textId);
+
+    expect(result.current.canRedo()).toBe(true);
+    act(() => {
+      result.current.redo();
+    });
+    // Should redo move (text at 0, email at 1)
+    expect(result.current.components[0].id).toBe(textId);
+    expect(result.current.components[1].id).toBe(emailId);
+
+    // 6. updateComponents
+    const customList = [
+      { id: textId, type: 'text_input', label: 'Custom' } as any
+    ];
+    act(() => {
+      result.current.updateComponents(customList);
+    });
+    expect(result.current.components.length).toBe(1);
+    expect(result.current.components[0].label).toBe('Custom');
+
+    // 7. exportJSON and importJSON (multi-page format)
+    const exported = result.current.exportJSON();
+    expect(typeof exported).toBe('string');
+
+    act(() => {
+      result.current.importJSON(exported);
+    });
+    expect(result.current.components[0].label).toBe('Custom');
+
+    // importJSON (single-page format compatibility)
+    const legacyJSON = JSON.stringify({
+      templateName: 'Legacy Form',
+      components: [
+        { id: 'legacy_1', type: 'text_input', label: 'Legacy Text' }
+      ]
+    });
+    act(() => {
+      result.current.importJSON(legacyJSON);
+    });
+    expect(result.current.templateName).toBe('Legacy Form');
+    expect(result.current.components[0].label).toBe('Legacy Text');
+
+    // importJSON error handling
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(window, 'alert').mockImplementation(() => {});
+    act(() => {
+      result.current.importJSON('invalid-json');
+    });
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
+
+    // 8. togglePreview
+    act(() => {
+      result.current.togglePreview();
+    });
+    expect(result.current.previewMode).toBe(true);
+    act(() => {
+      result.current.togglePreview();
+    });
+    expect(result.current.previewMode).toBe(false);
+
+    // 9. clearAll
+    act(() => {
+      result.current.clearAll();
+    });
+    expect(result.current.components.length).toBe(0);
+
+    // 10. setEditMode & setCreateMode
+    act(() => {
+      result.current.setEditMode('tmpl_123');
+    });
+    expect(result.current.mode).toBe('edit');
+    expect(result.current.editingTemplateId).toBe('tmpl_123');
+
+    act(() => {
+      result.current.setCreateMode();
+    });
+    expect(result.current.mode).toBe('create');
+    expect(result.current.editingTemplateId).toBeUndefined();
+
+    // 11. Page switching and navigation
+    act(() => {
+      result.current.addComponent('text_input'); // page 1 must be non-empty
+    });
+    act(() => {
+      result.current.addPage(); // Adds page 2
+    });
+    act(() => {
+      result.current.addComponent('email_input'); // page 2 must be non-empty
+    });
+    act(() => {
+      result.current.addNewPage(); // Adds page 3
+    });
+
+    expect(result.current.pages.length).toBe(3);
+    expect(result.current.getCurrentPageIndex()).toBe(2);
+
+    act(() => {
+      result.current.navigateToPreviousPage();
+    });
+    expect(result.current.getCurrentPageIndex()).toBe(1);
+
+    act(() => {
+      result.current.navigateToNextPage();
+    });
+    expect(result.current.getCurrentPageIndex()).toBe(2);
+
+    // 12. Page movement (movePageUp / movePageDown / reorderPages)
+    const page3Id = result.current.pages[2].id;
+
+    act(() => {
+      result.current.movePageUp(page3Id);
+    });
+    // Page 3 should now be at index 1
+    expect(result.current.pages[1].id).toBe(page3Id);
+
+    act(() => {
+      result.current.movePageDown(page3Id);
+    });
+    // Page 3 should now be back at index 2
+    expect(result.current.pages[2].id).toBe(page3Id);
+
+    act(() => {
+      result.current.reorderPages(0, 1);
+    });
+    expect(result.current.pages[0].title).toBe('Page 2');
+    expect(result.current.pages[1].title).toBe('Page 1');
+
+    // 13. deletePage edge cases
+    // Try to delete active page when multiple pages exist (should fall back to survivor)
+    act(() => {
+      result.current.deletePage(result.current.currentPageId);
+    });
+    expect(result.current.pages.length).toBe(2);
+  });
+});
+
+describe('FormStateEngine - Edge Cases & Fallbacks', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('handles history truncation when inserting in the middle of history', () => {
+    const { result } = renderHook(() => useSimpleFormBuilder());
+    act(() => {
+      result.current.addComponent('text_input');
+    });
+    act(() => {
+      result.current.addComponent('email_input');
+    });
+    expect(result.current.canUndo()).toBe(true);
+
+    act(() => {
+      result.current.undo();
+    });
+    expect(result.current.canRedo()).toBe(true);
+
+    act(() => {
+      result.current.addComponent('number_input');
+    });
+    expect(result.current.canRedo()).toBe(false);
+  });
+
+  it('prevents page deletion when only one page exists', () => {
+    const { result } = renderHook(() => useSimpleFormBuilder());
+    expect(result.current.pages.length).toBe(1);
+
+    const firstPageId = result.current.pages[0].id;
+    act(() => {
+      result.current.deletePage(firstPageId);
+    });
+    expect(result.current.pages.length).toBe(1);
+  });
+
+  it('prevents page movement when bounds are reached', () => {
+    const { result } = renderHook(() => useSimpleFormBuilder());
+    act(() => {
+      result.current.addComponent('text_input');
+    });
+    act(() => {
+      result.current.addPage();
+    });
+
+    const page1Id = result.current.pages[0].id;
+    const page2Id = result.current.pages[1].id;
+
+    // Try moving page 1 up (out of bounds)
+    act(() => {
+      result.current.movePageUp(page1Id);
+    });
+    expect(result.current.pages[0].id).toBe(page1Id);
+
+    // Try moving page 2 down (out of bounds)
+    act(() => {
+      result.current.movePageDown(page2Id);
+    });
+    expect(result.current.pages[1].id).toBe(page2Id);
+  });
+
+  it('handles template loading with empty pages fallback', () => {
+    const mockTemplate = {
+      templateId: 'tmpl_empty',
+      name: 'Empty Template',
+      pages: []
+    };
+    vi.spyOn(templateService, 'loadTemplate').mockReturnValue(mockTemplate);
+
+    const { result } = renderHook(() => useSimpleFormBuilder());
+    act(() => {
+      result.current.loadExistingTemplate('tmpl_empty');
+    });
+    expect(result.current.pages.length).toBe(1);
+    expect(result.current.pages[0].title).toBe('Page 1');
+  });
+
+  it('handles update and delete on nested components inside layout columns', () => {
+    const { result } = renderHook(() => useSimpleFormBuilder());
+    
+    // Setup: layout container with children
+    const layout = {
+      id: 'row_1',
+      type: 'horizontal_layout',
+      children: [
+        { id: 'child_1', type: 'text_input', label: 'Child Label' }
+      ]
+    } as any;
+
+    act(() => {
+      result.current.updateComponents([layout]);
+    });
+
+    // Update child_1
+    act(() => {
+      result.current.updateComponent('child_1', { label: 'Updated Child' });
+    });
+    expect(result.current.components[0].children?.[0].label).toBe('Updated Child');
+
+    // Delete child_1
+    act(() => {
+      result.current.deleteComponent('child_1');
+    });
+    expect(result.current.components[0].children?.length).toBe(0);
+  });
+
+  it('falls back when saving template name updates fail', () => {
+    vi.spyOn(templateService, 'updateTemplate').mockImplementation(() => {
+      throw new Error('Update failed');
+    });
+
+    const { result } = renderHook(() => useSimpleFormBuilder());
+    act(() => {
+      result.current.setEditMode('tmpl_error');
+    });
+    
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    act(() => {
+      result.current.setTemplateName('New Error Name');
+    });
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+});
+

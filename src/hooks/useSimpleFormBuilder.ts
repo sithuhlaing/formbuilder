@@ -401,24 +401,52 @@ export function useSimpleFormBuilder(): FormState & FormActions {
   const moveComponent = useCallback((fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return;
     
-    saveToHistory();
-    setState(prev => ({
-      ...prev,
-      pages: prev.pages.map(page => 
-        page.id === prev.currentPageId 
-          ? {
-              ...page,
-              components: (() => {
-                const newComponents = [...page.components];
-                const [movedComponent] = newComponents.splice(fromIndex, 1);
-                newComponents.splice(toIndex, 0, movedComponent);
-                return newComponents;
-              })()
-            }
-          : page
-      )
-    }));
-  }, [saveToHistory]);
+    setState(prev => {
+      const newState = {
+        ...prev,
+        pages: prev.pages.map(page => 
+          page.id === prev.currentPageId 
+            ? {
+                ...page,
+                components: (() => {
+                  const newComponents = [...page.components];
+                  const [movedComponent] = newComponents.splice(fromIndex, 1);
+                  newComponents.splice(toIndex, 0, movedComponent);
+                  return newComponents;
+                })()
+              }
+            : page
+        )
+      };
+
+      const stateToSave: FormState = {
+        pages: newState.pages.map(page => ({
+          ...page,
+          components: page.components.map(comp => ({ ...comp }))
+        })),
+        currentPageId: newState.currentPageId,
+        selectedId: newState.selectedId,
+        templateName: newState.templateName,
+        history: [],
+        historyIndex: -1,
+        previewMode: newState.previewMode,
+        mode: newState.mode,
+        editingTemplateId: newState.editingTemplateId
+      };
+
+      const historySlice = prev.historyIndex < prev.history.length - 1
+        ? prev.history.slice(0, prev.historyIndex + 1)
+        : prev.history;
+
+      const newHistory = [...historySlice, stateToSave].slice(-MAX_HISTORY);
+
+      return {
+        ...newState,
+        history: newHistory,
+        historyIndex: newHistory.length - 1
+      };
+    });
+  }, []);
 
   // History operations - simple undo/redo
   const undo = useCallback(() => {
@@ -451,13 +479,7 @@ export function useSimpleFormBuilder(): FormState & FormActions {
     });
   }, []);
 
-  const canUndo = useCallback(() => {
-    return state.historyIndex > 0;
-  }, [state.historyIndex]);
 
-  const canRedo = useCallback(() => {
-    return state.historyIndex < state.history.length - 1;
-  }, [state.historyIndex, state.history.length]);
 
   // Form operations
   const setTemplateName = useCallback((name: string) => {
@@ -750,13 +772,7 @@ export function useSimpleFormBuilder(): FormState & FormActions {
     redo,
     canUndo: () => state.historyIndex > 0,
     canRedo: () => state.historyIndex < state.history.length - 1,
-    setTemplateName: (name: string) => {
-      saveToHistory();
-      setState(prev => ({
-        ...prev,
-        templateName: name
-      }));
-    },
+    setTemplateName,
     clearAll: () => {
       setState(prev => {
         const newPage = createInitialPage('Page 1');
@@ -894,17 +910,7 @@ export function useSimpleFormBuilder(): FormState & FormActions {
   };
 }
 
-// Helper function to find a component by ID
-function findComponentById(components: Component[], id: string): Component | null {
-  for (const component of components) {
-    if (component.id === id) return component;
-    if (component.components) {
-      const found = findComponentById(component.components, id);
-      if (found) return found;
-    }
-  }
-  return null;
-}
+
 
 // Export FormPage type for external use
 export type { FormPage };
