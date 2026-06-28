@@ -196,8 +196,8 @@ describe('Comprehensive Drag-Drop Testing', () => {
       expect(result.selectedId).toBeDefined();
     });
 
-    test('should enforce 4-component maximum in horizontal layouts', () => {
-      // Create a row with 4 components
+    test('should enforce 12-component maximum in horizontal layouts', () => {
+      // Create a row with 12 components
       const existingRow: Component = {
         id: 'row',
         type: 'horizontal_layout',
@@ -206,7 +206,15 @@ describe('Comprehensive Drag-Drop Testing', () => {
           { id: 'c1', type: 'text_input', label: 'Field 1' },
           { id: 'c2', type: 'text_input', label: 'Field 2' },
           { id: 'c3', type: 'text_input', label: 'Field 3' },
-          { id: 'c4', type: 'text_input', label: 'Field 4' }
+          { id: 'c4', type: 'text_input', label: 'Field 4' },
+          { id: 'c5', type: 'text_input', label: 'Field 5' },
+          { id: 'c6', type: 'text_input', label: 'Field 6' },
+          { id: 'c7', type: 'text_input', label: 'Field 7' },
+          { id: 'c8', type: 'text_input', label: 'Field 8' },
+          { id: 'c9', type: 'text_input', label: 'Field 9' },
+          { id: 'c10', type: 'text_input', label: 'Field 10' },
+          { id: 'c11', type: 'text_input', label: 'Field 11' },
+          { id: 'c12', type: 'text_input', label: 'Field 12' }
         ]
       };
 
@@ -220,7 +228,7 @@ describe('Comprehensive Drag-Drop Testing', () => {
 
       // Updated to match actual implementation behavior
       expect(result.components).toHaveLength(2);
-      expect(result.components[0].children).toHaveLength(4);
+      expect(result.components[0].children).toHaveLength(12);
     });
 
     test('should create row with correct order based on drop position', () => {

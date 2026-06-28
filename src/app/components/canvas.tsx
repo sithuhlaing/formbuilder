@@ -29,7 +29,7 @@ import {
   isRowContainer,
 } from "@/types/form";
 
-const MAX_ROW_CHILDREN = 4;
+const MAX_ROW_CHILDREN = 12;
 
 type DragPayload =
   | { source: "palette"; component: any }
@@ -709,7 +709,7 @@ const Canvas: React.FC<CanvasProps> = ({
         onDragOver={(event) => handleDragOverComponent(event, node)}
         onDragLeave={handleDragLeave}
         onClick={() => handleSelection(node as FormComponent)}
-        className={`relative mb-3 rounded-md border border-gray-200 bg-white p-3 shadow-sm transition-all hover:border-[#005eb8]/50 hover:shadow ${
+        className={`group relative mb-3 rounded-md border border-gray-200 bg-white p-3 shadow-sm transition-all hover:border-[#005eb8]/50 hover:shadow ${
           isSelected ? "ring-2 ring-[#005eb8] ring-offset-1" : ""
         }`}
       >
@@ -726,6 +726,26 @@ const Canvas: React.FC<CanvasProps> = ({
           <div className="absolute -right-2 inset-y-0 w-1 rounded-full bg-[#005eb8]" />
         )}
         <Renderer component={node} />
+        
+        {!previewMode && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (confirm("Are you sure you want to delete this component?")) {
+                setNodes((prev) => removeNodeById(prev, node.nodeId).nodes);
+                setSelectedComponent(null);
+              }
+            }}
+            className={`absolute right-2 top-2 hidden group-hover:flex ${
+              isSelected ? "flex" : ""
+            } items-center justify-center rounded bg-red-50 p-1.5 text-red-500 shadow-sm border border-red-100 hover:bg-red-100 hover:text-red-700`}
+            title="Delete component"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        )}
       </div>
     );
   };
@@ -764,7 +784,7 @@ const Canvas: React.FC<CanvasProps> = ({
         onDragOver={(event) => handleDragOverComponent(event, node)}
         onDragLeave={handleDragLeave}
         onClick={() => handleSelection(node as FormComponent)}
-        className={`relative w-full flex-1 rounded-md border border-gray-200 bg-white px-4 py-3 shadow-sm transition hover:border-[#005eb8]/50 hover:shadow ${
+        className={`group relative w-full flex-1 rounded-md border border-gray-200 bg-white px-4 py-3 shadow-sm transition hover:border-[#005eb8]/50 hover:shadow ${
           isSelected ? "ring-2 ring-[#005eb8] ring-offset-1" : ""
         }`}
       >
@@ -775,6 +795,26 @@ const Canvas: React.FC<CanvasProps> = ({
           <div className="absolute inset-y-0 -right-2 w-1 rounded-full bg-[#005eb8]" />
         )}
         <Renderer component={node} />
+
+        {!previewMode && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (confirm("Are you sure you want to delete this component?")) {
+                setNodes((prev) => removeNodeById(prev, node.nodeId).nodes);
+                setSelectedComponent(null);
+              }
+            }}
+            className={`absolute right-2 top-2 hidden group-hover:flex ${
+              isSelected ? "flex" : ""
+            } items-center justify-center rounded bg-red-50 p-1.5 text-red-500 shadow-sm border border-red-100 hover:bg-red-100 hover:text-red-700`}
+            title="Delete component"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        )}
       </div>
     );
   };

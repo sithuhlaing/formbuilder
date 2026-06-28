@@ -84,7 +84,7 @@ const DEFAULT_CONFIG: DropZoneConfig = {
 const LAYOUT_CONSTRAINTS = {
   row: {
     minComponents: 2,
-    maxComponents: 4,
+    maxComponents: 12,
     allowedDropZones: ['left', 'right'],
     noNesting: true
   },
@@ -278,8 +278,8 @@ export class LayoutEngine {
   ): Component[] {
     
     // Step 1: Validate capacity
-    if ((rowLayout.children?.length ?? 0) >= 4) {
-      throw new Error('Cannot add component: This row already contains the maximum of 4 components.');
+    if ((rowLayout.children?.length ?? 0) >= 12) {
+      throw new Error('Cannot add component: This row already contains the maximum of 12 components.');
     }
     
     // Step 2: Find target position within row
@@ -445,10 +445,10 @@ export class LayoutEngine {
     const { rowLayout } = context;
     const currentCount = rowLayout.children?.length ?? 0;
     
-    if (currentCount >= 4) {
+    if (currentCount >= 12) {
       errors.push({
         code: 'ROW_CAPACITY_EXCEEDED',
-        message: 'Row layout cannot contain more than 4 components.',
+        message: 'Row layout cannot contain more than 12 components.',
         componentId: rowLayout.id,
         severity: 'error'
       });

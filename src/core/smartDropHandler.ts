@@ -6,7 +6,7 @@
  * - Horizontal layouts are CONTAINERS inside the column
  * - Drop position detection: 20% edges (horizontal), 30% edges (vertical)
  * - Auto-dissolution when rows have ≤1 child
- * - Row capacity limit of 4 components
+ * - Row capacity limit of 12 components
  * - Row layouts can only move vertically (top/bottom)
  */
 
@@ -273,11 +273,11 @@ export function addToExistingRow(
   dropPosition: DropPosition.LEFT | DropPosition.RIGHT
 ): { success: boolean; updatedRow?: Component; reason?: string } {
   
-  // Step 1: Validate capacity (PRD: max 4 components)
-  if (!rowLayout.children || rowLayout.children.length >= 4) {
+  // Step 1: Validate capacity (strictly capped at 12 components)
+  if (!rowLayout.children || rowLayout.children.length >= 12) {
     return {
       success: false,
-      reason: 'This row already contains the maximum of 4 components.'
+      reason: 'This row already contains the maximum of 12 components.'
     };
   }
   

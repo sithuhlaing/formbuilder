@@ -155,8 +155,8 @@ describe('Canvas Layout Engine - Positioning Scenarios', () => {
   });
 
   // Scenario 2.3: Horizontal Ceiling Capacity Rejection
-  it('Scenario 2.3: should reject adding a 5th component into a row', () => {
-    // Create a row container with 4 components already
+  it('Scenario 2.3: should reject adding a 13th component into a row', () => {
+    // Create a row container with 12 components already
     const rowNode: RowContainer = {
       nodeId: 'row-1',
       type: 'row',
@@ -164,7 +164,15 @@ describe('Canvas Layout Engine - Positioning Scenarios', () => {
         createMockTextInput('node-1', 'Name 1'),
         createMockTextInput('node-2', 'Name 2'),
         createMockTextInput('node-3', 'Name 3'),
-        createMockTextInput('node-4', 'Name 4')
+        createMockTextInput('node-4', 'Name 4'),
+        createMockTextInput('node-5', 'Name 5'),
+        createMockTextInput('node-6', 'Name 6'),
+        createMockTextInput('node-7', 'Name 7'),
+        createMockTextInput('node-8', 'Name 8'),
+        createMockTextInput('node-9', 'Name 9'),
+        createMockTextInput('node-10', 'Name 10'),
+        createMockTextInput('node-11', 'Name 11'),
+        createMockTextInput('node-12', 'Name 12')
       ]
     };
     const nodes: FormNode[] = [rowNode];
@@ -196,7 +204,7 @@ describe('Canvas Layout Engine - Positioning Scenarios', () => {
       toJSON: () => {}
     });
 
-    // Try to dragover right edge of the child to add a 5th element
+    // Try to dragover right edge of the child to add a 13th element
     fireEvent.dragOver(rowChild, {
       clientX: 270,
       clientY: 50
@@ -214,12 +222,12 @@ describe('Canvas Layout Engine - Positioning Scenarios', () => {
     });
 
     // Check error message or state unchanged (setNodesMock should NOT be called due to safety check)
-    // If it is called, the output state should still have size 4
+    // If it is called, the output state should still have size 12
     if (setNodesMock.mock.calls.length > 0) {
       const stateUpdater = setNodesMock.mock.calls[0][0];
       const resultNodes = typeof stateUpdater === 'function' ? stateUpdater(nodes) : stateUpdater;
       const row = resultNodes[0] as RowContainer;
-      expect(row.children.length).toBe(4); // Still 4 elements, 5th rejected!
+      expect(row.children.length).toBe(12); // Still 12 elements, 13th rejected!
     } else {
       expect(setNodesMock).not.toHaveBeenCalled();
     }
