@@ -153,15 +153,37 @@ function App() {
 
   // Update specific page nodes inside the page array
   const setNodesForCurrentPage = (newNodes: FormNode[] | ((prev: FormNode[]) => FormNode[])) => {
-    setPages((prev) =>
-      prev.map((p, idx) => {
+    setPages((prev) => {
+      const updated = prev.map((p, idx) => {
         if (idx === currentPageIndex) {
           const resolved = typeof newNodes === 'function' ? newNodes(p.items) : newNodes;
           return { ...p, items: resolved };
         }
         return p;
-      })
-    );
+      });
+
+      // Multi-Page Auto-Deletion Garbage Collection: if the active page has 0 items and multiple pages exist, destroy it.
+      const currentPage = updated[currentPageIndex];
+      if (currentPage && currentPage.items.length === 0 && updated.length > 1) {
+        const filtered = updated.filter((_, idx) => idx !== currentPageIndex);
+        // Sequentially reindex survivors
+        const reindexed = filtered.map((page, idx) => ({
+          ...page,
+          name: `Page ${idx + 1}`
+        }));
+
+        // Shift active page index down
+        const newIndex = Math.max(0, currentPageIndex - 1);
+        setTimeout(() => {
+          setCurrentPageIndex(newIndex);
+          setSelectedComponent(null);
+        }, 0);
+
+        return reindexed;
+      }
+
+      return updated;
+    });
   };
 
   // Create clean blank form session
@@ -279,6 +301,13 @@ function App() {
 
   // Multi-page manipulations
   const handleAddPage = () => {
+    // Empty Page Insertion Guard: Block page creation when current active page contains 0 items.
+    const currentPage = pages[currentPageIndex];
+    if (currentPage && currentPage.items.length === 0) {
+      alert('Cannot add a new page while the current page is empty.');
+      return;
+    }
+
     const newPage: FormPage = {
       id: `p-${Date.now()}`,
       name: `Page ${pages.length + 1}`,
@@ -296,11 +325,16 @@ function App() {
     if (!confirm('Are you sure you want to delete this page and all components inside it?')) return;
 
     const filtered = pages.filter((_, idx) => idx !== index);
-    setPages(filtered);
+    // Sequentially reindex survivors page names
+    const reindexed = filtered.map((page, idx) => ({
+      ...page,
+      name: `Page ${idx + 1}`
+    }));
+    setPages(reindexed);
     
     // Adjust active index
-    if (currentPageIndex >= filtered.length) {
-      setCurrentPageIndex(filtered.length - 1);
+    if (currentPageIndex >= reindexed.length) {
+      setCurrentPageIndex(reindexed.length - 1);
     }
     setSelectedComponent(null);
   };

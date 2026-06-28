@@ -405,6 +405,7 @@ const Canvas: React.FC<CanvasProps> = ({
 
   const computeDropPosition = (
     event: React.DragEvent<HTMLElement>,
+    isNested: boolean,
   ): DropPosition => {
     const currentTarget = event.currentTarget;
     const rect = currentTarget ? currentTarget.getBoundingClientRect() : null;
@@ -413,6 +414,15 @@ const Canvas: React.FC<CanvasProps> = ({
 
     const verticalFraction = rect ? offsetY / rect.height : 0;
     const horizontalFraction = rect ? offsetX / rect.width : 0;
+
+    if (isNested) {
+      // Nested spatial escape: top 25% or bottom 25% escapes row boundary to stack vertically
+      if (verticalFraction < 0.25) return "before";
+      if (verticalFraction > 0.75) return "after";
+      // Inside: left/right reordering based on 50% midpoint
+      if (horizontalFraction < 0.5) return "left";
+      return "right";
+    }
 
     if (verticalFraction < 0.3) return "before";
     if (verticalFraction > 0.7) return "after";
@@ -426,18 +436,30 @@ const Canvas: React.FC<CanvasProps> = ({
     node: FormNode,
   ) => {
     event.preventDefault();
+    event.stopPropagation();
     if (isRowContainer(node)) {
       setDropIndicator({ targetRowId: node.nodeId, position: "append" });
       return;
     }
 
-    const position = computeDropPosition(event);
     const parentRowId = findParentRowId(nodes, node.nodeId);
-    setDropIndicator({
-      targetId: node.nodeId,
-      position,
-      parentRowId,
-    });
+    const isNested = !!parentRowId;
+    const position = computeDropPosition(event, isNested);
+
+    if (isNested && (position === "before" || position === "after")) {
+      // Nested spatial resolution: resolve to top-level vertical insertion before/after the parent row container
+      setDropIndicator({
+        targetId: parentRowId!,
+        position,
+        parentRowId: undefined,
+      });
+    } else {
+      setDropIndicator({
+        targetId: node.nodeId,
+        position,
+        parentRowId,
+      });
+    }
   };
 
   const handleDragLeave = () => {
@@ -446,6 +468,7 @@ const Canvas: React.FC<CanvasProps> = ({
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
+    event.stopPropagation();
     const payload = parseDragPayload(
       event.dataTransfer.getData("application/json"),
     );
@@ -607,13 +630,31 @@ const Canvas: React.FC<CanvasProps> = ({
         "targetRowId" in dropIndicator &&
         dropIndicator.targetRowId === node.nodeId;
 
+      const dropBefore =
+        dropIndicator &&
+        "targetId" in dropIndicator &&
+        dropIndicator.targetId === node.nodeId &&
+        dropIndicator.position === "before";
+
+      const dropAfter =
+        dropIndicator &&
+        "targetId" in dropIndicator &&
+        dropIndicator.targetId === node.nodeId &&
+        dropIndicator.position === "after";
+
       return (
         <div
           key={node.nodeId}
-          className={`mb-3 rounded-lg border border-gray-200 bg-gray-50 p-3 ${appendIndicator ? "ring-2 ring-blue-400" : ""}`}
+          className={`relative mb-3 rounded-lg border border-gray-200 bg-gray-50 p-3 ${appendIndicator ? "ring-2 ring-blue-400" : ""}`}
           onDragOver={(event) => handleDragOverComponent(event, node)}
           onDragLeave={handleDragLeave}
         >
+          {dropBefore && (
+            <div className="absolute inset-x-0 -top-2 h-1 rounded-full bg-[#005eb8] z-10" />
+          )}
+          {dropAfter && (
+            <div className="absolute inset-x-0 -bottom-2 h-1 rounded-full bg-[#005eb8] z-10" />
+          )}
           <div className="mb-2 flex items-center justify-between text-xs font-medium uppercase tracking-wide text-gray-500">
             Row Layout
             <span>

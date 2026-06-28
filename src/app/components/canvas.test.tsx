@@ -279,4 +279,60 @@ describe('Canvas Layout Engine - Positioning Scenarios', () => {
     expect(resultNodes[1].type).toBe('text_input'); // node-2 appended
     expect(resultNodes[1].nodeId).toBe('node-2');
   });
+
+  // Scenario 2.5: Nested Spatial Resolution (Top/Bottom escape)
+  it('Scenario 2.5: should escape row boundaries when hovering top 25% of nested component', () => {
+    const rowNode: RowContainer = {
+      nodeId: 'row-1',
+      type: 'row',
+      children: [
+        createMockTextInput('node-1', 'Name 1'),
+        createMockTextInput('node-2', 'Name 2')
+      ]
+    };
+    const nodes: FormNode[] = [rowNode];
+    const setNodesMock = vi.fn();
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={vi.fn()}
+        nodes={nodes}
+        setNodes={setNodesMock}
+      />
+    );
+
+    const rowChild1 = container.querySelectorAll('.w-full.flex-1')[0] as HTMLElement;
+    expect(rowChild1).not.toBeNull();
+
+    // Mock bounding rect in jsdom
+    rowChild1.getBoundingClientRect = () => ({
+      left: 100,
+      top: 100,
+      width: 200,
+      height: 100,
+      right: 300,
+      bottom: 200,
+      x: 100,
+      y: 100,
+      toJSON: () => {}
+    });
+
+    // Hover near the top 10% (clientY = 110, offsetY = 10 -> verticalFraction = 0.1)
+    act(() => {
+      fireEvent.dragOver(rowChild1, {
+        clientX: 200,
+        clientY: 110
+      });
+    });
+
+    // With top 25% escape active, drop indicator should target parent row container as position "before"
+    // This renders the visual drop line BEFORE the entire row container
+    const rowContainerElement = container.querySelector('.bg-gray-50') as HTMLElement;
+    expect(rowContainerElement).not.toBeNull();
+    
+    // Check that the absolute top indicator line is rendered relative to the row container
+    const dropLine = rowContainerElement.parentElement?.querySelector('.absolute.-top-2');
+    expect(dropLine).not.toBeNull();
+  });
 });

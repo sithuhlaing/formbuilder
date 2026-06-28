@@ -274,18 +274,45 @@ export function useSimpleFormBuilder(): FormState & FormActions {
 
   const deleteComponent = useCallback((id: string) => {
     setState(prev => {
-      // First, create the new state with the component deleted
+      // 1. Delete component from tree
+      const updatedPages = prev.pages.map(page =>
+        page.id === prev.currentPageId
+          ? {
+              ...page,
+              components: deleteComponentFromTree(page.components, id)
+            }
+          : page
+      );
+
+      // 2. Multi-Page Auto-Deletion Garbage Collection: if the active page has 0 items and multiple pages exist, destroy it.
+      const activePage = updatedPages.find(p => p.id === prev.currentPageId);
+      const isEmpty = activePage ? activePage.components.length === 0 : false;
+      
+      let nextPages = updatedPages;
+      let nextCurrentPageId = prev.currentPageId;
+      let nextSelectedId = prev.selectedId === id ? null : prev.selectedId;
+
+      if (isEmpty && updatedPages.length > 1) {
+        const filtered = updatedPages.filter(p => p.id !== prev.currentPageId);
+        // Sequentially reindex survivors
+        nextPages = filtered.map((page, index) => ({
+          ...page,
+          title: `Page ${index + 1}`
+        }));
+        
+        // Shift active page index down
+        const deletedPageIndex = updatedPages.findIndex(p => p.id === prev.currentPageId);
+        const newPageIndex = Math.max(0, deletedPageIndex - 1);
+        nextCurrentPageId = nextPages[newPageIndex]?.id || nextPages[0].id;
+        nextSelectedId = null;
+      }
+
+      // First, create the new state with the component deleted (and potentially page garbage collected)
       const newState = {
         ...prev,
-        pages: prev.pages.map(page =>
-          page.id === prev.currentPageId
-            ? {
-                ...page,
-                components: deleteComponentFromTree(page.components, id)
-              }
-            : page
-        ),
-        selectedId: prev.selectedId === id ? null : prev.selectedId
+        pages: nextPages,
+        currentPageId: nextCurrentPageId,
+        selectedId: nextSelectedId
       };
 
       // Now save the NEW state to history
@@ -495,13 +522,18 @@ export function useSimpleFormBuilder(): FormState & FormActions {
 
     saveToHistory();
     setState(prev => {
-      const newPages = prev.pages.filter(page => page.id !== pageId);
+      const filtered = prev.pages.filter(page => page.id !== pageId);
+      // Sequentially reindex survivors
+      const reindexedPages = filtered.map((page, index) => ({
+        ...page,
+        title: `Page ${index + 1}`
+      }));
       const wasCurrentPage = prev.currentPageId === pageId;
 
       return {
         ...prev,
-        pages: newPages,
-        currentPageId: wasCurrentPage ? newPages[0].id : prev.currentPageId,
+        pages: reindexedPages,
+        currentPageId: wasCurrentPage ? reindexedPages[0].id : prev.currentPageId,
         selectedId: wasCurrentPage ? null : prev.selectedId
       };
     });
@@ -789,6 +821,12 @@ export function useSimpleFormBuilder(): FormState & FormActions {
     setEditMode,
     setCreateMode,
     addPage: () => {
+      // Empty Page Insertion Guard: Block page creation when current active page contains 0 items.
+      const currentPage = state.pages.find(p => p.id === state.currentPageId);
+      if (currentPage && currentPage.components.length === 0) {
+        return; // Guard active!
+      }
+
       const newPage = createInitialPage(`Page ${state.pages.length + 1}`);
       saveToHistory();
       setState(prev => ({
