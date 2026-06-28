@@ -1300,4 +1300,83 @@ describe('Canvas Layout Engine - Positioning Scenarios', () => {
     // Check that we returned to select state
     expect(container.textContent).toContain('Click to upload');
   });
+
+  // Scenario 2.27: clicking on the canvas background should trigger setSelectedComponent(null)
+  it('Scenario 2.27: should trigger setSelectedComponent(null) when clicking on empty canvas background', () => {
+    const textNode = createMockTextInput('node-1', 'Name Field');
+    const nodes: FormNode[] = [textNode];
+    const setSelectedComponentMock = vi.fn();
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={textNode as FormComponent}
+        setSelectedComponent={setSelectedComponentMock}
+        nodes={nodes}
+        setNodes={vi.fn()}
+      />
+    );
+
+    // Find the canvas outer background container (has class bg-[#f0f4f5])
+    const backgroundElement = container.querySelector('.bg-\\[\\#f0f4f5\\]') as HTMLElement;
+    expect(backgroundElement).not.toBeNull();
+
+    // Click background
+    fireEvent.click(backgroundElement);
+
+    // Assert setSelectedComponent was called with null
+    expect(setSelectedComponentMock).toHaveBeenCalledWith(null);
+  });
+
+  // Scenario 2.28: should render DateTimePickerRenderer correctly for datetime_picker type
+  it('Scenario 2.28: should render DateTimePickerRenderer correctly for datetime_picker type', () => {
+    const dateTimeNode: FormNode = {
+      nodeId: 'datetime-1',
+      type: 'datetime_picker',
+      label: 'Appointment Slot',
+      fieldId: 'datetime_slot',
+      required: true,
+      validation: [],
+      properties: {
+        label: 'Appointment Date & Time',
+        required: true,
+        placeholderDate: 'Select Date',
+        placeholderTime: 'Select Time'
+      }
+    };
+    const nodes: FormNode[] = [dateTimeNode];
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={vi.fn()}
+        nodes={nodes}
+        setNodes={vi.fn()}
+      />
+    );
+
+    // Verify label and required indicator are rendered
+    expect(container.textContent).toContain('Appointment Date & Time');
+    expect(container.textContent).toContain('*');
+
+    // Verify placeholders and icons are visible
+    expect(container.textContent).toContain('Select Date');
+    expect(container.textContent).toContain('📅');
+    expect(container.textContent).toContain('Select Time');
+    expect(container.textContent).toContain('🕒');
+
+    // 1. Simulate clicking the Date Picker trigger to open the calendar
+    const dateTrigger = screen.getByText('Select Date');
+    fireEvent.click(dateTrigger);
+
+    // Verify calendar month is displayed (e.g. "June 2026")
+    const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long' });
+    expect(container.textContent).toContain(currentMonth);
+
+    // 2. Simulate clicking the Time Picker trigger to open the dropdown
+    const timeTrigger = screen.getByText('Select Time');
+    fireEvent.click(timeTrigger);
+
+    // Verify custom time selectors display
+    expect(container.textContent).toContain('Set Time');
+  });
 });

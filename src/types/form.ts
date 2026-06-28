@@ -10,6 +10,7 @@ export type ComponentKind =
   | 'checkbox'
   | 'radio_group'
   | 'date_picker'
+  | 'datetime_picker'
   | 'file_upload'
   | 'signature'
   | 'section_divider'

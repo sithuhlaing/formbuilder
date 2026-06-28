@@ -208,6 +208,18 @@ export const components = {
         },
       },
       {
+        type: "datetime_picker",
+        icon: "📆",
+        label: "Date & Time Picker",
+        description: "Google Forms style combined date and time selector",
+        properties: {
+          label: "Date & Time Picker",
+          required: false,
+          placeholderDate: "Select Date",
+          placeholderTime: "Select Time",
+        },
+      },
+      {
         type: "file_upload",
         icon: "📤",
         label: "File Upload",

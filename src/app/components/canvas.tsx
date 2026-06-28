@@ -5,6 +5,7 @@ import ButtonRenderer from "./renderers/ButtonRenderer";
 import CardRenderer from "./renderers/CardRenderer";
 import CheckboxRenderer from "./renderers/CheckboxRenderer";
 import DatePickerRenderer from "./renderers/DatePickerRenderer";
+import DateTimePickerRenderer from "./renderers/DateTimePickerRenderer";
 import DefaultRenderer from "./renderers/DefaultRenderer";
 import EmailInputRenderer from "./renderers/EmailInputRenderer";
 import FileUploadRenderer from "./renderers/FileUploadRenderer";
@@ -53,6 +54,7 @@ const componentRenderers: Record<ComponentKind, React.ComponentType<any>> = {
   checkbox: CheckboxRenderer,
   radio_group: RadioGroupRenderer,
   date_picker: DatePickerRenderer,
+  datetime_picker: DateTimePickerRenderer,
   file_upload: FileUploadRenderer,
   signature: SignatureRenderer,
   section_divider: SectionDividerRenderer,
@@ -659,7 +661,10 @@ const Canvas: React.FC<CanvasProps> = ({
         onDragStart={(event) => handleDragStart(event, node.nodeId)}
         onDragOver={(event) => handleDragOverComponent(event, node)}
         onDragLeave={handleDragLeave}
-        onClick={() => handleSelection(node as FormComponent)}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleSelection(node as FormComponent);
+        }}
         className={`group relative mb-3 rounded-md border border-gray-200 bg-white p-3 shadow-sm transition-all hover:border-[#005eb8]/50 hover:shadow ${
           isSelected ? "ring-2 ring-[#005eb8] ring-offset-1" : ""
         }`}
@@ -743,7 +748,10 @@ const Canvas: React.FC<CanvasProps> = ({
         onDragStart={(event) => handleDragStart(event, node.nodeId)}
         onDragOver={(event) => handleDragOverComponent(event, node)}
         onDragLeave={handleDragLeave}
-        onClick={() => handleSelection(node as FormComponent)}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleSelection(node as FormComponent);
+        }}
         className={`group relative w-full flex-1 rounded-md border border-gray-200 bg-white px-4 py-3 shadow-sm transition hover:border-[#005eb8]/50 hover:shadow ${
           isSelected ? "ring-2 ring-[#005eb8] ring-offset-1" : ""
         }`}
@@ -798,6 +806,7 @@ const Canvas: React.FC<CanvasProps> = ({
       className="flex-1 overflow-y-auto bg-[#f0f4f5] p-6"
       onDragOver={(event) => event.preventDefault()}
       onDrop={handleCanvasDrop}
+      onClick={() => setSelectedComponent(null)}
     >
       <div className="min-h-full rounded-md border border-gray-200 bg-white p-8 shadow-sm form-preview-container">
         {errorMessage && (
