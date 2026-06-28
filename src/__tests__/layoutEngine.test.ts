@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateDropPosition, executeLayoutCleanup, executeLayoutMutation } from './layoutEngine';
+import { calculateDropPosition, executeLayoutCleanup, executeLayoutMutation } from '../core/layoutEngine';
 import { Component } from '../types/components';
 
 describe('Layout Engine - Strict Coordinate Precedence', () => {

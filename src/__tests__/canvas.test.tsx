@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent, screen, act } from '@testing-library/react';
-import Canvas from './canvas';
+import Canvas from '../app/components/canvas';
 import { FormNode, FormComponent, RowContainer } from '@/types/form';
 
 describe('Canvas Layout Engine - Positioning Scenarios', () => {

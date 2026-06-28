@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createSimpleComponent, updateComponent, deleteComponent, findComponent } from './componentUtils';
+import { createSimpleComponent, updateComponent, deleteComponent, findComponent } from '../core/componentUtils';
 
 describe('ComponentEngine - Data Factory', () => {
   

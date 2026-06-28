@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useSimpleFormBuilder } from './useSimpleFormBuilder';
+import { useSimpleFormBuilder } from '../hooks/useSimpleFormBuilder';
 import { templateService } from '../features/template-management/services/templateService';
 
 vi.mock('../features/template-management/services/templateService');
@@ -485,4 +485,3 @@ describe('FormStateEngine - Edge Cases & Fallbacks', () => {
     consoleSpy.mockRestore();
   });
 });
-

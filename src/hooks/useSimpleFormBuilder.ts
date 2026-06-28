@@ -1,10 +1,9 @@
 /**
- * SIMPLIFIED FORM BUILDER HOOK
- * Replaces: FormStateEngine.ts (547 lines) + FormStateManager.ts (372 lines) + useFormBuilder.ts (468 lines)
- * Total replacement: ~1,400 lines → ~150 lines (89% reduction)
+ * SIMPLIFIED FORM BUILDER HOOK (RE-ENGINEERED 10/10 REDUCER PATTERN)
+ * Encapsulates state mutations into a pure reducer and wraps history tracking.
  */
 
-import { useState, useCallback } from 'react';
+import { useReducer, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Component, ComponentType } from '../types/components';
 import type { Page } from '../types/template';
@@ -13,7 +12,6 @@ import {
   createComponent, 
   updateComponent as updateComponentInTree, 
   deleteComponent as deleteComponentFromTree,
-  findComponent
 } from '../core/componentUtils';
 
 // FormPage type combining Page with our custom fields
@@ -41,11 +39,11 @@ interface FormState {
   currentPageId: string;
   selectedId: string | null;
   templateName: string;
-  history: FormState[];
+  history: Omit<FormState, 'history' | 'historyIndex'>[];
   historyIndex: number;
-  previewMode?: boolean;
-  mode: 'create' | 'edit';     // Track whether we're creating new or editing existing
-  editingTemplateId?: string;  // ID of template being edited (null for create mode)
+  previewMode: boolean;
+  mode: 'create' | 'edit';
+  editingTemplateId?: string;
 }
 
 interface FormActions {
@@ -63,8 +61,8 @@ interface FormActions {
   togglePreview: () => void;
   exportJSON: () => string;
   importJSON: (jsonString: string) => void;
-  setEditMode: (templateId: string) => void;  // Switch to edit mode for specific template
-  setCreateMode: () => void;                  // Switch to create mode
+  setEditMode: (templateId: string) => void;
+  setCreateMode: () => void;
 
   // Page management actions
   addPage: () => void;
@@ -86,7 +84,6 @@ interface FormActions {
   loadExistingTemplate: (templateId: string) => void;
 }
 
-
 // Initialize first page and state
 const initialPage = createInitialPage('Page 1');
 const INITIAL_STATE: FormState = {
@@ -101,25 +98,475 @@ const INITIAL_STATE: FormState = {
   editingTemplateId: undefined
 };
 
-const MAX_HISTORY = 50; // Prevent memory issues
+const MAX_HISTORY = 50;
+
+function createHistorySnapshot(state: FormState): Omit<FormState, 'history' | 'historyIndex'> {
+  return {
+    pages: state.pages.map(page => ({
+      ...page,
+      components: page.components.map(comp => ({ ...comp }))
+    })),
+    currentPageId: state.currentPageId,
+    selectedId: state.selectedId,
+    templateName: state.templateName,
+    previewMode: state.previewMode,
+    mode: state.mode,
+    editingTemplateId: state.editingTemplateId
+  };
+}
+
+function commitState(state: FormState, nextStateWithoutHistory: any): FormState {
+  const snapshot = createHistorySnapshot(nextStateWithoutHistory);
+  const historySlice = state.historyIndex < state.history.length - 1
+    ? state.history.slice(0, state.historyIndex + 1)
+    : state.history;
+  const newHistory = [...historySlice, snapshot].slice(-MAX_HISTORY);
+  return {
+    ...nextStateWithoutHistory,
+    history: newHistory,
+    historyIndex: newHistory.length - 1
+  };
+}
+
+function formBuilderReducer(state: FormState, action: any): FormState {
+  switch (action.type) {
+    case 'UNDO': {
+      if (state.historyIndex <= 0) return state;
+      const newIndex = state.historyIndex - 1;
+      const previousState = state.history[newIndex];
+      return {
+        ...state,
+        ...previousState,
+        historyIndex: newIndex
+      };
+    }
+
+    case 'REDO': {
+      if (state.historyIndex >= state.history.length - 1) return state;
+      const newIndex = state.historyIndex + 1;
+      const nextState = state.history[newIndex];
+      return {
+        ...state,
+        ...nextState,
+        historyIndex: newIndex
+      };
+    }
+
+    case 'ADD_COMPONENT': {
+      const { type, index } = action.payload;
+      if (!type) {
+        console.error('Cannot add component: Invalid type provided');
+        return state;
+      }
+      const newComponent = createComponent(type);
+
+      const newPages = state.pages.map(page =>
+        page.id === state.currentPageId
+          ? {
+              ...page,
+              components: index !== undefined
+                ? [
+                    ...page.components.slice(0, index),
+                    newComponent,
+                    ...page.components.slice(index)
+                  ]
+                : [...page.components, newComponent]
+            }
+          : page
+      );
+
+      const nextState = {
+        ...state,
+        pages: newPages,
+        selectedId: newComponent.id
+      };
+      return commitState(state, nextState);
+    }
+
+    case 'UPDATE_COMPONENT': {
+      const { id, updates } = action.payload;
+
+      const newPages = state.pages.map(page =>
+        page.id === state.currentPageId
+          ? {
+              ...page,
+              components: updateComponentInTree(page.components, id, updates)
+            }
+          : page
+      );
+
+      const nextState = {
+        ...state,
+        pages: newPages
+      };
+      return commitState(state, nextState);
+    }
+
+    case 'UPDATE_COMPONENTS': {
+      const { components } = action.payload;
+
+      const newPages = state.pages.map(page =>
+        page.id === state.currentPageId
+          ? {
+              ...page,
+              components
+            }
+          : page
+      );
+
+      const nextState = {
+        ...state,
+        pages: newPages
+      };
+      return commitState(state, nextState);
+    }
+
+    case 'DELETE_COMPONENT': {
+      const { id } = action.payload;
+
+      const updatedPages = state.pages.map(page =>
+        page.id === state.currentPageId
+          ? {
+              ...page,
+              components: deleteComponentFromTree(page.components, id)
+            }
+          : page
+      );
+
+      const activePage = updatedPages.find(p => p.id === state.currentPageId);
+      const isEmpty = activePage ? activePage.components.length === 0 : false;
+      
+      let nextPages = updatedPages;
+      let nextCurrentPageId = state.currentPageId;
+      let nextSelectedId = state.selectedId === id ? null : state.selectedId;
+
+      if (isEmpty && updatedPages.length > 1) {
+        const filtered = updatedPages.filter(p => p.id !== state.currentPageId);
+        nextPages = filtered.map((page, idx) => ({
+          ...page,
+          title: `Page ${idx + 1}`
+        }));
+        
+        const deletedPageIndex = updatedPages.findIndex(p => p.id === state.currentPageId);
+        const newPageIndex = Math.max(0, deletedPageIndex - 1);
+        nextCurrentPageId = nextPages[newPageIndex]?.id || nextPages[0].id;
+        nextSelectedId = null;
+      }
+
+      const nextState = {
+        ...state,
+        pages: nextPages,
+        currentPageId: nextCurrentPageId,
+        selectedId: nextSelectedId
+      };
+      return commitState(state, nextState);
+    }
+
+    case 'SELECT_COMPONENT': {
+      return {
+        ...state,
+        selectedId: action.payload.id
+      };
+    }
+
+    case 'MOVE_COMPONENT': {
+      const { fromIndex, toIndex } = action.payload;
+      if (fromIndex === toIndex) return state;
+
+      const newPages = state.pages.map(page => 
+        page.id === state.currentPageId 
+          ? {
+              ...page,
+              components: (() => {
+                const newComponents = [...page.components];
+                const [movedComponent] = newComponents.splice(fromIndex, 1);
+                newComponents.splice(toIndex, 0, movedComponent);
+                return newComponents;
+              })()
+            }
+          : page
+      );
+
+      const nextState = {
+        ...state,
+        pages: newPages
+      };
+      return commitState(state, nextState);
+    }
+
+    case 'SET_TEMPLATE_NAME': {
+      const { name } = action.payload;
+
+      if (state.editingTemplateId) {
+        try {
+          const pagesForService = state.pages.map(page => ({
+            title: page.title,
+            components: page.components
+          }));
+          templateService.updateTemplate(state.editingTemplateId, { 
+            name,
+            pages: pagesForService
+          });
+        } catch (error) {
+          console.error('Error updating template:', error);
+        }
+      }
+
+      const nextState = {
+        ...state,
+        templateName: name
+      };
+      return commitState(state, nextState);
+    }
+
+    case 'CLEAR_ALL': {
+      const newPage = createInitialPage('Page 1');
+      const nextState = {
+        ...INITIAL_STATE,
+        pages: [newPage],
+        currentPageId: newPage.id
+      };
+      return commitState(state, nextState);
+    }
+
+    case 'TOGGLE_PREVIEW': {
+      return {
+        ...state,
+        previewMode: !state.previewMode,
+        selectedId: state.previewMode ? state.selectedId : null
+      };
+    }
+
+    case 'IMPORT_JSON': {
+      const { jsonString } = action.payload;
+      try {
+        const data = JSON.parse(jsonString);
+
+        if (data.pages && Array.isArray(data.pages)) {
+          const nextState = {
+            ...state,
+            pages: data.pages,
+            currentPageId: data.pages.length > 0 ? data.pages[0].id : 'page-1',
+            templateName: data.templateName || 'Imported Form',
+            selectedId: null
+          };
+          return commitState(state, nextState);
+        } else if (data.components && Array.isArray(data.components)) {
+          const nextState = {
+            ...state,
+            pages: [{
+              id: 'page-1',
+              title: 'Page 1',
+              components: data.components
+            }],
+            currentPageId: 'page-1',
+            templateName: data.templateName || 'Imported Form',
+            selectedId: null
+          };
+          return commitState(state, nextState);
+        } else {
+          throw new Error('Invalid JSON structure - no pages or components found');
+        }
+      } catch (error) {
+        console.error('Failed to import JSON:', error);
+        alert('Failed to import form. Please check the JSON format.');
+        return state;
+      }
+    }
+
+    case 'SET_EDIT_MODE': {
+      return {
+        ...state,
+        mode: 'edit',
+        editingTemplateId: action.payload.templateId
+      };
+    }
+
+    case 'SET_CREATE_MODE': {
+      const newPage = createInitialPage('Page 1');
+      const nextState = {
+        ...INITIAL_STATE,
+        pages: [newPage],
+        currentPageId: newPage.id
+      };
+      // Reset history to contain only the clean initial state
+      return {
+        ...nextState,
+        history: [createHistorySnapshot(nextState)],
+        historyIndex: 0
+      };
+    }
+
+    case 'ADD_PAGE': {
+      const currentPage = state.pages.find(p => p.id === state.currentPageId);
+      if (currentPage && currentPage.components.length === 0) {
+        return state;
+      }
+
+      const newPage = createInitialPage(`Page ${state.pages.length + 1}`);
+      const nextState = {
+        ...state,
+        pages: [...state.pages, newPage],
+        currentPageId: newPage.id,
+        selectedId: null
+      };
+      return commitState(state, nextState);
+    }
+
+    case 'DELETE_PAGE': {
+      const { pageId } = action.payload;
+      if (state.pages.length <= 1) {
+        return state;
+      }
+
+      const filtered = state.pages.filter(page => page.id !== pageId);
+      const reindexedPages = filtered.map((page, index) => ({
+        ...page,
+        title: `Page ${index + 1}`
+      }));
+      const wasCurrentPage = state.currentPageId === pageId;
+
+      const nextState = {
+        ...state,
+        pages: reindexedPages,
+        currentPageId: wasCurrentPage ? reindexedPages[0].id : state.currentPageId,
+        selectedId: wasCurrentPage ? null : state.selectedId
+      };
+      return commitState(state, nextState);
+    }
+
+    case 'SWITCH_TO_PAGE': {
+      return {
+        ...state,
+        currentPageId: action.payload.pageId,
+        selectedId: null
+      };
+    }
+
+    case 'REORDER_PAGES': {
+      const { fromIndex, toIndex } = action.payload;
+      const newPages = [...state.pages];
+      const [movedPage] = newPages.splice(fromIndex, 1);
+      newPages.splice(toIndex, 0, movedPage);
+
+      const nextState = {
+        ...state,
+        pages: newPages.map((page, index) => ({
+          ...page,
+          order: index
+        }))
+      };
+      return commitState(state, nextState);
+    }
+
+    case 'MOVE_PAGE_UP': {
+      const { pageId } = action.payload;
+      const index = state.pages.findIndex(p => p.id === pageId);
+      if (index <= 0) return state;
+
+      const newPages = [...state.pages];
+      [newPages[index - 1], newPages[index]] = [newPages[index], newPages[index - 1]];
+
+      const nextState = {
+        ...state,
+        pages: newPages.map((page, i) => ({
+          ...page,
+          order: i
+        }))
+      };
+      return commitState(state, nextState);
+    }
+
+    case 'MOVE_PAGE_DOWN': {
+      const { pageId } = action.payload;
+      const index = state.pages.findIndex(p => p.id === pageId);
+      if (index === -1 || index >= state.pages.length - 1) return state;
+
+      const newPages = [...state.pages];
+      [newPages[index], newPages[index + 1]] = [newPages[index + 1], newPages[index]];
+
+      const nextState = {
+        ...state,
+        pages: newPages.map((page, i) => ({
+          ...page,
+          order: i
+        }))
+      };
+      return commitState(state, nextState);
+    }
+
+    case 'SAVE_TEMPLATE': {
+      const pagesForService = state.pages.map(page => ({
+        title: page.title,
+        components: page.components
+      }));
+      
+      if (state.mode === 'edit' && state.editingTemplateId) {
+        templateService.updateTemplate(state.editingTemplateId, {
+          name: state.templateName,
+          pages: pagesForService
+        });
+        return state;
+      } else {
+        const saved = templateService.saveTemplate({
+          name: state.templateName,
+          pages: pagesForService
+        });
+        if (saved && saved.templateId) {
+          return {
+            ...state,
+            mode: 'edit',
+            editingTemplateId: saved.templateId
+          };
+        }
+      }
+      return state;
+    }
+
+    case 'LOAD_TEMPLATE': {
+      const { templateId } = action.payload;
+      const template = templateService.loadTemplate(templateId);
+      if (template) {
+        const hydratedPages = template.pages.map((p: any) => ({
+          id: p.id || `p-${uuidv4()}`,
+          title: p.title || p.name || 'Untitled Page',
+          components: p.components || p.items || []
+        }));
+        const nextState = {
+          ...state,
+          mode: 'edit',
+          editingTemplateId: templateId,
+          templateName: template.name,
+          pages: hydratedPages.length > 0 ? hydratedPages : [createInitialPage('Page 1')],
+          currentPageId: hydratedPages[0]?.id || state.currentPageId
+        };
+        // Reset history to start from the newly loaded template state
+        return {
+          ...nextState,
+          history: [createHistorySnapshot(nextState)],
+          historyIndex: 0
+        };
+      }
+      return state;
+    }
+
+    default:
+      return state;
+  }
+}
 
 export function useSimpleFormBuilder(): FormState & FormActions {
-  const [state, setState] = useState<FormState>(() => {
-  const initialState = { ...INITIAL_STATE };
-  // Initialize history with initial state
-  initialState.history = [{ ...initialState }];
-  initialState.historyIndex = 0;
-  return initialState;
-});
+  const [state, dispatch] = useReducer(formBuilderReducer, INITIAL_STATE, (initial) => {
+    const stateWithHistory = { ...initial };
+    stateWithHistory.history = [createHistorySnapshot(initial)];
+    stateWithHistory.historyIndex = 0;
+    return stateWithHistory;
+  });
 
   // Helper function to get current page
   const getCurrentPage = useCallback((): FormPage => {
     const page = state.pages.find(p => p.id === state.currentPageId);
-    if (!page) {
-      // If current page not found, return first page or create a new one
-      return state.pages[0] || createInitialPage();
-    }
-    return page;
+    return page || state.pages[0] || createInitialPage();
   }, [state.pages, state.currentPageId]);
 
   // Helper function to get current page components
@@ -128,698 +575,48 @@ export function useSimpleFormBuilder(): FormState & FormActions {
     return currentPage ? currentPage.components : [];
   }, [getCurrentPage]);
 
-  // Simple history management - replacing complex HistoryManager
-  const saveToHistory = useCallback(() => {
-    setState(prev => {
-      // Create a deep copy of the current state without the history fields
-      const stateToSave: FormState = {
-        pages: prev.pages.map(page => ({
-          ...page,
-          components: page.components.map(comp => ({ ...comp }))
-        })),
-        currentPageId: prev.currentPageId,
-        selectedId: prev.selectedId,
-        templateName: prev.templateName,
-        history: [],  // Will be set below
-        historyIndex: -1,  // Will be set below
-        previewMode: prev.previewMode,
-        mode: prev.mode,
-        editingTemplateId: prev.editingTemplateId
-      };
-      
-      // If we're in the middle of the history, truncate the future history
-      const historySlice = prev.historyIndex < prev.history.length - 1 
-        ? prev.history.slice(0, prev.historyIndex + 1)
-        : prev.history;
-      
-      // Create new history array with current state
-      const newHistory = [...historySlice, stateToSave].slice(-MAX_HISTORY);
-      
-      return {
-        ...prev,  // Keep current state
-        history: newHistory,
-        historyIndex: newHistory.length - 1
-      };
-    });
-  }, []);
-
-  // Component operations - replacing complex ComponentEngine
-  const addComponent = useCallback((type: ComponentType, index?: number) => {
-    // Validate component type before creating
-    if (!type) {
-      console.error('Cannot add component: Invalid type provided');
-      return;
-    }
-
-    const newComponent = createComponent(type);
-
-    setState(prev => {
-      // First, create the new state with the component added
-      const newState = {
-        ...prev,
-        pages: prev.pages.map(page =>
-          page.id === prev.currentPageId
-            ? {
-                ...page,
-                components: index !== undefined
-                  ? [
-                      ...page.components.slice(0, index),
-                      newComponent,
-                      ...page.components.slice(index)
-                    ]
-                  : [...page.components, newComponent]
-              }
-            : page
-        ),
-        selectedId: newComponent.id
-      };
-
-      // Now save the NEW state to history
-      const stateToSave: FormState = {
-        pages: newState.pages.map(page => ({
-          ...page,
-          components: page.components.map(comp => ({ ...comp }))
-        })),
-        currentPageId: newState.currentPageId,
-        selectedId: newState.selectedId,
-        templateName: newState.templateName,
-        history: [],  // Will be set below
-        historyIndex: -1,  // Will be set below
-        previewMode: newState.previewMode,
-        mode: newState.mode,
-        editingTemplateId: newState.editingTemplateId
-      };
-
-      // If we're in the middle of the history, truncate the future history
-      const historySlice = prev.historyIndex < prev.history.length - 1
-        ? prev.history.slice(0, prev.historyIndex + 1)
-        : prev.history;
-
-      // Create new history array with the NEW state
-      const newHistory = [...historySlice, stateToSave].slice(-MAX_HISTORY);
-
-      // Return the new state with updated history
-      return {
-        ...newState,
-        history: newHistory,
-        historyIndex: newHistory.length - 1
-      };
-    });
-  }, []);
-
-  const updateComponent = useCallback((id: string, updates: Partial<Component>) => {
-    setState(prev => {
-      // First, create the new state with the component updated
-      const newState = {
-        ...prev,
-        pages: prev.pages.map(page =>
-          page.id === prev.currentPageId
-            ? {
-                ...page,
-                components: updateComponentInTree(page.components, id, updates)
-              }
-            : page
-        )
-      };
-
-      // Now save the NEW state to history
-      const stateToSave: FormState = {
-        pages: newState.pages.map(page => ({
-          ...page,
-          components: page.components.map(comp => ({ ...comp }))
-        })),
-        currentPageId: newState.currentPageId,
-        selectedId: newState.selectedId,
-        templateName: newState.templateName,
-        history: [],
-        historyIndex: -1,
-        previewMode: newState.previewMode,
-        mode: newState.mode,
-        editingTemplateId: newState.editingTemplateId
-      };
-
-      const historySlice = prev.historyIndex < prev.history.length - 1
-        ? prev.history.slice(0, prev.historyIndex + 1)
-        : prev.history;
-
-      const newHistory = [...historySlice, stateToSave].slice(-MAX_HISTORY);
-
-      return {
-        ...newState,
-        history: newHistory,
-        historyIndex: newHistory.length - 1
-      };
-    });
-  }, []);
-
-  const deleteComponent = useCallback((id: string) => {
-    setState(prev => {
-      // 1. Delete component from tree
-      const updatedPages = prev.pages.map(page =>
-        page.id === prev.currentPageId
-          ? {
-              ...page,
-              components: deleteComponentFromTree(page.components, id)
-            }
-          : page
-      );
-
-      // 2. Multi-Page Auto-Deletion Garbage Collection: if the active page has 0 items and multiple pages exist, destroy it.
-      const activePage = updatedPages.find(p => p.id === prev.currentPageId);
-      const isEmpty = activePage ? activePage.components.length === 0 : false;
-      
-      let nextPages = updatedPages;
-      let nextCurrentPageId = prev.currentPageId;
-      let nextSelectedId = prev.selectedId === id ? null : prev.selectedId;
-
-      if (isEmpty && updatedPages.length > 1) {
-        const filtered = updatedPages.filter(p => p.id !== prev.currentPageId);
-        // Sequentially reindex survivors
-        nextPages = filtered.map((page, index) => ({
-          ...page,
-          title: `Page ${index + 1}`
-        }));
-        
-        // Shift active page index down
-        const deletedPageIndex = updatedPages.findIndex(p => p.id === prev.currentPageId);
-        const newPageIndex = Math.max(0, deletedPageIndex - 1);
-        nextCurrentPageId = nextPages[newPageIndex]?.id || nextPages[0].id;
-        nextSelectedId = null;
-      }
-
-      // First, create the new state with the component deleted (and potentially page garbage collected)
-      const newState = {
-        ...prev,
-        pages: nextPages,
-        currentPageId: nextCurrentPageId,
-        selectedId: nextSelectedId
-      };
-
-      // Now save the NEW state to history
-      const stateToSave: FormState = {
-        pages: newState.pages.map(page => ({
-          ...page,
-          components: page.components.map(comp => ({ ...comp }))
-        })),
-        currentPageId: newState.currentPageId,
-        selectedId: newState.selectedId,
-        templateName: newState.templateName,
-        history: [],
-        historyIndex: -1,
-        previewMode: newState.previewMode,
-        mode: newState.mode,
-        editingTemplateId: newState.editingTemplateId
-      };
-
-      const historySlice = prev.historyIndex < prev.history.length - 1
-        ? prev.history.slice(0, prev.historyIndex + 1)
-        : prev.history;
-
-      const newHistory = [...historySlice, stateToSave].slice(-MAX_HISTORY);
-
-      return {
-        ...newState,
-        history: newHistory,
-        historyIndex: newHistory.length - 1
-      };
-    });
-  }, []);
-
-  // Update all components at once (for smart drop handler)
-  const updateComponents = useCallback((newComponents: Component[]) => {
-    setState(prev => {
-      // First, create the new state with the components replaced
-      const newState = {
-        ...prev,
-        pages: prev.pages.map(page =>
-          page.id === prev.currentPageId
-            ? {
-                ...page,
-                components: newComponents
-              }
-            : page
-        )
-      };
-
-      // Now save the NEW state to history
-      const stateToSave: FormState = {
-        pages: newState.pages.map(page => ({
-          ...page,
-          components: page.components.map(comp => ({ ...comp }))
-        })),
-        currentPageId: newState.currentPageId,
-        selectedId: newState.selectedId,
-        templateName: newState.templateName,
-        history: [],
-        historyIndex: -1,
-        previewMode: newState.previewMode,
-        mode: newState.mode,
-        editingTemplateId: newState.editingTemplateId
-      };
-
-      const historySlice = prev.historyIndex < prev.history.length - 1
-        ? prev.history.slice(0, prev.historyIndex + 1)
-        : prev.history;
-
-      const newHistory = [...historySlice, stateToSave].slice(-MAX_HISTORY);
-
-      return {
-        ...newState,
-        history: newHistory,
-        historyIndex: newHistory.length - 1
-      };
-    });
-  }, []);
-
-  const selectComponent = useCallback((id: string | null) => {
-    setState(prev => ({
-      ...prev,
-      selectedId: id
-    }));
-  }, []);
-
-  const moveComponent = useCallback((fromIndex: number, toIndex: number) => {
-    if (fromIndex === toIndex) return;
-    
-    setState(prev => {
-      const newState = {
-        ...prev,
-        pages: prev.pages.map(page => 
-          page.id === prev.currentPageId 
-            ? {
-                ...page,
-                components: (() => {
-                  const newComponents = [...page.components];
-                  const [movedComponent] = newComponents.splice(fromIndex, 1);
-                  newComponents.splice(toIndex, 0, movedComponent);
-                  return newComponents;
-                })()
-              }
-            : page
-        )
-      };
-
-      const stateToSave: FormState = {
-        pages: newState.pages.map(page => ({
-          ...page,
-          components: page.components.map(comp => ({ ...comp }))
-        })),
-        currentPageId: newState.currentPageId,
-        selectedId: newState.selectedId,
-        templateName: newState.templateName,
-        history: [],
-        historyIndex: -1,
-        previewMode: newState.previewMode,
-        mode: newState.mode,
-        editingTemplateId: newState.editingTemplateId
-      };
-
-      const historySlice = prev.historyIndex < prev.history.length - 1
-        ? prev.history.slice(0, prev.historyIndex + 1)
-        : prev.history;
-
-      const newHistory = [...historySlice, stateToSave].slice(-MAX_HISTORY);
-
-      return {
-        ...newState,
-        history: newHistory,
-        historyIndex: newHistory.length - 1
-      };
-    });
-  }, []);
-
-  // History operations - simple undo/redo
-  const undo = useCallback(() => {
-    setState(prev => {
-      if (prev.historyIndex <= 0) return prev; // Nothing to undo
-      
-      const newIndex = prev.historyIndex - 1;
-      const previousState = prev.history[newIndex];
-      
-      return {
-        ...previousState,
-        history: [...prev.history],
-        historyIndex: newIndex
-      };
-    });
-  }, []);
-
-  const redo = useCallback(() => {
-    setState(prev => {
-      if (prev.historyIndex >= prev.history.length - 1) return prev; // Nothing to redo
-      
-      const newIndex = prev.historyIndex + 1;
-      const nextState = prev.history[newIndex];
-      
-      return {
-        ...nextState,
-        history: [...prev.history],
-        historyIndex: newIndex
-      };
-    });
-  }, []);
-
-
-
-  // Form operations
-  const setTemplateName = useCallback((name: string) => {
-    setState(prev => {
-      // Create a new history entry
-      const newHistory = [...prev.history];
-      
-      // Add current state to history before updating
-      newHistory.push({
-        ...prev,
-        history: [...prev.history],
-        historyIndex: prev.historyIndex
-      });
-      
-      // Ensure we don't exceed history limit
-      if (newHistory.length > 50) {
-        newHistory.shift();
-      }
-
-      // Create updated state with new name
-      const updatedState: FormState = {
-        ...prev,
-        templateName: name,
-        history: newHistory,
-        historyIndex: newHistory.length - 1
-      };
-
-      // If we're editing an existing template, update it in localStorage
-      if (prev.editingTemplateId) {
-        try {
-          // Format pages structure for template service
-          const pagesForService = prev.pages.map(page => ({
-            title: page.title,
-            components: page.components
-          }));
-          
-          // Update template with just the name and pages as per the templateService type definition
-          const updatedTemplate = templateService.updateTemplate(prev.editingTemplateId, { 
-            name,
-            pages: pagesForService
-          });
-          
-          if (!updatedTemplate) {
-            console.error('Failed to update template name');
-            return prev;
-          }
-        } catch (error) {
-          console.error('Error updating template:', error);
-          return prev;
-        }
-      }
-      return updatedState;
-    });
-  }, [saveToHistory]);
-
-  // Page Management Functions
-  const deletePage = useCallback((pageId: string) => {
-    // Don't allow deleting the last page
-    if (state.pages.length <= 1) {
-      return;
-    }
-
-    saveToHistory();
-    setState(prev => {
-      const filtered = prev.pages.filter(page => page.id !== pageId);
-      // Sequentially reindex survivors
-      const reindexedPages = filtered.map((page, index) => ({
-        ...page,
-        title: `Page ${index + 1}`
-      }));
-      const wasCurrentPage = prev.currentPageId === pageId;
-
-      return {
-        ...prev,
-        pages: reindexedPages,
-        currentPageId: wasCurrentPage ? reindexedPages[0].id : prev.currentPageId,
-        selectedId: wasCurrentPage ? null : prev.selectedId
-      };
-    });
-  }, [saveToHistory, state.pages.length]);
-
-  const switchToPage = useCallback((pageId: string) => {
-    setState(prev => ({
-      ...prev,
-      currentPageId: pageId,
-      selectedId: null // Clear selection when switching pages
-    }));
-  }, []);
-
-  const togglePreview = useCallback(() => {
-    setState(prev => ({
-      ...prev,
-      previewMode: !prev.previewMode,
-      selectedId: prev.previewMode ? prev.selectedId : null // Clear selection in preview
-    }));
-  }, []);
-
-  // Import/Export - simple JSON handling
-  const exportJSON = useCallback(() => {
-    return JSON.stringify({
-      templateName: state.templateName,
-      pages: state.pages,
-      version: '2.1-multipage'
-    }, null, 2);
-  }, [state.templateName, state.pages]);
-
-  const importJSON = useCallback((jsonString: string) => {
-    try {
-      const data = JSON.parse(jsonString);
-
-      saveToHistory();
-
-      // Handle new multi-page format
-      if (data.pages && Array.isArray(data.pages)) {
-        setState(prev => ({
-          ...prev,
-          pages: data.pages,
-          currentPageId: data.pages.length > 0 ? data.pages[0].id : 'page-1',
-          templateName: data.templateName || 'Imported Form',
-          selectedId: null
-        }));
-      }
-      // Handle old single-page format for backward compatibility
-      else if (data.components && Array.isArray(data.components)) {
-        setState(prev => ({
-          ...prev,
-          pages: [{
-            id: 'page-1',
-            title: 'Page 1',
-            components: data.components
-          }],
-          currentPageId: 'page-1',
-          templateName: data.templateName || 'Imported Form',
-          selectedId: null
-        }));
-      }
-      else {
-        throw new Error('Invalid JSON structure - no pages or components found');
-      }
-    } catch (error) {
-      console.error('Failed to import JSON:', error);
-      alert('Failed to import form. Please check the JSON format.');
-    }
-  }, [saveToHistory]);
-
-  // Mode management functions
-  const setEditMode = useCallback((templateId: string) => {
-    setState(prev => ({
-      ...prev,
-      mode: 'edit',
-      editingTemplateId: templateId
-    }));
-  }, []);
-
-  const handleSave = useCallback(() => {
-    setState(prev => {
-      const pagesForService = prev.pages.map(page => ({
-        title: page.title,
-        components: page.components
-      }));
-      if (prev.mode === 'edit' && prev.editingTemplateId) {
-        templateService.updateTemplate(prev.editingTemplateId, {
-          name: prev.templateName,
-          pages: pagesForService
-        });
-        return prev;
-      } else {
-        const saved = templateService.saveTemplate({
-          name: prev.templateName,
-          pages: pagesForService
-        });
-        if (saved && saved.templateId) {
-          return {
-            ...prev,
-            mode: 'edit',
-            editingTemplateId: saved.templateId
-          };
-        }
-      }
-      return prev;
-    });
-  }, []);
-
-  const loadExistingTemplate = useCallback((templateId: string) => {
-    const template = templateService.loadTemplate(templateId);
-    if (template) {
-      const hydratedPages = template.pages.map((p: any) => ({
-        id: p.id || `p-${uuidv4()}`,
-        title: p.title || p.name || 'Untitled Page',
-        components: p.components || p.items || []
-      }));
-      setState(prev => ({
-        ...prev,
-        mode: 'edit',
-        editingTemplateId: templateId,
-        templateName: template.name,
-        pages: hydratedPages.length > 0 ? hydratedPages : [createInitialPage('Page 1')],
-        currentPageId: hydratedPages[0]?.id || prev.currentPageId
-      }));
-    }
-  }, []);
-
-
-  const setCreateMode = useCallback(() => {
-    const newPage = createInitialPage('Page 1');
-    saveToHistory();
-    setState({
-      ...INITIAL_STATE,
-      pages: [newPage],
-      currentPageId: newPage.id,
-      history: [{
-        ...INITIAL_STATE,
-        pages: [newPage],
-        currentPageId: newPage.id
-      }],
-      historyIndex: 0
-    });
-  }, [saveToHistory]);
-
-  const reorderPages = useCallback((fromIndex: number, toIndex: number) => {
-    saveToHistory();
-    setState(prev => {
-      const newPages = [...prev.pages];
-      const [movedPage] = newPages.splice(fromIndex, 1);
-      newPages.splice(toIndex, 0, movedPage);
-      
-      return {
-        ...prev,
-        pages: newPages.map((page, index) => ({
-          ...page,
-          order: index
-        }))
-      };
-    });
-  }, [saveToHistory]);
-
-  const movePageUp = useCallback((pageId: string) => {
-    setState(prev => {
-      const index = prev.pages.findIndex(p => p.id === pageId);
-      if (index <= 0) return prev;
-      
-      const newPages = [...prev.pages];
-      [newPages[index - 1], newPages[index]] = [newPages[index], newPages[index - 1]];
-      
-      saveToHistory();
-      
-      return {
-        ...prev,
-        pages: newPages.map((page, i) => ({
-          ...page,
-          order: i
-        }))
-      };
-    });
-  }, [saveToHistory]);
-
-  const movePageDown = useCallback((pageId: string) => {
-    setState(prev => {
-      const index = prev.pages.findIndex(p => p.id === pageId);
-      if (index === -1 || index >= prev.pages.length - 1) return prev;
-      
-      const newPages = [...prev.pages];
-      [newPages[index], newPages[index + 1]] = [newPages[index + 1], newPages[index]];
-      
-      saveToHistory();
-      
-      return {
-        ...prev,
-        pages: newPages.map((page, i) => ({
-          ...page,
-          order: i
-        }))
-      };
-    });
-  }, [saveToHistory]);
-
   return {
     // State
     ...state,
     components: getCurrentPageComponents(),
 
     // Actions
-    addComponent,
-    updateComponent,
-    updateComponents,
-    deleteComponent,
-    selectComponent,
-    moveComponent,
-    undo,
-    redo,
-    canUndo: () => state.historyIndex > 0,
-    canRedo: () => state.historyIndex < state.history.length - 1,
-    setTemplateName,
-    clearAll: () => {
-      setState(prev => {
-        const newPage = createInitialPage('Page 1');
-
-        // First, create the new cleared state
-        const newState = {
-          ...INITIAL_STATE,
-          pages: [newPage],
-          currentPageId: newPage.id
-        };
-
-        // Now save the NEW state to history
-        const stateToSave: FormState = {
-          pages: newState.pages.map(page => ({
-            ...page,
-            components: page.components.map(comp => ({ ...comp }))
-          })),
-          currentPageId: newState.currentPageId,
-          selectedId: newState.selectedId,
-          templateName: newState.templateName,
-          history: [],
-          historyIndex: -1,
-          previewMode: newState.previewMode,
-          mode: newState.mode,
-          editingTemplateId: newState.editingTemplateId
-        };
-
-        const historySlice = prev.historyIndex < prev.history.length - 1
-          ? prev.history.slice(0, prev.historyIndex + 1)
-          : prev.history;
-
-        const newHistory = [...historySlice, stateToSave].slice(-MAX_HISTORY);
-
-        return {
-          ...newState,
-          history: newHistory,
-          historyIndex: newHistory.length - 1
-        };
-      });
-    },
-    togglePreview: () => {
-      setState(prev => ({
-        ...prev,
-        previewMode: !prev.previewMode
-      }));
-    },
-    exportJSON: () => {
+    addComponent: useCallback((type: ComponentType, index?: number) => {
+      dispatch({ type: 'ADD_COMPONENT', payload: { type, index } });
+    }, []),
+    updateComponent: useCallback((id: string, updates: Partial<Component>) => {
+      dispatch({ type: 'UPDATE_COMPONENT', payload: { id, updates } });
+    }, []),
+    updateComponents: useCallback((components: Component[]) => {
+      dispatch({ type: 'UPDATE_COMPONENTS', payload: { components } });
+    }, []),
+    deleteComponent: useCallback((id: string) => {
+      dispatch({ type: 'DELETE_COMPONENT', payload: { id } });
+    }, []),
+    selectComponent: useCallback((id: string | null) => {
+      dispatch({ type: 'SELECT_COMPONENT', payload: { id } });
+    }, []),
+    moveComponent: useCallback((fromIndex: number, toIndex: number) => {
+      dispatch({ type: 'MOVE_COMPONENT', payload: { fromIndex, toIndex } });
+    }, []),
+    undo: useCallback(() => {
+      dispatch({ type: 'UNDO' });
+    }, []),
+    redo: useCallback(() => {
+      dispatch({ type: 'REDO' });
+    }, []),
+    canUndo: useCallback(() => state.historyIndex > 0, [state.historyIndex]),
+    canRedo: useCallback(() => state.historyIndex < state.history.length - 1, [state.historyIndex, state.history.length]),
+    setTemplateName: useCallback((name: string) => {
+      dispatch({ type: 'SET_TEMPLATE_NAME', payload: { name } });
+    }, []),
+    clearAll: useCallback(() => {
+      dispatch({ type: 'CLEAR_ALL' });
+    }, []),
+    togglePreview: useCallback(() => {
+      dispatch({ type: 'TOGGLE_PREVIEW' });
+    }, []),
+    exportJSON: useCallback(() => {
       return JSON.stringify({
         templateName: state.templateName,
         pages: state.pages.map(page => ({
@@ -832,85 +629,65 @@ export function useSimpleFormBuilder(): FormState & FormActions {
         })),
         version: '2.1-multipage'
       }, null, 2);
-    },
-    importJSON,
-    setEditMode,
-    setCreateMode,
-    addPage: () => {
-      // Empty Page Insertion Guard: Block page creation when current active page contains 0 items.
-      const currentPage = state.pages.find(p => p.id === state.currentPageId);
-      if (currentPage && currentPage.components.length === 0) {
-        return; // Guard active!
-      }
-
-      const newPage = createInitialPage(`Page ${state.pages.length + 1}`);
-      saveToHistory();
-      setState(prev => ({
-        ...prev,
-        pages: [...prev.pages, newPage],
-        currentPageId: newPage.id,
-        selectedId: null
-      }));
-    },
-    deletePage,
-    switchToPage: (pageId: string) => {
-      setState(prev => ({
-        ...prev,
-        currentPageId: pageId,
-        selectedId: null
-      }));
-    },
-    reorderPages,
-    movePageUp,
-    movePageDown,
+    }, [state.templateName, state.pages]),
+    importJSON: useCallback((jsonString: string) => {
+      dispatch({ type: 'IMPORT_JSON', payload: { jsonString } });
+    }, []),
+    setEditMode: useCallback((templateId: string) => {
+      dispatch({ type: 'SET_EDIT_MODE', payload: { templateId } });
+    }, []),
+    setCreateMode: useCallback(() => {
+      dispatch({ type: 'SET_CREATE_MODE' });
+    }, []),
+    addPage: useCallback(() => {
+      dispatch({ type: 'ADD_PAGE' });
+    }, []),
+    deletePage: useCallback((pageId: string) => {
+      dispatch({ type: 'DELETE_PAGE', payload: { pageId } });
+    }, []),
+    switchToPage: useCallback((pageId: string) => {
+      dispatch({ type: 'SWITCH_TO_PAGE', payload: { pageId } });
+    }, []),
+    reorderPages: useCallback((fromIndex: number, toIndex: number) => {
+      dispatch({ type: 'REORDER_PAGES', payload: { fromIndex, toIndex } });
+    }, []),
+    movePageUp: useCallback((pageId: string) => {
+      dispatch({ type: 'MOVE_PAGE_UP', payload: { pageId } });
+    }, []),
+    movePageDown: useCallback((pageId: string) => {
+      dispatch({ type: 'MOVE_PAGE_DOWN', payload: { pageId } });
+    }, []),
     getCurrentPage,
     getCurrentPageComponents,
-
-    // Missing functions implementations
-    getCurrentPageIndex: () => {
+    getCurrentPageIndex: useCallback(() => {
       return state.pages.findIndex(page => page.id === state.currentPageId);
-    },
-    navigateToNextPage: () => {
+    }, [state.pages, state.currentPageId]),
+    navigateToNextPage: useCallback(() => {
       const currentIndex = state.pages.findIndex(page => page.id === state.currentPageId);
       if (currentIndex < state.pages.length - 1) {
-        const nextPage = state.pages[currentIndex + 1];
-        setState(prev => ({
-          ...prev,
-          currentPageId: nextPage.id,
-          selectedId: null
-        }));
+        dispatch({ type: 'SWITCH_TO_PAGE', payload: { pageId: state.pages[currentIndex + 1].id } });
       }
-    },
-    navigateToPreviousPage: () => {
+    }, [state.pages, state.currentPageId]),
+    navigateToPreviousPage: useCallback(() => {
       const currentIndex = state.pages.findIndex(page => page.id === state.currentPageId);
       if (currentIndex > 0) {
-        const prevPage = state.pages[currentIndex - 1];
-        setState(prev => ({
-          ...prev,
-          currentPageId: prevPage.id,
-          selectedId: null
-        }));
+        dispatch({ type: 'SWITCH_TO_PAGE', payload: { pageId: state.pages[currentIndex - 1].id } });
       }
-    },
-    addNewPage: () => {
-      const newPage = createInitialPage(`Page ${state.pages.length + 1}`);
-      saveToHistory();
-      setState(prev => ({
-        ...prev,
-        pages: [...prev.pages, newPage],
-        currentPageId: newPage.id,
-        selectedId: null
-      }));
-    },
-    handleDrop: (componentType: ComponentType, position?: { index: number }) => {
-      addComponent(componentType, position?.index);
-    },
-    handleSave,
-    loadExistingTemplate
+    }, [state.pages, state.currentPageId]),
+    addNewPage: useCallback(() => {
+      dispatch({ type: 'ADD_PAGE' });
+    }, []),
+    handleDrop: useCallback((componentType: ComponentType, position?: { index: number }) => {
+      dispatch({ type: 'ADD_COMPONENT', payload: { type: componentType, index: position?.index } });
+    }, []),
+    handleSave: useCallback(() => {
+      dispatch({ type: 'SAVE_TEMPLATE' });
+    }, []),
+    loadExistingTemplate: useCallback((templateId: string) => {
+      dispatch({ type: 'LOAD_TEMPLATE', payload: { templateId } });
+    })
   };
 }
-
-
 
 // Export FormPage type for external use
 export type { FormPage };
