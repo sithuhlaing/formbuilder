@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
-  base: '/Form-Builder/',
+  base: '/formbuilder/',
   plugins: [react()],
   resolve: {
     alias: {
