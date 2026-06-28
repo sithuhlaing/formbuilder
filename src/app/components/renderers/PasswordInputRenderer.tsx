@@ -2,8 +2,10 @@ import React from "react";
 
 export default function PasswordInputRenderer({
   component,
+  previewMode = false,
 }: {
   component: any;
+  previewMode?: boolean;
 }) {
   return (
     <div className="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-md">
@@ -18,7 +20,7 @@ export default function PasswordInputRenderer({
         placeholder={component.properties.placeholder}
         required={component.properties.required}
         className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md p-2 text-sm"
-        readOnly
+        readOnly={!previewMode}
       />
     </div>
   );

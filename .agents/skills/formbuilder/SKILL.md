@@ -39,9 +39,15 @@ This skill provides guides, commands, and architectural constraints for maintain
 ### 3. Horizontal Row Layouts
 - Elements inside row layouts must sit side-by-side using Flexbox layout (`flex-flow: row nowrap`) and horizontal scroll capabilities (`overflow-x: auto`), preventing component wrapping or column squishing on narrow viewports.
 
+### 4. Edit vs Preview Mode Interface Guards
+- Renderers of interactive widgets (FileUpload, SignaturePad, DatePicker, DateTimePicker) must receive `previewMode?: boolean` as a prop.
+- **In Edit Mode (`previewMode === false`):** Click and drag/drop handlers on interactive widgets must be bypassed to prevent opening file explorer popups, triggering signature drawings, or toggling calendar dropdowns. Cursors should render as `cursor-default` or `cursor-grab`.
+- **In Preview Mode (`previewMode === true`):** Custom popup selectors, drawing loops, and file inputs must be fully unlocked for testing user interaction. Cursors should render as `cursor-pointer` or `cursor-crosshair`.
+
 ---
 
 ## 🧪 Testing Guidelines
 
 - **Test Location:** All unit and integration test files must reside strictly under the [`src/__tests__/`](file:///Users/sithuhlaing/Projects/formbuilder/src/__tests__/) directory.
 - **Coverage standard:** Maintain at least **95%** statement coverage. Run `npm run test:coverage` to confirm metrics.
+

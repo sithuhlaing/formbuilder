@@ -1275,6 +1275,7 @@ describe('Canvas Layout Engine - Positioning Scenarios', () => {
         setSelectedComponent={vi.fn()}
         nodes={nodes}
         setNodes={vi.fn()}
+        previewMode={true}
       />
     );
 
@@ -1351,6 +1352,7 @@ describe('Canvas Layout Engine - Positioning Scenarios', () => {
         setSelectedComponent={vi.fn()}
         nodes={nodes}
         setNodes={vi.fn()}
+        previewMode={true}
       />
     );
 
@@ -1378,5 +1380,305 @@ describe('Canvas Layout Engine - Positioning Scenarios', () => {
 
     // Verify custom time selectors display
     expect(container.textContent).toContain('Set Time');
+  });
+
+  // Scenario 2.29: should render SignatureRenderer and handle drawing actions correctly
+  it('Scenario 2.29: should render SignatureRenderer and handle drawing actions correctly', () => {
+    const signatureNode: FormNode = {
+      nodeId: 'sig-1',
+      type: 'signature',
+      label: 'Patient Signature',
+      fieldId: 'patient_sig',
+      required: true,
+      validation: [],
+      properties: {
+        label: 'Patient Signature Verification',
+        required: true
+      }
+    };
+    const nodes: FormNode[] = [signatureNode];
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={vi.fn()}
+        nodes={nodes}
+        setNodes={vi.fn()}
+        previewMode={true}
+      />
+    );
+
+    // Verify label and required indicator are rendered
+    expect(container.textContent).toContain('Patient Signature Verification');
+    expect(container.textContent).toContain('*');
+
+    // Verify placeholder text is shown initially
+    expect(container.textContent).toContain('Draw your signature here');
+
+    // Verify canvas element is rendered
+    const canvas = container.querySelector('canvas');
+    expect(canvas).not.toBeNull();
+
+    // Mock HTMLCanvasElement context rendering
+    const getContextMock = vi.fn(() => ({
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      clearRect: vi.fn()
+    }));
+    canvas!.getContext = getContextMock as any;
+
+    // Simulate drawing events
+    fireEvent.mouseDown(canvas!, { clientX: 10, clientY: 20 });
+    fireEvent.mouseMove(canvas!, { clientX: 15, clientY: 25 });
+    fireEvent.mouseUp(canvas!);
+
+    // Placeholder text should disappear once signed
+    expect(container.textContent).not.toContain('Draw your signature here');
+
+    // Click the clear button
+    const clearButton = screen.getByText('Clear Pad');
+    fireEvent.click(clearButton);
+
+    // Placeholder text should return
+    expect(container.textContent).toContain('Draw your signature here');
+  });
+
+  // Scenario 2.30: in edit mode (previewMode === false), clicking a component should trigger setSelectedComponent
+  it('Scenario 2.30: should allow selection of components in Edit Mode', () => {
+    const textNode = createMockTextInput('node-1', 'Name Field');
+    const nodes: FormNode[] = [textNode];
+    const setSelectedComponentMock = vi.fn();
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={setSelectedComponentMock}
+        nodes={nodes}
+        setNodes={vi.fn()}
+        previewMode={false}
+      />
+    );
+
+    // Find the rendered component wrapper div
+    const componentWrapper = container.querySelector('[draggable="true"]') as HTMLElement;
+    expect(componentWrapper).not.toBeNull();
+
+    // Click the component
+    fireEvent.click(componentWrapper);
+
+    // Verify callback was triggered with the component object
+    expect(setSelectedComponentMock).toHaveBeenCalledWith(textNode);
+  });
+
+  // Scenario 2.31: in preview mode (previewMode === true), clicking a component should NOT trigger setSelectedComponent
+  it('Scenario 2.31: should block selection of components in Preview Mode', () => {
+    const textNode = createMockTextInput('node-1', 'Name Field');
+    const nodes: FormNode[] = [textNode];
+    const setSelectedComponentMock = vi.fn();
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={setSelectedComponentMock}
+        nodes={nodes}
+        setNodes={vi.fn()}
+        previewMode={true}
+      />
+    );
+
+    // Find the rendered component wrapper div
+    const componentWrapper = container.querySelector('.mb-4') as HTMLElement;
+    expect(componentWrapper).not.toBeNull();
+
+    // Clear the mock calls triggered by useEffect on mount
+    setSelectedComponentMock.mockClear();
+
+    // Click the component
+    fireEvent.click(componentWrapper);
+
+    // Verify callback was NOT triggered with the component object after mockClear
+    expect(setSelectedComponentMock).not.toHaveBeenCalledWith(textNode);
+  });
+
+  // Scenario 2.32: in edit mode (previewMode === false), inputs must be readOnly/disabled
+  it('Scenario 2.32: should locks inputs in Edit Mode', () => {
+    const textNode = createMockTextInput('node-1', 'Name Field');
+    const nodes: FormNode[] = [textNode];
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={vi.fn()}
+        nodes={nodes}
+        setNodes={vi.fn()}
+        previewMode={false}
+      />
+    );
+
+    const input = container.querySelector('input[type="text"]') as HTMLInputElement;
+    expect(input).not.toBeNull();
+    expect(input.readOnly).toBe(true);
+  });
+
+  // Scenario 2.33: in preview mode (previewMode === true), inputs must be interactive (not readOnly)
+  it('Scenario 2.33: should unlock inputs in Preview Mode', () => {
+    const textNode = createMockTextInput('node-1', 'Name Field');
+    const nodes: FormNode[] = [textNode];
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={vi.fn()}
+        nodes={nodes}
+        setNodes={vi.fn()}
+        previewMode={true}
+      />
+    );
+
+    const input = container.querySelector('input[type="text"]') as HTMLInputElement;
+    expect(input).not.toBeNull();
+    expect(input.readOnly).toBe(false);
+  });
+
+  // Scenario 2.34: in edit mode (previewMode === false), RichText content area is not contentEditable
+  it('Scenario 2.34: should disable contentEditable on RichText content area in Edit Mode', () => {
+    const richTextNode: FormNode = {
+      nodeId: 'rich-1',
+      type: 'rich_text',
+      label: 'Terms & Conditions',
+      fieldId: 'rich_text_1',
+      required: false,
+      validation: [],
+      properties: { label: 'Terms & Conditions', content: 'Initial Text' }
+    };
+    const nodes: FormNode[] = [richTextNode];
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={vi.fn()}
+        nodes={nodes}
+        setNodes={vi.fn()}
+        previewMode={false}
+      />
+    );
+
+    const editableDiv = container.querySelector('[contenteditable]') as HTMLElement;
+    // contentEditable returns either a boolean or "false"/"true" string in JSDOM/browsers depending on property vs attribute read
+    const isEditable = editableDiv?.getAttribute('contenteditable') === 'true' || editableDiv?.contentEditable === 'true';
+    expect(isEditable).toBe(false);
+  });
+
+  // Scenario 2.35: in preview mode (previewMode === true), RichText content area is contentEditable
+  it('Scenario 2.35: should enable contentEditable on RichText content area in Preview Mode', () => {
+    const richTextNode: FormNode = {
+      nodeId: 'rich-1',
+      type: 'rich_text',
+      label: 'Terms & Conditions',
+      fieldId: 'rich_text_1',
+      required: false,
+      validation: [],
+      properties: { label: 'Terms & Conditions', content: 'Initial Text' }
+    };
+    const nodes: FormNode[] = [richTextNode];
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={vi.fn()}
+        nodes={nodes}
+        setNodes={vi.fn()}
+        previewMode={true}
+      />
+    );
+
+    const editableDiv = container.querySelector('[contenteditable]') as HTMLElement;
+    const isEditable = editableDiv?.getAttribute('contenteditable') === 'true' || editableDiv?.contentEditable === 'true';
+    expect(isEditable).toBe(true);
+  });
+
+  // Scenario 2.36: in edit mode, signature drawing and clearing actions are locked
+  it('Scenario 2.36: should block signature drawing and clear buttons in Edit Mode', () => {
+    const signatureNode: FormNode = {
+      nodeId: 'sig-1',
+      type: 'signature',
+      label: 'Patient Signature Verification',
+      fieldId: 'signature_1',
+      required: true,
+      validation: [],
+      properties: { label: 'Patient Signature Verification', required: true }
+    };
+    const nodes: FormNode[] = [signatureNode];
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={vi.fn()}
+        nodes={nodes}
+        setNodes={vi.fn()}
+        previewMode={false}
+      />
+    );
+
+    // Verify clear pad button is NOT rendered
+    expect(screen.queryByText('Clear Pad')).toBeNull();
+
+    // Verify canvas is rendered
+    const canvas = container.querySelector('canvas');
+    expect(canvas).not.toBeNull();
+
+    // Mock HTMLCanvasElement context rendering
+    const getContextMock = vi.fn(() => ({
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      clearRect: vi.fn()
+    }));
+    canvas!.getContext = getContextMock as any;
+
+    // Simulate drawing events
+    fireEvent.mouseDown(canvas!, { clientX: 10, clientY: 20 });
+    fireEvent.mouseMove(canvas!, { clientX: 15, clientY: 25 });
+    fireEvent.mouseUp(canvas!);
+
+    // Drawing is blocked in edit mode, so placeholder text should remain
+    expect(container.textContent).toContain('Draw your signature here');
+  });
+
+  // Scenario 2.37: in edit mode, calendar picker clicks do not open calendar dropdown
+  it('Scenario 2.37: should block opening calendar picker dropdown in Edit Mode', () => {
+    const datePickerNode: FormNode = {
+      nodeId: 'date-1',
+      type: 'date_picker',
+      label: 'Appointment Date',
+      fieldId: 'date_picker_1',
+      required: true,
+      validation: [],
+      properties: { label: 'Appointment Date', required: true, placeholder: 'Select Date' }
+    };
+    const nodes: FormNode[] = [datePickerNode];
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={vi.fn()}
+        nodes={nodes}
+        setNodes={vi.fn()}
+        previewMode={false}
+      />
+    );
+
+    // Find the selector click trigger
+    const trigger = screen.getByText('Select Date');
+    expect(trigger).not.toBeNull();
+
+    // Click the trigger
+    fireEvent.click(trigger);
+
+    // Verify calendar dropdown grid (e.g. Su, Mo, Tu column headers) is NOT open
+    expect(screen.queryByText('Su')).toBeNull();
   });
 });

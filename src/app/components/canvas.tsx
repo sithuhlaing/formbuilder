@@ -627,7 +627,7 @@ const Canvas: React.FC<CanvasProps> = ({
     if (previewMode) {
       return (
         <div key={node.nodeId} className="mb-4">
-          <Renderer component={node} />
+          <Renderer component={node} previewMode={previewMode} />
         </div>
       );
     }
@@ -663,7 +663,9 @@ const Canvas: React.FC<CanvasProps> = ({
         onDragLeave={handleDragLeave}
         onClick={(e) => {
           e.stopPropagation();
-          handleSelection(node as FormComponent);
+          if (!previewMode) {
+            handleSelection(node as FormComponent);
+          }
         }}
         className={`group relative mb-3 rounded-md border border-gray-200 bg-white p-3 shadow-sm transition-all hover:border-[#005eb8]/50 hover:shadow ${
           isSelected ? "ring-2 ring-[#005eb8] ring-offset-1" : ""
@@ -681,7 +683,7 @@ const Canvas: React.FC<CanvasProps> = ({
         {dropRight && (
           <div className="absolute -right-2 inset-y-0 w-1 rounded-full bg-[#005eb8]" />
         )}
-        <Renderer component={node} />
+        <Renderer component={node} previewMode={previewMode} />
         
         {!previewMode && (
           <button
@@ -724,7 +726,7 @@ const Canvas: React.FC<CanvasProps> = ({
     if (previewMode) {
       return (
         <div key={node.nodeId} className="w-full flex-1">
-          <Renderer component={node} />
+          <Renderer component={node} previewMode={previewMode} />
         </div>
       );
     }
@@ -750,7 +752,9 @@ const Canvas: React.FC<CanvasProps> = ({
         onDragLeave={handleDragLeave}
         onClick={(e) => {
           e.stopPropagation();
-          handleSelection(node as FormComponent);
+          if (!previewMode) {
+            handleSelection(node as FormComponent);
+          }
         }}
         className={`group relative w-full flex-1 rounded-md border border-gray-200 bg-white px-4 py-3 shadow-sm transition hover:border-[#005eb8]/50 hover:shadow ${
           isSelected ? "ring-2 ring-[#005eb8] ring-offset-1" : ""
@@ -762,7 +766,7 @@ const Canvas: React.FC<CanvasProps> = ({
         {dropAfter && (
           <div className="absolute inset-y-0 -right-2 w-1 rounded-full bg-[#005eb8]" />
         )}
-        <Renderer component={node} />
+        <Renderer component={node} previewMode={previewMode} />
 
         {!previewMode && (
           <button

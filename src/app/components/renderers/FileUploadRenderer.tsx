@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 
-export default function FileUploadRenderer({ component }: { component: any }) {
+export default function FileUploadRenderer({ component, previewMode = false }: { component: any, previewMode?: boolean }) {
   const [file, setFile] = useState<File | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -13,15 +13,18 @@ export default function FileUploadRenderer({ component }: { component: any }) {
   };
 
   const handleDragOver = (event: React.DragEvent) => {
+    if (!previewMode) return;
     event.preventDefault();
     setIsDragActive(true);
   };
 
   const handleDragLeave = () => {
+    if (!previewMode) return;
     setIsDragActive(false);
   };
 
   const handleDrop = (event: React.DragEvent) => {
+    if (!previewMode) return;
     event.preventDefault();
     setIsDragActive(false);
     const files = event.dataTransfer.files;
@@ -31,6 +34,7 @@ export default function FileUploadRenderer({ component }: { component: any }) {
   };
 
   const triggerSelectFile = () => {
+    if (!previewMode) return;
     fileInputRef.current?.click();
   };
 
@@ -74,10 +78,14 @@ export default function FileUploadRenderer({ component }: { component: any }) {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-md p-6 text-center cursor-pointer transition-all ${
+          className={`border-2 border-dashed rounded-md p-6 text-center transition-all ${
+            previewMode 
+              ? "cursor-pointer hover:bg-gray-50/50" 
+              : "cursor-default"
+          } ${
             isDragActive
               ? "border-[#005eb8] bg-blue-50/50"
-              : "border-gray-300 hover:border-[#005eb8] dark:border-gray-600 hover:bg-gray-50/50"
+              : "border-gray-300 hover:border-[#005eb8] dark:border-gray-600"
           }`}
         >
           <div className="space-y-2 pointer-events-none">
@@ -122,15 +130,17 @@ export default function FileUploadRenderer({ component }: { component: any }) {
             <span className="text-xs font-semibold text-emerald-700 bg-emerald-100 rounded-full px-2.5 py-0.5">
               Ready
             </span>
-            <button
-              onClick={removeFile}
-              className="text-gray-400 hover:text-red-500 p-1.5 rounded-full hover:bg-red-50 transition-colors"
-              title="Remove file"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            {previewMode && (
+              <button
+                onClick={removeFile}
+                className="text-gray-400 hover:text-red-500 p-1.5 rounded-full hover:bg-red-50 transition-colors"
+                title="Remove file"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
       )}

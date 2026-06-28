@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 
-export default function DateTimePickerRenderer({ component }: { component: any }) {
+export default function DateTimePickerRenderer({ component, previewMode = false }: { component: any, previewMode?: boolean }) {
   const { label, required, placeholderDate, placeholderTime } = component.properties;
 
   // Calendar States
@@ -97,11 +97,16 @@ export default function DateTimePickerRenderer({ component }: { component: any }
         <div className="flex-1 relative" ref={calendarRef}>
           <div
             onClick={(e) => {
+              if (!previewMode) return;
               e.stopPropagation();
               setShowCalendar(!showCalendar);
               setShowTimeDropdown(false);
             }}
-            className="flex items-center justify-between pl-3 pr-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors select-none"
+            className={`flex items-center justify-between pl-3 pr-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md text-sm select-none transition-colors ${
+              previewMode 
+                ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" 
+                : "cursor-default"
+            }`}
           >
             <span className={formattedDate ? "text-gray-900 dark:text-gray-100" : "text-gray-400"}>
               {formattedDate || placeholderDate || "Select Date"}
@@ -184,11 +189,16 @@ export default function DateTimePickerRenderer({ component }: { component: any }
         <div className="flex-1 relative" ref={timeDropdownRef}>
           <div
             onClick={(e) => {
+              if (!previewMode) return;
               e.stopPropagation();
               setShowTimeDropdown(!showTimeDropdown);
               setShowCalendar(false);
             }}
-            className="flex items-center justify-between pl-3 pr-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors select-none"
+            className={`flex items-center justify-between pl-3 pr-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md text-sm select-none transition-colors ${
+              previewMode 
+                ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" 
+                : "cursor-default"
+            }`}
           >
             <span className={formattedTime ? "text-gray-900 dark:text-gray-100" : "text-gray-400"}>
               {formattedTime || placeholderTime || "Select Time"}

@@ -206,7 +206,6 @@ beforeAll(() => {
         getData: vi.fn(),
         setData: vi.fn(),
         setDragImage: vi.fn(),
-      } as DataTransfer;
     }
   } as any;
 });
@@ -240,3 +239,13 @@ Object.defineProperty(window, 'ResizeObserver', {
   configurable: true,
   value: MockResizeObserver,
 });
+
+// Mock HTMLCanvasElement getContext globally at start
+HTMLCanvasElement.prototype.getContext = vi.fn().mockImplementation(() => ({
+  beginPath: vi.fn(),
+  moveTo: vi.fn(),
+  lineTo: vi.fn(),
+  stroke: vi.fn(),
+  clearRect: vi.fn()
+})) as any;
+

@@ -3,6 +3,7 @@ import React from "react";
 type HorizontalLayoutRendererProps = {
   component: any;
   children?: React.ReactNode;
+  previewMode?: boolean;
 };
 
 export default function HorizontalLayoutRenderer({ component, children }: HorizontalLayoutRendererProps) {
