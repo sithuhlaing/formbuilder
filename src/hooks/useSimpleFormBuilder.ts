@@ -6,7 +6,7 @@
 import { useReducer, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Component, ComponentType } from '../types/components';
-import type { Page } from '../types/template';
+import type { TemplatePage as Page } from '../types/template';
 import { templateService } from '../features/template-management/services/templateService';
 import { 
   createComponent, 
@@ -566,13 +566,12 @@ export function useSimpleFormBuilder(): FormState & FormActions {
   // Helper function to get current page
   const getCurrentPage = useCallback((): FormPage => {
     const page = state.pages.find(p => p.id === state.currentPageId);
-    return page || state.pages[0] || createInitialPage();
+    return page || state.pages[0];
   }, [state.pages, state.currentPageId]);
 
   // Helper function to get current page components
   const getCurrentPageComponents = useCallback((): Component[] => {
-    const currentPage = getCurrentPage();
-    return currentPage ? currentPage.components : [];
+    return getCurrentPage().components;
   }, [getCurrentPage]);
 
   return {

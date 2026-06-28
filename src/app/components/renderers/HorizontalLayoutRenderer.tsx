@@ -16,9 +16,15 @@ export default function HorizontalLayoutRenderer({ component, children }: Horizo
           {childCount}/4 slots
         </span>
       </div>
-      <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(childCount || 1, 4)}, minmax(0, 1fr))` }}>
-        {children ?? (
-          <div className="flex h-24 items-center justify-center rounded-xl border border-blue-200 bg-white/60 text-sm text-blue-500">
+      <div className="flex gap-3 overflow-x-auto pb-2" style={{ flexFlow: 'row nowrap' }}>
+        {children ? (
+          React.Children.map(children, (child) => (
+            <div style={{ minWidth: '240px', flex: '1 0 0%' }}>
+              {child}
+            </div>
+          ))
+        ) : (
+          <div className="flex h-24 w-full items-center justify-center rounded-xl border border-blue-200 bg-white/60 text-sm text-blue-500">
             Drop a component to fill this row
           </div>
         )}

@@ -167,24 +167,6 @@ const insertBeforeOrAfter = (
       return [node, newNode];
     }
 
-    if (isRowContainer(node)) {
-      const result = insertBeforeOrAfter(
-        node.children,
-        targetId,
-        newNode,
-        position,
-      );
-      if (result.inserted) {
-        inserted = true;
-        return [
-          {
-            ...node,
-            children: result.nodes,
-          },
-        ];
-      }
-    }
-
     return [node];
   });
 
@@ -237,21 +219,6 @@ const insertIntoRow = (
       };
     }
 
-    const result = insertIntoRow(
-      node.children,
-      rowId,
-      referenceChildId,
-      newNode,
-      position,
-    );
-    if (result.inserted) {
-      inserted = true;
-      error = result.error;
-      return {
-        ...node,
-        children: result.nodes,
-      };
-    }
     return node;
   });
 
@@ -278,15 +245,7 @@ const findNodeById = (nodes: FormNode[], nodeId: string): FormNode | undefined =
     if (node.nodeId === nodeId) {
       return node;
     }
-
-    if (isRowContainer(node)) {
-      const child = findNodeById(node.children, nodeId);
-      if (child) {
-        return child;
-      }
-    }
   }
-
   return undefined;
 };
 
@@ -299,12 +258,6 @@ const replaceNode = (
     if (node.nodeId === targetId) {
       return replacement;
     }
-    if (isRowContainer(node)) {
-      return {
-        ...node,
-        children: replaceNode(node.children, targetId, replacement),
-      };
-    }
     return node;
   });
 
@@ -316,10 +269,6 @@ const findParentRowId = (
     if (isRowContainer(node)) {
       if (node.children.some((child) => child.nodeId === nodeId)) {
         return node.nodeId;
-      }
-      const nested = findParentRowId(node.children, nodeId);
-      if (nested) {
-        return nested;
       }
     }
   }
@@ -341,7 +290,7 @@ const Canvas: React.FC<CanvasProps> = ({
   setNodes,
   previewMode = false,
 }) => {
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const selectedNodeId = selectedComponent?.nodeId ?? null;
   const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(
     null,
   );
@@ -349,17 +298,16 @@ const Canvas: React.FC<CanvasProps> = ({
 
   useEffect(() => {
     if (previewMode) {
-      setSelectedNodeId(null);
       setSelectedComponent(null);
     }
   }, [previewMode, setSelectedComponent]);
 
   useEffect(() => {
-    if (!selectedComponent || !selectedNodeId) return;
+    if (!selectedComponent) return;
 
     setNodes((current) =>
       current.map<FormNode>((node) => {
-        if (node.nodeId === selectedNodeId && !isRowContainer(node)) {
+        if (node.nodeId === selectedComponent.nodeId && !isRowContainer(node)) {
           return {
             ...(node as FormComponent),
             ...selectedComponent,
@@ -370,7 +318,7 @@ const Canvas: React.FC<CanvasProps> = ({
           return {
             ...node,
             children: (node.children as FormNode[]).map((child) => {
-              if (child.nodeId === selectedNodeId && !isRowContainer(child)) {
+              if (child.nodeId === selectedComponent.nodeId && !isRowContainer(child)) {
                 return {
                   ...(child as FormComponent),
                   ...selectedComponent,
@@ -384,11 +332,10 @@ const Canvas: React.FC<CanvasProps> = ({
         return node;
       }),
     );
-  }, [selectedComponent, selectedNodeId]);
+  }, [selectedComponent]);
 
   const handleSelection = useCallback(
     (component: FormComponent) => {
-      setSelectedNodeId(component.nodeId);
       setSelectedComponent(component);
     },
     [setSelectedComponent],
@@ -591,7 +538,6 @@ const Canvas: React.FC<CanvasProps> = ({
     if (newlySelected) {
       handleSelection(newlySelected);
     } else {
-      setSelectedNodeId(null);
       setSelectedComponent(null);
     }
   };
@@ -645,7 +591,10 @@ const Canvas: React.FC<CanvasProps> = ({
       return (
         <div
           key={node.nodeId}
-          className={`relative mb-3 rounded-lg border border-gray-200 bg-gray-50 p-3 ${appendIndicator ? "ring-2 ring-blue-400" : ""}`}
+          draggable
+          onDragStart={(event) => handleDragStart(event, node.nodeId)}
+          onDragEnd={handleDragLeave}
+          className={`relative mb-3 rounded-lg border border-gray-200 bg-gray-50 p-3 cursor-grab select-none ${appendIndicator ? "ring-2 ring-blue-400" : ""}`}
           onDragOver={(event) => handleDragOverComponent(event, node)}
           onDragLeave={handleDragLeave}
         >

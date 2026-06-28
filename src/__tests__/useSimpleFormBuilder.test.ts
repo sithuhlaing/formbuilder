@@ -636,4 +636,115 @@ describe('useSimpleFormBuilder - Direct Reducer Branch Testing', () => {
     expect(page).not.toBeNull();
     expect(page?.id).toBe(result.current.pages[0].id);
   });
+
+  it('covers covers multi-page reducer map fallback branches', () => {
+    // Setup state with 2 pages, first page has 2 components, second page has 1 component
+    const page1 = { id: 'p1', title: 'Page 1', components: [{ id: 'c1', type: 'text_input', label: 'C1' }, { id: 'c2', type: 'text_input', label: 'C2' }] };
+    const page2 = { id: 'p2', title: 'Page 2', components: [{ id: 'c3', type: 'text_input', label: 'C3' }] };
+    const state = {
+      ...INITIAL_STATE,
+      pages: [page1, page2] as any,
+      currentPageId: 'p1',
+      selectedId: 'c1'
+    };
+
+    // 1. UPDATE_COMPONENT: verify page 2 is mapped without modifications
+    const stateAfterUpdate = formBuilderReducer(state, {
+      type: 'UPDATE_COMPONENT',
+      payload: { id: 'c1', updates: { label: 'Updated C1' } }
+    });
+    expect(stateAfterUpdate.pages[1]).toEqual(page2);
+
+    // 2. UPDATE_COMPONENTS: verify page 2 is mapped without modifications
+    const stateAfterUpdateAll = formBuilderReducer(state, {
+      type: 'UPDATE_COMPONENTS',
+      payload: { components: [] }
+    });
+    expect(stateAfterUpdateAll.pages[1]).toEqual(page2);
+
+    // 3. DELETE_COMPONENT (where page is NOT empty after delete, and selectedId === id):
+    const stateAfterDelete = formBuilderReducer(state, {
+      type: 'DELETE_COMPONENT',
+      payload: { id: 'c1' }
+    });
+    expect(stateAfterDelete.pages.length).toBe(2); // Should not delete page 1
+    expect(stateAfterDelete.pages[0].components.length).toBe(1);
+    expect(stateAfterDelete.pages[1]).toEqual(page2);
+    expect(stateAfterDelete.selectedId).toBeNull(); // selectedId should be cleared
+
+    // 4. MOVE_COMPONENT where fromIndex === toIndex
+    const stateAfterMoveSame = formBuilderReducer(state, {
+      type: 'MOVE_COMPONENT',
+      payload: { fromIndex: 0, toIndex: 0 }
+    });
+    expect(stateAfterMoveSame).toBe(state);
+
+    // 5. MOVE_COMPONENT (where page 2 is mapped unchanged)
+    const stateAfterMoveDiff = formBuilderReducer(state, {
+      type: 'MOVE_COMPONENT',
+      payload: { fromIndex: 0, toIndex: 1 }
+    });
+    expect(stateAfterMoveDiff.pages[1]).toEqual(page2);
+
+    // 6. IMPORT_JSON fallback templateName when missing in payload
+    const stateAfterImportNoNamePages = formBuilderReducer(INITIAL_STATE, {
+      type: 'IMPORT_JSON',
+      payload: { jsonString: JSON.stringify({ pages: [{ id: 'p1', title: 'Imported Title' }] }) }
+    });
+    expect(stateAfterImportNoNamePages.templateName).toBe('Imported Form');
+
+    const stateAfterImportNoNameComps = formBuilderReducer(INITIAL_STATE, {
+      type: 'IMPORT_JSON',
+      payload: { jsonString: JSON.stringify({ components: [{ id: 'c1', type: 'text_input' }] }) }
+    });
+    expect(stateAfterImportNoNameComps.templateName).toBe('Imported Form');
+
+    // 7. IMPORT_JSON with invalid array types
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+    const stateInvalidPages = formBuilderReducer(INITIAL_STATE, {
+      type: 'IMPORT_JSON',
+      payload: { jsonString: JSON.stringify({ pages: 'not-an-array' }) }
+    });
+    expect(stateInvalidPages).toBe(INITIAL_STATE);
+
+    const stateInvalidComps = formBuilderReducer(INITIAL_STATE, {
+      type: 'IMPORT_JSON',
+      payload: { jsonString: JSON.stringify({ components: 'not-an-array' }) }
+    });
+    expect(stateInvalidComps).toBe(INITIAL_STATE);
+
+    consoleSpy.mockRestore();
+  });
+
+  it('covers DELETE_PAGE reindexing when deleted page index is greater than 0', () => {
+    const page1 = { id: 'p1', title: 'Page 1', components: [{ id: 'c1', type: 'text_input' }] };
+    const page2 = { id: 'p2', title: 'Page 2', components: [{ id: 'c2', type: 'text_input' }] };
+    const page3 = { id: 'p3', title: 'Page 3', components: [{ id: 'c3', type: 'text_input' }] };
+    const state = {
+      ...INITIAL_STATE,
+      pages: [page1, page2, page3] as any,
+      currentPageId: 'p3'
+    };
+
+    const stateAfterDelete = formBuilderReducer(state, {
+      type: 'DELETE_PAGE',
+      payload: { pageId: 'p3' }
+    });
+    expect(stateAfterDelete.pages.length).toBe(2);
+    expect(stateAfterDelete.currentPageId).toBe('p1'); // should default to index 0 (page 1)
+  });
+
+  it('covers DELETE_COMPONENT when activePage is undefined', () => {
+    const state = {
+      ...INITIAL_STATE,
+      currentPageId: 'invalid-page-id'
+    };
+    const nextState = formBuilderReducer(state, {
+      type: 'DELETE_COMPONENT',
+      payload: { id: 'c1' }
+    });
+    expect(nextState.currentPageId).toBe('invalid-page-id');
+  });
 });
