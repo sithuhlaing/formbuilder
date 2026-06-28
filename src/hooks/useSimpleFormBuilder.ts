@@ -86,7 +86,7 @@ interface FormActions {
 
 // Initialize first page and state
 const initialPage = createInitialPage('Page 1');
-const INITIAL_STATE: FormState = {
+export const INITIAL_STATE: FormState = {
   pages: [initialPage],
   currentPageId: initialPage.id,
   selectedId: null,
@@ -104,7 +104,7 @@ function createHistorySnapshot(state: FormState): Omit<FormState, 'history' | 'h
   return {
     pages: state.pages.map(page => ({
       ...page,
-      components: page.components.map(comp => ({ ...comp }))
+      components: (page.components || []).map(comp => ({ ...comp }))
     })),
     currentPageId: state.currentPageId,
     selectedId: state.selectedId,
@@ -128,7 +128,7 @@ function commitState(state: FormState, nextStateWithoutHistory: any): FormState 
   };
 }
 
-function formBuilderReducer(state: FormState, action: any): FormState {
+export function formBuilderReducer(state: FormState, action: any): FormState {
   switch (action.type) {
     case 'UNDO': {
       if (state.historyIndex <= 0) return state;

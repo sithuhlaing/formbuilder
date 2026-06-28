@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useSimpleFormBuilder } from '../hooks/useSimpleFormBuilder';
+import { useSimpleFormBuilder, INITIAL_STATE, formBuilderReducer } from '../hooks/useSimpleFormBuilder';
 import { templateService } from '../features/template-management/services/templateService';
 
 vi.mock('../features/template-management/services/templateService');
@@ -483,5 +483,157 @@ describe('FormStateEngine - Edge Cases & Fallbacks', () => {
     });
     expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
+  });
+});
+
+describe('useSimpleFormBuilder - Direct Reducer Branch Testing', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('covers reducer default fallback case', () => {
+    const nextState = formBuilderReducer(INITIAL_STATE, { type: 'INVALID_TEST_TYPE' });
+    expect(nextState).toBe(INITIAL_STATE);
+  });
+
+  it('covers UNDO boundary fallback when history index is 0 or less', () => {
+    const stateWithLowHistoryIndex = {
+      ...INITIAL_STATE,
+      historyIndex: 0
+    };
+    const nextState = formBuilderReducer(stateWithLowHistoryIndex, { type: 'UNDO' });
+    expect(nextState).toBe(stateWithLowHistoryIndex);
+  });
+
+  it('covers REDO boundary fallback when history index is at the end', () => {
+    const stateWithHighHistoryIndex = {
+      ...INITIAL_STATE,
+      history: [{} as any],
+      historyIndex: 0
+    };
+    const nextState = formBuilderReducer(stateWithHighHistoryIndex, { type: 'REDO' });
+    expect(nextState).toBe(stateWithHighHistoryIndex);
+  });
+
+  it('covers ADD_COMPONENT fallback when type is null or undefined', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const nextState = formBuilderReducer(INITIAL_STATE, { type: 'ADD_COMPONENT', payload: { type: null } });
+    expect(nextState).toBe(INITIAL_STATE);
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+
+  it('covers LOAD_TEMPLATE fallback when template does not exist', () => {
+    vi.spyOn(templateService, 'loadTemplate').mockReturnValue(null);
+    const nextState = formBuilderReducer(INITIAL_STATE, { type: 'LOAD_TEMPLATE', payload: { templateId: 'unknown' } });
+    expect(nextState).toBe(INITIAL_STATE);
+  });
+
+  it('covers LOAD_TEMPLATE fallback properties for empty or missing template pages structures', () => {
+    const incompleteTemplate = {
+      templateId: 'tmpl_incomplete',
+      name: 'Incomplete',
+      pages: [
+        {
+          // missing id, title, and components/items
+        }
+      ]
+    };
+    vi.spyOn(templateService, 'loadTemplate').mockReturnValue(incompleteTemplate as any);
+    
+    const nextState = formBuilderReducer(INITIAL_STATE, { type: 'LOAD_TEMPLATE', payload: { templateId: 'tmpl_incomplete' } });
+    expect(nextState.pages.length).toBe(1);
+    expect(nextState.pages[0].id).toBeDefined();
+    expect(nextState.pages[0].title).toBe('Untitled Page');
+    expect(nextState.pages[0].components).toEqual([]);
+  });
+
+  it('covers SAVE_TEMPLATE fallback branches', () => {
+    // 1. SAVE_TEMPLATE in edit mode (calls updateTemplate)
+    const editState = {
+      ...INITIAL_STATE,
+      mode: 'edit' as const,
+      editingTemplateId: 'tmpl_edit_test'
+    };
+    const mockUpdate = vi.fn();
+    vi.spyOn(templateService, 'updateTemplate').mockImplementation(mockUpdate);
+
+    formBuilderReducer(editState, { type: 'SAVE_TEMPLATE' });
+    expect(templateService.updateTemplate).toHaveBeenCalledWith('tmpl_edit_test', expect.any(Object));
+
+    // 2. SAVE_TEMPLATE when saveTemplate fails (returns template without templateId)
+    vi.spyOn(templateService, 'saveTemplate').mockReturnValue({} as any);
+    const failState = formBuilderReducer(INITIAL_STATE, { type: 'SAVE_TEMPLATE' });
+    expect(failState).toBe(INITIAL_STATE);
+  });
+
+  it('covers IMPORT_JSON fallback for invalid structure throws', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(window, 'alert').mockImplementation(() => {});
+    
+    const nextState = formBuilderReducer(INITIAL_STATE, { type: 'IMPORT_JSON', payload: { jsonString: '{}' } });
+    expect(nextState).toBe(INITIAL_STATE);
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+
+  it('covers IMPORT_JSON name fallback branches and format variations', () => {
+    // 1. JSON pages import with templateName provided
+    const nextPages = formBuilderReducer(INITIAL_STATE, {
+      type: 'IMPORT_JSON',
+      payload: { jsonString: JSON.stringify({ pages: [{ id: 'p1', title: 'Imported Title' }], templateName: 'Provided Name' }) }
+    });
+    expect(nextPages.templateName).toBe('Provided Name');
+
+    // 2. JSON components import with templateName provided
+    const nextComps = formBuilderReducer(INITIAL_STATE, {
+      type: 'IMPORT_JSON',
+      payload: { jsonString: JSON.stringify({ components: [{ id: 'c1', type: 'text_input' }], templateName: 'Provided Comps' }) }
+    });
+    expect(nextComps.templateName).toBe('Provided Comps');
+  });
+
+  it('covers navigation action boundaries in useSimpleFormBuilder hook', () => {
+    const { result } = renderHook(() => useSimpleFormBuilder());
+    
+    // Add components so pages can be created
+    act(() => { result.current.addComponent('text_input'); });
+    act(() => { result.current.addPage(); });
+    act(() => { result.current.addComponent('email_input'); });
+    
+    expect(result.current.pages.length).toBe(2);
+    expect(result.current.getCurrentPageIndex()).toBe(1);
+
+    // 1. navigateToNextPage on last page (boundary, should do nothing)
+    act(() => {
+      result.current.navigateToNextPage();
+    });
+    expect(result.current.getCurrentPageIndex()).toBe(1);
+
+    // 2. navigateToPreviousPage to page 0
+    act(() => {
+      result.current.navigateToPreviousPage();
+    });
+    expect(result.current.getCurrentPageIndex()).toBe(0);
+
+    // 3. navigateToPreviousPage on page 0 (boundary, should do nothing)
+    act(() => {
+      result.current.navigateToPreviousPage();
+    });
+    expect(result.current.getCurrentPageIndex()).toBe(0);
+  });
+
+  it('covers getCurrentPage fallback boundaries', () => {
+    const { result } = renderHook(() => useSimpleFormBuilder());
+    
+    // Set currentPageId to an invalid ID
+    act(() => {
+      result.current.switchToPage('non-existent-page-id');
+    });
+    
+    // Should fallback to the first page (index 0)
+    const page = result.current.getCurrentPage();
+    expect(page).not.toBeNull();
+    expect(page?.id).toBe(result.current.pages[0].id);
   });
 });

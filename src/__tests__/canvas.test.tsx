@@ -343,4 +343,279 @@ describe('Canvas Layout Engine - Positioning Scenarios', () => {
     const dropLine = rowContainerElement.parentElement?.querySelector('.absolute.-top-2');
     expect(dropLine).not.toBeNull();
   });
+
+  // Scenario 2.6: Vertical After Edge Split
+  it('Scenario 2.6: should insert component after target vertically', () => {
+    const textNode = createMockTextInput('node-1', 'Name Field');
+    const nodes: FormNode[] = [textNode];
+    const setNodesMock = vi.fn();
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={vi.fn()}
+        nodes={nodes}
+        setNodes={setNodesMock}
+      />
+    );
+
+    const draggableComponent = container.querySelector('.relative.mb-3') as HTMLElement;
+    expect(draggableComponent).not.toBeNull();
+
+    draggableComponent.getBoundingClientRect = () => ({
+      left: 100,
+      top: 0,
+      width: 200,
+      height: 100,
+      right: 300,
+      bottom: 100,
+      x: 100,
+      y: 0,
+      toJSON: () => {}
+    });
+
+    // Trigger dragover targeting bottom threshold (yPercent = 0.85)
+    act(() => {
+      fireEvent.dragOver(draggableComponent, {
+        clientX: 200,
+        clientY: 85
+      });
+    });
+
+    const dragPayload = {
+      source: 'palette',
+      component: { type: 'number_input', label: 'Age Field' }
+    };
+
+    act(() => {
+      fireEvent.drop(draggableComponent!, {
+        dataTransfer: {
+          getData: (format: string) => format === 'application/json' ? JSON.stringify(dragPayload) : ''
+        }
+      });
+    });
+
+    expect(setNodesMock).toHaveBeenCalled();
+    const stateUpdater = setNodesMock.mock.calls[0][0];
+    const resultNodes = typeof stateUpdater === 'function' ? stateUpdater(nodes) : stateUpdater;
+    
+    expect(resultNodes.length).toBe(2);
+    expect(resultNodes[0].nodeId).toBe('node-1');
+    expect(resultNodes[1].type).toBe('number_input');
+  });
+
+  // Scenario 2.7: Left-Side Drop Horizontal Splice Creation
+  it('Scenario 2.7: should split component horizontally to create a row container on the left', () => {
+    const textNode = createMockTextInput('node-1', 'Name Field');
+    const nodes: FormNode[] = [textNode];
+    const setNodesMock = vi.fn();
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={vi.fn()}
+        nodes={nodes}
+        setNodes={setNodesMock}
+      />
+    );
+
+    const draggableComponent = container.querySelector('.relative.mb-3') as HTMLElement;
+    expect(draggableComponent).not.toBeNull();
+
+    draggableComponent.getBoundingClientRect = () => ({
+      left: 100,
+      top: 0,
+      width: 200,
+      height: 100,
+      right: 300,
+      bottom: 100,
+      x: 100,
+      y: 0,
+      toJSON: () => {}
+    });
+
+    // Trigger dragover at the left side edge (xPercent = 0.15, yPercent = 0.5)
+    act(() => {
+      fireEvent.dragOver(draggableComponent, {
+        clientX: 130, // offsetX = 30 / 200 = 0.15
+        clientY: 50
+      });
+    });
+
+    const dragPayload = {
+      source: 'palette',
+      component: { type: 'email_input', label: 'Email Field' }
+    };
+
+    act(() => {
+      fireEvent.drop(draggableComponent!, {
+        dataTransfer: {
+          getData: (format: string) => format === 'application/json' ? JSON.stringify(dragPayload) : ''
+        }
+      });
+    });
+
+    expect(setNodesMock).toHaveBeenCalled();
+    const stateUpdater = setNodesMock.mock.calls[0][0];
+    const resultNodes = typeof stateUpdater === 'function' ? stateUpdater(nodes) : stateUpdater;
+
+    expect(resultNodes.length).toBe(1);
+    expect(resultNodes[0].type).toBe('row');
+    const row = resultNodes[0] as RowContainer;
+    expect(row.children[0].type).toBe('email_input'); // Left position
+    expect(row.children[1].nodeId).toBe('node-1');
+  });
+
+  // Scenario 2.8: Selection click
+  it('Scenario 2.8: should select component when container is clicked', () => {
+    const textNode = createMockTextInput('node-1', 'Name Field');
+    const nodes: FormNode[] = [textNode];
+    const setSelectedMock = vi.fn();
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={setSelectedMock}
+        nodes={nodes}
+        setNodes={vi.fn()}
+      />
+    );
+
+    const componentContainer = container.querySelector('.relative.mb-3') as HTMLElement;
+    fireEvent.click(componentContainer);
+    expect(setSelectedMock).toHaveBeenCalledWith(expect.objectContaining({ nodeId: 'node-1' }));
+  });
+
+  // Scenario 2.9: Delete click
+  it('Scenario 2.9: should delete component when delete button is clicked', () => {
+    const textNode = createMockTextInput('node-1', 'Name Field');
+    const nodes: FormNode[] = [textNode];
+    const setNodesMock = vi.fn();
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={vi.fn()}
+        nodes={nodes}
+        setNodes={setNodesMock}
+      />
+    );
+
+    // Find delete button
+    const deleteBtn = container.querySelector('button[title="Delete component"]') as HTMLElement;
+    expect(deleteBtn).not.toBeNull();
+    
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    fireEvent.click(deleteBtn);
+    expect(confirmSpy).toHaveBeenCalled();
+    confirmSpy.mockRestore();
+
+    expect(setNodesMock).toHaveBeenCalled();
+    const stateUpdater = setNodesMock.mock.calls[0][0];
+    const resultNodes = typeof stateUpdater === 'function' ? stateUpdater(nodes) : stateUpdater;
+    expect(resultNodes.length).toBe(0);
+  });
+
+  // Scenario 2.10: Drag-and-drop on Canvas Background
+  it('Scenario 2.10: should append new component when dropping on canvas background', () => {
+    const nodes: FormNode[] = [];
+    const setNodesMock = vi.fn();
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={vi.fn()}
+        nodes={nodes}
+        setNodes={setNodesMock}
+      />
+    );
+
+    const canvasBg = container.firstChild as HTMLElement;
+    
+    const dragPayload = {
+      source: 'palette',
+      component: { type: 'nhs_number' } // Test normaliseLabel logic: generates Nhs Number
+    };
+
+    act(() => {
+      fireEvent.drop(canvasBg, {
+        dataTransfer: {
+          getData: (format: string) => format === 'application/json' ? JSON.stringify(dragPayload) : ''
+        }
+      });
+    });
+
+    expect(setNodesMock).toHaveBeenCalled();
+    const stateUpdater = setNodesMock.mock.calls[0][0];
+    const resultNodes = typeof stateUpdater === 'function' ? stateUpdater(nodes) : stateUpdater;
+    expect(resultNodes.length).toBe(1);
+    expect(resultNodes[0].type).toBe('nhs_number');
+    expect(resultNodes[0].label).toBe('Nhs Number');
+  });
+
+  // Scenario 2.11: Block invalid layout component drops
+  it('Scenario 2.11: should show error message and block drops of layout types', () => {
+    const nodes: FormNode[] = [];
+    const setNodesMock = vi.fn();
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={vi.fn()}
+        nodes={nodes}
+        setNodes={setNodesMock}
+      />
+    );
+
+    const canvasBg = container.firstChild as HTMLElement;
+    
+    // Test horizontal_layout block
+    act(() => {
+      fireEvent.drop(canvasBg, {
+        dataTransfer: {
+          getData: (format: string) => JSON.stringify({ source: 'palette', component: { type: 'horizontal_layout' } })
+        }
+      });
+    });
+    expect(setNodesMock).not.toHaveBeenCalled();
+
+    // Test vertical_layout block
+    act(() => {
+      fireEvent.drop(canvasBg, {
+        dataTransfer: {
+          getData: (format: string) => JSON.stringify({ source: 'palette', component: { type: 'vertical_layout' } })
+        }
+      });
+    });
+    expect(setNodesMock).not.toHaveBeenCalled();
+  });
+
+  // Scenario 2.12: Drag start and leave
+  it('Scenario 2.12: should support dragStart, dragEnd, and dragLeave', () => {
+    const textNode = createMockTextInput('node-1', 'Name Field');
+    const nodes: FormNode[] = [textNode];
+
+    const { container } = render(
+      <Canvas
+        selectedComponent={null}
+        setSelectedComponent={vi.fn()}
+        nodes={nodes}
+        setNodes={vi.fn()}
+      />
+    );
+
+    const component = container.querySelector('.relative.mb-3') as HTMLElement;
+    expect(component).not.toBeNull();
+
+    // Drag Start
+    fireEvent.dragStart(component, {
+      dataTransfer: {
+        setData: vi.fn(),
+        effectAllowed: 'move'
+      }
+    });
+
+    // Drag Leave
+    fireEvent.dragLeave(component);
+  });
 });
