@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/main.tsx", "src/App.tsx", "src/app/components/**/*.ts", "src/app/components/**/*.tsx", "src/types/**/*.ts", "src/utils/**/*.ts", "src/app/datas/**/*.ts"],
+  "include": ["src/main.tsx", "src/App.tsx", "src/app/components/**/*.ts", "src/app/components/**/*.tsx", "src/types/**/*.ts", "src/utils/**/*.ts", "src/app/datas/**/*.ts", "src/features/**/*.ts", "src/features/**/*.tsx"],
   "exclude": ["node_modules", "src/app/builder", "src/app/templates", "src/components", "src/core", "src/hooks", "next.config.ts", "next-env.d.ts", ".next"]
 }

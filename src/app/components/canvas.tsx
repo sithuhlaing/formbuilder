@@ -71,6 +71,7 @@ interface CanvasProps {
   nodes: FormNode[];
   setNodes: React.Dispatch<React.SetStateAction<FormNode[]>>;
   previewMode?: boolean;
+  requestConfirm?: (title: string, message: string, onConfirm: () => void) => void;
 }
 
 const randomId = () =>
@@ -289,6 +290,7 @@ const Canvas: React.FC<CanvasProps> = ({
   nodes,
   setNodes,
   previewMode = false,
+  requestConfirm,
 }) => {
   const selectedNodeId = selectedComponent?.nodeId ?? null;
   const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(
@@ -680,9 +682,18 @@ const Canvas: React.FC<CanvasProps> = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              if (confirm("Are you sure you want to delete this component?")) {
+              const onDelete = () => {
                 setNodes((prev) => removeNodeById(prev, node.nodeId).nodes);
                 setSelectedComponent(null);
+              };
+              if (requestConfirm) {
+                requestConfirm(
+                  "Delete component",
+                  "Are you sure you want to delete this component? This action cannot be undone.",
+                  onDelete
+                );
+              } else if (confirm("Are you sure you want to delete this component?")) {
+                onDelete();
               }
             }}
             className={`absolute right-2 top-2 hidden group-hover:flex ${
@@ -749,9 +760,18 @@ const Canvas: React.FC<CanvasProps> = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              if (confirm("Are you sure you want to delete this component?")) {
+              const onDelete = () => {
                 setNodes((prev) => removeNodeById(prev, node.nodeId).nodes);
                 setSelectedComponent(null);
+              };
+              if (requestConfirm) {
+                requestConfirm(
+                  "Delete component",
+                  "Are you sure you want to delete this component? This action cannot be undone.",
+                  onDelete
+                );
+              } else if (confirm("Are you sure you want to delete this component?")) {
+                onDelete();
               }
             }}
             className={`absolute right-2 top-2 hidden group-hover:flex ${

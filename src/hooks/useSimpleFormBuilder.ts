@@ -15,7 +15,7 @@ import {
 } from '../core/componentUtils';
 
 // FormPage type combining Page with our custom fields
-type FormPage = Omit<Page, 'components'> & {
+type FormPage = Omit<Page, 'components' | 'name' | 'items'> & {
   id: string;
   title: string;
   components: Component[];
@@ -49,6 +49,7 @@ interface FormState {
 interface FormActions {
   addComponent: (type: ComponentType, index?: number) => void;
   updateComponent: (id: string, updates: Partial<Component>) => void;
+  updateComponents: (components: Component[]) => void;
   deleteComponent: (id: string) => void;
   selectComponent: (id: string | null) => void;
   moveComponent: (fromIndex: number, toIndex: number) => void;
@@ -72,6 +73,7 @@ interface FormActions {
   movePageUp: (pageId: string) => void;
   movePageDown: (pageId: string) => void;
   getCurrentPage: () => FormPage | null;
+  getCurrentPageComponents: () => Component[];
   components: Component[]; // Current page components for backwards compatibility
 
   // Missing functions that tests and components expect
@@ -100,17 +102,17 @@ export const INITIAL_STATE: FormState = {
 
 const MAX_HISTORY = 50;
 
-function createHistorySnapshot(state: FormState): Omit<FormState, 'history' | 'historyIndex'> {
+function createHistorySnapshot(state: any): Omit<FormState, 'history' | 'historyIndex'> {
   return {
-    pages: state.pages.map(page => ({
+    pages: (state.pages || []).map((page: any) => ({
       ...page,
-      components: (page.components || []).map(comp => ({ ...comp }))
+      components: (page.components || []).map((comp: any) => ({ ...comp }))
     })),
     currentPageId: state.currentPageId,
     selectedId: state.selectedId,
     templateName: state.templateName,
-    previewMode: state.previewMode,
-    mode: state.mode,
+    previewMode: !!state.previewMode,
+    mode: (state.mode || 'create') as 'create' | 'edit',
     editingTemplateId: state.editingTemplateId
   };
 }
@@ -123,6 +125,7 @@ function commitState(state: FormState, nextStateWithoutHistory: any): FormState 
   const newHistory = [...historySlice, snapshot].slice(-MAX_HISTORY);
   return {
     ...nextStateWithoutHistory,
+    mode: (nextStateWithoutHistory.mode || 'create') as 'create' | 'edit',
     history: newHistory,
     historyIndex: newHistory.length - 1
   };
@@ -532,7 +535,7 @@ export function formBuilderReducer(state: FormState, action: any): FormState {
           title: p.title || p.name || 'Untitled Page',
           components: p.components || p.items || []
         }));
-        const nextState = {
+        const nextState: FormState = {
           ...state,
           mode: 'edit',
           editingTemplateId: templateId,
@@ -684,7 +687,7 @@ export function useSimpleFormBuilder(): FormState & FormActions {
     }, []),
     loadExistingTemplate: useCallback((templateId: string) => {
       dispatch({ type: 'LOAD_TEMPLATE', payload: { templateId } });
-    })
+    }, [])
   };
 }
 
